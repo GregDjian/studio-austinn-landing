@@ -3,7 +3,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Clock,
   ArrowRight,
   Instagram,
   Linkedin,
@@ -13,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { processLeadInquiry } from "../services/geminiService";
+import { Language } from "../types";
 
 type SubmitStatus = "idle" | "success" | "error";
 
@@ -28,16 +28,78 @@ type InterestOption = (typeof INTEREST_OPTIONS)[number];
 type FormData = {
   name: string;
   email: string;
-  interest: InterestOption[]; // ✅ multiple choices
+  interest: InterestOption[]; // multi-select
   message: string;
 };
 
-const Contact: React.FC = () => {
+const getContent = (lang: Language) => {
+  if (lang === "ar") {
+    return {
+      subtitle: "استفسار",
+      titleTop: "ابدأ",
+      titleBottom: "الحوار",
+      desc: "نحن ننسّق البيئات لأصحاب الرؤى. دعنا نساعدك في اختيار القطعة المثالية أو تكليف عمل مُخصّص لمساحتك.",
+      labelName: "الاسم الكامل",
+      labelEmail: "البريد الإلكتروني",
+      labelInterest: "مجال الاهتمام (اختر واحداً أو أكثر)",
+      labelMessage: "أخبرنا عن مشروعك",
+      submit: "إرسال طلب رسمي",
+      submitting: "جارٍ معالجة الطلب",
+      successTitle: "تم استلام الاستفسار",
+      sendAnother: "إرسال استفسار آخر",
+      responseTime: "وقت الاستجابة: أقل من 24 ساعة",
+      errors: {
+        nameRequired: "الاسم الكامل مطلوب",
+        emailRequired: "البريد الإلكتروني مطلوب",
+        emailInvalid: "يرجى إدخال بريد إلكتروني صحيح",
+        interestRequired: "يرجى اختيار مجال اهتمام واحد على الأقل",
+        messageRequired: "يرجى توضيح تفاصيل مشروعك",
+        messageMin: "يجب ألا تقل الرسالة عن 10 أحرف",
+        generic: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      },
+      atelierLabel: "الاستوديو",
+      digitalLabel: "التواصل",
+      addressTitle: "القوز - دبي",
+    };
+  }
+
+  return {
+    subtitle: "Inquiry",
+    titleTop: "Begin The",
+    titleBottom: "Dialogue",
+    desc: "We curate environments for the visionary. Let us assist you in sourcing or commissioning the perfect piece for your space.",
+    labelName: "Full Name",
+    labelEmail: "Email Address",
+    labelInterest: "Interest Area (select one or more)",
+    labelMessage: "Tell us about your project",
+    submit: "Send Formal Request",
+    submitting: "Processing Inquiry",
+    successTitle: "Inquiry Received",
+    sendAnother: "Send another inquiry",
+    responseTime: "Response time: < 24h",
+    errors: {
+      nameRequired: "Full name is required",
+      emailRequired: "Email is required",
+      emailInvalid: "Please enter a valid email address",
+      interestRequired: "Please select at least one area of interest",
+      messageRequired: "Please tell us about your project",
+      messageMin: "Message must be at least 10 characters",
+      generic: "Something went wrong. Please try again.",
+    },
+    atelierLabel: "The Atelier",
+    digitalLabel: "Digital",
+    addressTitle: "Al Quoz Dubai",
+  };
+};
+
+const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
+  const content = getContent(lang);
+
   const [activeField, setActiveField] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
-    interest: [], // ✅ array for multi-select
+    interest: [],
     message: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,21 +110,19 @@ const Contact: React.FC = () => {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Full name is required";
+    if (!formData.name.trim()) newErrors.name = content.errors.nameRequired;
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = content.errors.emailRequired;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = content.errors.emailInvalid;
     }
 
     if (formData.interest.length === 0)
-      newErrors.interest = "Please select at least one area of interest";
+      newErrors.interest = content.errors.interestRequired;
 
-    if (!formData.message.trim())
-      newErrors.message = "Please tell us about your project";
-    else if (formData.message.length < 10)
-      newErrors.message = "Message must be at least 10 characters";
+    if (!formData.message.trim()) newErrors.message = content.errors.messageRequired;
+    else if (formData.message.length < 10) newErrors.message = content.errors.messageMin;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -82,7 +142,6 @@ const Contact: React.FC = () => {
     clearError(field);
   };
 
-  // ✅ toggle multi-select interests
   const toggleInterest = (interest: InterestOption) => {
     setFormData((prev) => {
       const exists = prev.interest.includes(interest);
@@ -106,18 +165,17 @@ const Contact: React.FC = () => {
       // Simulate API call to lead management system
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // ✅ Send to Gemini with interest as a readable string
+      // Send to Gemini: join interests into a readable string
       const payloadForAI = {
         ...formData,
         interest: formData.interest.join(", "),
       };
 
-      const confirmation = await processLeadInquiry(payloadForAI as any);
+      // ✅ updated: pass lang + leadData
+      const confirmation = await processLeadInquiry(lang, payloadForAI as any);
       setAiConfirmation(confirmation);
 
       setSubmitStatus("success");
-
-      // Reset form after success
       setFormData({ name: "", email: "", interest: [], message: "" });
     } catch (error) {
       console.error("Submission error:", error);
@@ -130,6 +188,7 @@ const Contact: React.FC = () => {
   return (
     <footer
       id="contact"
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className="bg-stone-900 text-stone-200 py-32 relative overflow-hidden"
     >
       {/* Editorial Background Text */}
@@ -147,18 +206,32 @@ const Contact: React.FC = () => {
           {/* Left Column: Information */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="relative mb-16">
-              <span className="font-script text-7xl text-stone-700 absolute -top-10 left-0 z-0 opacity-40">
-                Inquiry
+              <span
+                className={[
+                  "font-script text-7xl text-stone-700 absolute -top-10 z-0 opacity-40",
+                  lang === "ar" ? "right-0" : "left-0",
+                ].join(" ")}
+              >
+                {content.subtitle}
               </span>
+
               <h2 className="relative z-10 font-sans font-black text-6xl md:text-7xl leading-[0.85] text-white uppercase tracking-tighter">
-                Begin The <br />
-                <span className="text-stone-500">Dialogue</span>
+                {lang === "en" ? (
+                  <>
+                    Begin The <br />
+                    <span className="text-stone-500">Dialogue</span>
+                  </>
+                ) : (
+                  <>
+                    {content.titleTop} <br />
+                    <span className="text-stone-500">{content.titleBottom}</span>
+                  </>
+                )}
               </h2>
             </div>
 
             <p className="font-serif text-xl text-stone-400 mb-16 max-w-sm leading-relaxed">
-              We curate environments for the visionary. Let us assist you in
-              sourcing or commissioning the perfect piece for your space.
+              {content.desc}
             </p>
 
             <div className="space-y-12 mb-16">
@@ -166,14 +239,14 @@ const Contact: React.FC = () => {
                 <div className="flex items-center gap-4 mb-3">
                   <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-sky-300 transition-all duration-500" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 group-hover:text-stone-300 transition-colors">
-                    The Atelier
+                    {content.atelierLabel}
                   </span>
                 </div>
                 <div className="flex gap-4">
                   <MapPin size={18} className="text-stone-600 mt-1 shrink-0" />
                   <p className="font-sans text-stone-300 leading-relaxed">
                     <strong className="block text-white mb-1">
-                      Al Quoz Dubai
+                      {content.addressTitle}
                     </strong>
                     Building 7, Office 304
                     <br />
@@ -187,7 +260,7 @@ const Contact: React.FC = () => {
                   <div className="flex items-center gap-4 mb-3">
                     <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-sky-300 transition-all duration-500" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 group-hover:text-stone-300 transition-colors">
-                      Digital
+                      {content.digitalLabel}
                     </span>
                   </div>
                   <div className="space-y-3">
@@ -207,8 +280,6 @@ const Contact: React.FC = () => {
                     </a>
                   </div>
                 </div>
-
-             
               </div>
             </div>
           </div>
@@ -223,48 +294,55 @@ const Contact: React.FC = () => {
                       <CheckCircle2 size={40} className="text-sky-300" />
                     </div>
                   </div>
+
                   <h3 className="font-sans font-black text-3xl uppercase tracking-tighter text-white mb-6">
-                    Inquiry Received
+                    {content.successTitle}
                   </h3>
+
                   <div className="bg-stone-900/40 p-8 rounded-sm border border-white/5 mb-8">
                     <p className="font-serif italic text-lg text-stone-300 leading-relaxed">
                       "{aiConfirmation}"
                     </p>
                   </div>
+
                   <button
                     onClick={() => setSubmitStatus("idle")}
                     className="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-white transition-colors underline underline-offset-8"
                   >
-                    Send another inquiry
+                    {content.sendAnother}
                   </button>
                 </div>
               ) : (
                 <>
                   <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <Send size={40} className="text-white transform rotate-12" />
+                    <Send
+                      size={40}
+                      className={[
+                        "text-white transform rotate-12",
+                        lang === "ar" ? "-scale-x-100" : "" // flip horizontally in Arabic (points left)
+                      ].join(" ")}
+                    />
                   </div>
 
-                  <form
-                    className="relative z-10 space-y-10"
-                    onSubmit={handleSubmit}
-                  >
+
+                  <form className="relative z-10 space-y-10" onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div className="relative">
                         <label
-                          className={`absolute left-0 transition-all duration-300 text-[10px] uppercase tracking-widest ${
+                          className={`absolute ${
+                            lang === "ar" ? "right-0" : "left-0"
+                          } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                             activeField === "name" || formData.name
                               ? "-top-6 text-sky-300"
                               : "top-2 text-stone-500"
                           }`}
                         >
-                          Full Name
+                          {content.labelName}
                         </label>
                         <input
                           type="text"
                           value={formData.name}
-                          onChange={(e) =>
-                            handleInputChange("name", e.target.value)
-                          }
+                          onChange={(e) => handleInputChange("name", e.target.value)}
                           onFocus={() => setActiveField("name")}
                           onBlur={() => setActiveField(null)}
                           className={`w-full bg-transparent border-b pb-3 pt-2 focus:outline-none transition-all text-white placeholder-transparent ${
@@ -272,10 +350,14 @@ const Contact: React.FC = () => {
                               ? "border-red-500"
                               : "border-stone-700 focus:border-sky-300"
                           }`}
-                          placeholder="Full Name"
+                          placeholder={content.labelName}
                         />
                         {errors.name && (
-                          <span className="absolute left-0 -bottom-5 text-[9px] text-red-500 uppercase tracking-widest">
+                          <span
+                            className={`absolute ${
+                              lang === "ar" ? "right-0" : "left-0"
+                            } -bottom-5 text-[9px] text-red-500 uppercase tracking-widest`}
+                          >
                             {errors.name}
                           </span>
                         )}
@@ -283,20 +365,20 @@ const Contact: React.FC = () => {
 
                       <div className="relative">
                         <label
-                          className={`absolute left-0 transition-all duration-300 text-[10px] uppercase tracking-widest ${
+                          className={`absolute ${
+                            lang === "ar" ? "right-0" : "left-0"
+                          } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                             activeField === "email" || formData.email
                               ? "-top-6 text-sky-300"
                               : "top-2 text-stone-500"
                           }`}
                         >
-                          Email Address
+                          {content.labelEmail}
                         </label>
                         <input
                           type="email"
                           value={formData.email}
-                          onChange={(e) =>
-                            handleInputChange("email", e.target.value)
-                          }
+                          onChange={(e) => handleInputChange("email", e.target.value)}
                           onFocus={() => setActiveField("email")}
                           onBlur={() => setActiveField(null)}
                           className={`w-full bg-transparent border-b pb-3 pt-2 focus:outline-none transition-all text-white placeholder-transparent ${
@@ -304,24 +386,28 @@ const Contact: React.FC = () => {
                               ? "border-red-500"
                               : "border-stone-700 focus:border-sky-300"
                           }`}
-                          placeholder="Email Address"
+                          placeholder={content.labelEmail}
                         />
                         {errors.email && (
-                          <span className="absolute left-0 -bottom-5 text-[9px] text-red-500 uppercase tracking-widest">
+                          <span
+                            className={`absolute ${
+                              lang === "ar" ? "right-0" : "left-0"
+                            } -bottom-5 text-[9px] text-red-500 uppercase tracking-widest`}
+                          >
                             {errors.email}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* ✅ Multi-select Interest */}
+                    {/* Multi-select Interest */}
                     <div className="relative">
                       <label
                         className={`block text-[10px] uppercase tracking-widest mb-6 ${
                           errors.interest ? "text-red-500" : "text-stone-500"
                         }`}
                       >
-                        Interest Area (select one or more)
+                        {content.labelInterest}
                       </label>
 
                       <div className="flex flex-wrap gap-3">
@@ -347,7 +433,11 @@ const Contact: React.FC = () => {
                       </div>
 
                       {errors.interest && (
-                        <span className="absolute left-0 -bottom-6 text-[9px] text-red-500 uppercase tracking-widest">
+                        <span
+                          className={`absolute ${
+                            lang === "ar" ? "right-0" : "left-0"
+                          } -bottom-6 text-[9px] text-red-500 uppercase tracking-widest`}
+                        >
                           {errors.interest}
                         </span>
                       )}
@@ -355,20 +445,20 @@ const Contact: React.FC = () => {
 
                     <div className="relative">
                       <label
-                        className={`absolute left-0 transition-all duration-300 text-[10px] uppercase tracking-widest ${
+                        className={`absolute ${
+                          lang === "ar" ? "right-0" : "left-0"
+                        } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                           activeField === "message" || formData.message
                             ? "-top-6 text-sky-300"
                             : "top-2 text-stone-500"
                         }`}
                       >
-                        Tell us about your project
+                        {content.labelMessage}
                       </label>
                       <textarea
                         rows={4}
                         value={formData.message}
-                        onChange={(e) =>
-                          handleInputChange("message", e.target.value)
-                        }
+                        onChange={(e) => handleInputChange("message", e.target.value)}
                         onFocus={() => setActiveField("message")}
                         onBlur={() => setActiveField(null)}
                         className={`w-full bg-transparent border-b pb-3 pt-2 focus:outline-none transition-all text-white placeholder-transparent resize-none ${
@@ -376,10 +466,14 @@ const Contact: React.FC = () => {
                             ? "border-red-500"
                             : "border-stone-700 focus:border-sky-300"
                         }`}
-                        placeholder="Tell us about your project..."
+                        placeholder={content.labelMessage}
                       />
                       {errors.message && (
-                        <span className="absolute left-0 -bottom-5 text-[9px] text-red-500 uppercase tracking-widest">
+                        <span
+                          className={`absolute ${
+                            lang === "ar" ? "right-0" : "left-0"
+                          } -bottom-5 text-[9px] text-red-500 uppercase tracking-widest`}
+                        >
                           {errors.message}
                         </span>
                       )}
@@ -388,7 +482,7 @@ const Contact: React.FC = () => {
                     {submitStatus === "error" && (
                       <div className="flex items-center gap-2 text-red-400 bg-red-400/10 p-4 border border-red-400/20 text-[10px] uppercase tracking-widest">
                         <AlertCircle size={14} />
-                        Something went wrong. Please try again.
+                        {content.errors.generic}
                       </div>
                     )}
 
@@ -401,14 +495,14 @@ const Contact: React.FC = () => {
                         {isSubmitting ? (
                           <>
                             <Loader2 size={16} className="animate-spin" />
-                            Processing Inquiry
+                            {content.submitting}
                           </>
                         ) : (
                           <>
-                            Send Formal Request
+                            {content.submit}
                             <ArrowRight
                               size={16}
-                              className="group-hover:translate-x-2 transition-transform duration-500"
+                              className={lang === "ar" ? "rotate-180" : ""}
                             />
                           </>
                         )}
@@ -419,8 +513,8 @@ const Contact: React.FC = () => {
               )}
             </div>
 
-            <div className="mt-12 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-stone-600"> 
-              <p>Response time: &lt; 24h</p>
+            <div className="mt-12 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-stone-600">
+              <p>{content.responseTime}</p>
             </div>
           </div>
         </div>
@@ -437,8 +531,7 @@ const Contact: React.FC = () => {
               </span>
             </div>
             <span className="text-[9px] text-stone-600 uppercase tracking-[0.3em]">
-              &copy; {new Date().getFullYear()} Studio Austinn Art Consultancy
-              FZ-LLC.
+              &copy; {new Date().getFullYear()} Studio Austinn Art Consultancy FZ-LLC.
             </span>
           </div>
 

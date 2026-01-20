@@ -1,3 +1,5 @@
+export type Language = 'en' | 'ar';
+
 export interface NavItem {
   label: string;
   href: string;

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Language } from '../types';
+
 
 interface PreloaderProps {
   onComplete: () => void;
+  lang: Language;
 }
 
 const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {

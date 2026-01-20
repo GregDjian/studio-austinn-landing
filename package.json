@@ -11,6 +11,8 @@
   "dependencies": {
     "@google/genai": "^1.30.0",
     "@google/model-viewer": "^4.1.0",
+    "@sanity/client": "^7.14.0",
+    "@sanity/image-url": "^2.0.3",
     "lucide-react": "^0.555.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
@@ -19,6 +21,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^5.5.25",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
