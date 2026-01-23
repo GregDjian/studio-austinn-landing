@@ -1,5 +1,6 @@
 // api/gemini.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { Resend } from "resend";
 
 // ---- Simple in-memory rate limiter (best-effort on serverless) ----
 type RateEntry = { count: number; resetAt: number };
@@ -137,6 +138,37 @@ async function callGemini(apiKey: string, contents: any) {
   return { ok: true as const, text };
 }
 
+function escapeHtml(s: string) {
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function sendLeadEmail(opts: {
+  subject: string;
+  to: string[];
+  from: string;
+  replyTo?: string;
+  text: string;
+  html: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("Missing RESEND_API_KEY");
+
+  const resend = new Resend(apiKey);
+  await resend.emails.send({
+    from: opts.from,
+    to: opts.to,
+    subject: opts.subject,
+    replyTo: opts.replyTo,
+    text: opts.text,
+    html: opts.html,
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -178,7 +210,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const system = getLeadProcessingInstruction(lang);
 
-      // We embed the system instruction into the first user message for robustness.
       const contents = [
         {
           role: "user",
@@ -198,6 +229,77 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const result = await callGemini(apiKey, contents);
       if (!result.ok) return res.status(502).json({ error: "Upstream AI service error" });
+
+      // ✅ Send lead by email (non-blocking for UX, but still awaited here for reliability)
+      try {
+        const toList = (process.env.LEADS_TO_EMAIL || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        const from = process.env.LEADS_FROM_EMAIL || "Studio Austinn <onboarding@resend.dev>";
+
+        if (toList.length === 0) {
+          console.error("Missing LEADS_TO_EMAIL (no recipients configured)");
+        } else {
+          const subject = `New Studio Austinn Lead — ${interest ? interest : "Inquiry"} — ${name}`;
+
+          const textEmail =
+            `New Lead\n\n` +
+            `Name: ${name}\n` +
+            `Email: ${email}\n` +
+            `Interest: ${interest || "-"}\n` +
+            `Language: ${lang}\n` +
+            `IP: ${ip}\n\n` +
+            `Message:\n${message}\n\n` +
+            `AI Confirmation:\n${result.text}\n`;
+
+          const htmlEmail = `
+            <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.5; color:#111;">
+              <h2 style="margin:0 0 12px;">New Lead — Studio Austinn</h2>
+              <table style="border-collapse:collapse; width:100%; max-width:760px;">
+                <tr><td style="padding:6px 0; color:#555; width:120px;">Name</td><td style="padding:6px 0;"><b>${escapeHtml(
+                  name
+                )}</b></td></tr>
+                <tr><td style="padding:6px 0; color:#555;">Email</td><td style="padding:6px 0;"><a href="mailto:${escapeHtml(
+                  email
+                )}">${escapeHtml(email)}</a></td></tr>
+                <tr><td style="padding:6px 0; color:#555;">Interest</td><td style="padding:6px 0;">${escapeHtml(
+                  interest || "-"
+                )}</td></tr>
+                <tr><td style="padding:6px 0; color:#555;">Language</td><td style="padding:6px 0;">${escapeHtml(
+                  lang
+                )}</td></tr>
+                <tr><td style="padding:6px 0; color:#555;">IP</td><td style="padding:6px 0;">${escapeHtml(
+                  ip
+                )}</td></tr>
+              </table>
+
+              <div style="margin-top:14px; padding:12px; background:#fafafa; border:1px solid #eee;">
+                <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#777; font-weight:700; margin-bottom:6px;">Client message</div>
+                <div style="white-space:pre-wrap;">${escapeHtml(message)}</div>
+              </div>
+
+              <div style="margin-top:14px; padding:12px; background:#f7fbff; border:1px solid #e6f2ff;">
+                <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#3b6ea5; font-weight:700; margin-bottom:6px;">AI confirmation shown to client</div>
+                <div style="white-space:pre-wrap;">${escapeHtml(result.text)}</div>
+              </div>
+            </div>
+          `;
+
+          await sendLeadEmail({
+            subject,
+            to: toList,
+            from,
+            replyTo: email, // ✅ replying to the email goes to the lead
+            text: textEmail,
+            html: htmlEmail,
+          });
+        }
+      } catch (mailErr) {
+        // We still return success to the user, but log for you
+        console.error("Lead email sending failed:", mailErr);
+      }
 
       return res.status(200).json({ text: result.text });
     }

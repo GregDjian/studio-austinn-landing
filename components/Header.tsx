@@ -98,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
         className={[
           "fixed top-0 left-0 w-full z-50",
           "transition-[padding,color] duration-500 ease-out",
-          isSolid ? "py-4 mix-blend-normal" : "py-8 mix-blend-difference text-white",
+          isSolid ? "py-4 mix-blend-normal" : "py-8",
         ].join(" ")}
       >
         {/* Background layer */}
@@ -112,31 +112,13 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
         />
 
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
-          <a
-            href="#"
-            className={[
-              "group relative z-50 transition-colors duration-300",
-              isSolid ? "text-stone-900" : "text-white",
-            ].join(" ")}
-          >
-            <div
-              className={[
-                "flex flex-col leading-none",
-                lang === "ar" ? "items-end text-right" : "items-start text-left",
-              ].join(" ")}
-            >
-              <span className="font-sans font-black text-2xl uppercase tracking-tighter">
-                Studio
-              </span>
-              <span
-                className={[
-                  "font-script text-3xl -translate-y-2",
-                  lang === "ar" ? "-translate-x-4" : "translate-x-4",
-                ].join(" ")}
-              >
-                Austinn
-              </span>
-            </div>
+          <a href="#" className="relative z-50">
+            <img
+              src="/logo/SA_logo.png"
+              alt="Studio Austinn"
+              className="h-16 md:h-20 w-auto"
+              draggable={false}
+            />
           </a>
 
           <nav className="hidden md:flex gap-12 items-center">
@@ -146,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 href={item.href}
                 className={[
                   "text-[10px] font-bold uppercase tracking-[0.2em] relative group overflow-hidden transition-colors duration-300",
-                  isSolid ? "text-stone-900 hover:text-stone-600" : "text-white/90 hover:text-white",
+                  isSolid ? "text-stone-900 hover:text-stone-600" : "text-black/90 hover:text-black",
                 ].join(" ")}
               >
                 <span className="inline-block transition-transform duration-300 group-hover:-translate-y-full">
@@ -171,7 +153,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 onClick={toggleLang}
                 className={[
                   "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
-                  isSolid ? "text-stone-900" : "text-white",
+                  isSolid ? "text-stone-900" : "text-black",
                 ].join(" ")}
               >
                 <Globe size={14} />
@@ -186,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 "px-6 py-2 border text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300",
                 isSolid
                   ? "border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white"
-                  : "border-white text-white hover:bg-white hover:text-stone-900 hover:border-white",
+                  : "border-black text-black hover:bg-white hover:text-stone-900 hover:border-white",
               ].join(" ")}
             >
               {t.contact}

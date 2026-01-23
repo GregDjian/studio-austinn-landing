@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   X,
   Rotate3d,
   Move3d,
   ArrowUpRight,
-  Maximize2,
   Send,
   Loader2,
   CheckCircle2,
@@ -13,6 +12,8 @@ import {
 } from "lucide-react";
 import { Language } from "../types";
 import { processLeadInquiry } from "../services/geminiService";
+import { getArtworks } from "../lib/sanityQueries";
+import { urlFor } from "../lib/sanityImage";
 
 // Extend the IntrinsicElements interface globally to support custom web components like <model-viewer>.
 declare global {
@@ -32,21 +33,29 @@ declare global {
   }
 }
 
+type ArtworkType = "painting" | "sculpture" | "chandelier" | "installation" | "bespoke";
+
 interface Artwork {
   id: string;
   title: string;
   description: string;
-  image: string;
+  image: string; // URL from Sanity
+  type: ArtworkType;
 }
 
 interface ServiceCategory {
   id: string;
   title: string;
   desc: string;
-  image: string;
+  image: string; // ✅ fixed background image per category (NOT dependent on gallery)
   modelUrl?: string;
   is3D?: boolean;
-  gallery: Artwork[];
+  gallery: Array<{
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+  }>;
 }
 
 const getUI = (lang: Language) => {
@@ -55,8 +64,7 @@ const getUI = (lang: Language) => {
       catalogue: "الكتالوج",
       part: "قسم",
       browse: "تصفّح",
-      curatedNote:
-        "كل قطعة في مجموعتنا مُختارة بعناية لتلبي أعلى معايير التعبير الفني.",
+      curatedNote: "كل قطعة في مجموعتنا مُختارة بعناية لتلبي أعلى معايير التعبير الفني.",
       inquire: "استفسر عن التوفّر",
       close: "إغلاق",
       view3d: "عرض ثلاثي الأبعاد",
@@ -72,10 +80,13 @@ const getUI = (lang: Language) => {
       send: "إرسال الاستفسار",
       back: "العودة للمعرض",
       success: "شكراً لاهتمامكم.",
-      // optional / reused
       inquiryTitle: "استفسار",
+      loadingCatalogue: "جارٍ تحميل الكتالوج...",
+      errorTryAgain: "حدث خطأ. حاول مرة أخرى.",
+      emptyCategory: "لا توجد أعمال حالياً في هذا القسم.",
     };
   }
+
   return {
     catalogue: "Catalogue",
     part: "Part",
@@ -97,132 +108,80 @@ const getUI = (lang: Language) => {
     send: "Send Inquiry",
     back: "Back to Gallery",
     success: "Thank you for your interest.",
-    // optional / reused
     inquiryTitle: "Inquiry",
+    loadingCatalogue: "Loading catalogue...",
+    errorTryAgain: "Something went wrong. Please try again.",
+    emptyCategory: "No artworks currently in this category.",
   };
 };
 
-// Galleries (Arabic titles/descriptions where needed)
-const paintingsGallery = (lang: Language): Artwork[] => [
-  {
-    id: "paint-1",
-    title: lang === "ar" ? "تدفّق قرمزي" : "Crimson Flow",
-    description: lang === "ar" ? "استكشاف للملمس والحركة." : "Exploration of texture and movement.",
-    image: "https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "paint-2",
-    title: lang === "ar" ? "طبقات صامتة" : "Silent Layers",
-    description: lang === "ar" ? "درجات هادئة وعمق بصري." : "Muted tones and spatial depth.",
-    image: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "paint-3",
-    title: lang === "ar" ? "أفق محترق" : "Burnt Horizon",
-    description: lang === "ar" ? "دراسة لمنظر مجرّد." : "Abstract landscape study.",
-    image: "https://images.unsplash.com/photo-1459411552884-841f9b3924a0?q=80&w=800&auto=format&fit=crop",
-  },
-];
-
-const sculpturesGallery = (lang: Language): Artwork[] => [
-  {
-    id: "sculpt-1",
-    title: lang === "ar" ? "هيئة مُجزّأة" : "Fragmented Form",
-    description: lang === "ar" ? "ظلّ إنساني مُفكّك." : "Deconstructed human silhouette.",
-    image: "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "sculpt-2",
-    title: lang === "ar" ? "حضور الفراغ" : "Void Presence",
-    description: lang === "ar" ? "تفاعل الكتلة والفراغ." : "Mass and emptiness interplay.",
-    image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop",
-  },
-];
-
-const chandeliersGallery = (lang: Language): Artwork[] => [
-  {
-    id: "chan-1",
-    title: lang === "ar" ? "ضوء سديمي" : "Nebula Light",
-    description: lang === "ar" ? "إضاءة معلّقة بطابع فضائي." : "Suspended spatial lighting.",
-    image: "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "chan-2",
-    title: lang === "ar" ? "تدفّق بلّوري" : "Crystal Flux",
-    description: lang === "ar" ? "ضوء ينكسر عبر الشكل." : "Light refracted through form.",
-    image: "https://images.unsplash.com/photo-1605218427368-35b0185e49f7?q=80&w=800&auto=format&fit=crop",
-  },
-];
-
-const installationsGallery = (lang: Language): Artwork[] => [
-  {
-    id: "inst-1",
-    title: lang === "ar" ? "نواة غامرة" : "Immersive Core",
-    description: lang === "ar" ? "بيئة فنية معمارية." : "Architectural art environment.",
-    image: "https://images.unsplash.com/photo-1499916078039-922301b0eb9b?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "inst-2",
-    title: lang === "ar" ? "نفق الإدراك" : "Perception Tunnel",
-    description: lang === "ar" ? "مساحة فنية قابلة للمشي." : "Walkable art space.",
-    image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?q=80&w=800&auto=format&fit=crop",
-  },
-];
-
-const bespokeGallery = (lang: Language): Artwork[] => [
-  {
-    id: "bespoke-1",
-    title: lang === "ar" ? "تكليف خاص I" : "Private Commission I",
-    description: lang === "ar" ? "مصمّم خصيصاً لفيلا خاصة." : "Custom-made for a private villa.",
-    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "bespoke-2",
-    title: lang === "ar" ? "قطعة توقيعية" : "Signature Piece",
-    description: lang === "ar" ? "عمل فريد من نوعه." : "One-of-a-kind artwork.",
-    image: "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=800&auto=format&fit=crop",
-  },
-];
-
-const buildCatalogue = (lang: Language): ServiceCategory[] => [
+/**
+ * ✅ Fixed cover images for the SERVICES list (backgrounds).
+ * These stay constant and do NOT depend on fetched artworks.
+ */
+const CATEGORY_META: Array<{
+  id: string;
+  type: ArtworkType;
+  titleEn: string;
+  titleAr: string;
+  descEn: string;
+  descAr: string;
+  coverImage: string; // ✅ fixed
+  modelUrl?: string;
+  is3D?: boolean;
+}> = [
   {
     id: "01",
-    title: lang === "ar" ? "لوحات" : "Paintings",
-    desc: lang === "ar" ? "قماشٌ أثيري" : "Ethereal Canvas",
-    image: "https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=2600&auto=format&fit=crop",
-    gallery: paintingsGallery(lang),
+    type: "painting",
+    titleEn: "Paintings",
+    titleAr: "لوحات",
+    descEn: "Ethereal Canvas",
+    descAr: "قماشٌ أثيري",
+    coverImage:
+      "https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=2600&auto=format&fit=crop",
   },
   {
     id: "02",
-    title: lang === "ar" ? "منحوتات" : "Sculptures",
-    desc: lang === "ar" ? "شكلٌ وفراغ" : "Form & Void",
-    image: "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2600&auto=format&fit=crop",
+    type: "sculpture",
+    titleEn: "Sculptures",
+    titleAr: "منحوتات",
+    descEn: "Form & Void",
+    descAr: "شكلٌ وفراغ",
+    coverImage:
+      "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2600&auto=format&fit=crop",
     modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    // IMPORTANT: your original code had is3D: false, keep it as-is.
-    // If you want the button to appear, set is3D: true.
+    // IMPORTANT: keeping your original behavior (button won't show unless true)
     is3D: false,
-    gallery: sculpturesGallery(lang),
   },
   {
     id: "03",
-    title: lang === "ar" ? "ثريات" : "Chandeliers",
-    desc: lang === "ar" ? "وهجٌ مكاني" : "Spatial Glow",
-    image: "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=2600&auto=format&fit=crop",
-    gallery: chandeliersGallery(lang),
+    type: "chandelier",
+    titleEn: "Chandeliers",
+    titleAr: "ثريات",
+    descEn: "Spatial Glow",
+    descAr: "وهجٌ مكاني",
+    coverImage:
+      "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=2600&auto=format&fit=crop",
   },
   {
     id: "04",
-    title: lang === "ar" ? "تركيبات" : "Installations",
-    desc: lang === "ar" ? "فضاءٌ غامر" : "Immersive Space",
-    image: "https://images.unsplash.com/photo-1499916078039-922301b0eb9b?q=80&w=2600&auto=format&fit=crop",
-    gallery: installationsGallery(lang),
+    type: "installation",
+    titleEn: "Installations",
+    titleAr: "تركيبات",
+    descEn: "Immersive Space",
+    descAr: "فضاءٌ غامر",
+    coverImage:
+      "https://images.unsplash.com/photo-1499916078039-922301b0eb9b?q=80&w=2600&auto=format&fit=crop",
   },
   {
     id: "05",
-    title: lang === "ar" ? "حسب الطلب" : "Bespoke",
-    desc: lang === "ar" ? "تكليف خاص" : "Commissioned",
-    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800&auto=format&fit=crop&q=80&w=800",
-    gallery: bespokeGallery(lang),
+    type: "bespoke",
+    titleEn: "Bespoke",
+    titleAr: "حسب الطلب",
+    descEn: "Commissioned",
+    descAr: "تكليف خاص",
+    coverImage:
+      "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2600&auto=format&fit=crop",
   },
 ];
 
@@ -232,19 +191,87 @@ interface ServicesProps {
 
 const Services: React.FC<ServicesProps> = ({ lang }) => {
   const t = getUI(lang);
-  const catalogueItems = buildCatalogue(lang);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | null>(null);
   const [active3DModel, setActive3DModel] = useState<string | null>(null);
   const [isInquiring, setIsInquiring] = useState(false);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Form states (inquiry)
+  // Inquiry form states
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [aiConfirmation, setAiConfirmation] = useState("");
+
+  // Sanity artworks fetch (FeaturedArtist-style)
+  const [artworksData, setArtworksData] = useState<Artwork[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        const data = await getArtworks();
+
+        const mapped: Artwork[] = (data || [])
+          .map((a: any) => {
+            const cover = a.coverImage ? urlFor(a.coverImage).width(1600).url() : "";
+
+            return {
+              id: a._id,
+              title: a.title ?? "",
+              description: a.description ?? "",
+              image: cover,
+              type: a.type as ArtworkType,
+            };
+          })
+          .filter((x: Artwork) => Boolean(x.id && x.type && x.image));
+
+        if (!alive) return;
+        setArtworksData(mapped);
+      } catch (e) {
+        if (!alive) return;
+        setArtworksData([]);
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // ✅ Build catalogue from Sanity data (gallery), but keep FIXED cover images for the services list
+  const catalogueItems: ServiceCategory[] = useMemo(() => {
+    const grouped = artworksData.reduce<Record<ArtworkType, Artwork[]>>((acc, art) => {
+      (acc[art.type] ||= []).push(art);
+      return acc;
+    }, {} as Record<ArtworkType, Artwork[]>);
+
+    return CATEGORY_META.map((cat) => {
+      const galleryArts = (grouped[cat.type] ?? []).map((art) => ({
+        id: art.id,
+        title: art.title,
+        description: art.description,
+        image: art.image,
+      }));
+
+      return {
+        id: cat.id,
+        title: lang === "ar" ? cat.titleAr : cat.titleEn,
+        desc: lang === "ar" ? cat.descAr : cat.descEn,
+        image: cat.coverImage, // ✅ fixed cover image (NOT dependent on gallery)
+        modelUrl: cat.modelUrl,
+        is3D: cat.is3D,
+        gallery: galleryArts,
+      };
+    });
+  }, [artworksData, lang]);
 
   // Mobile scroll tracking
   useEffect(() => {
@@ -268,7 +295,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [catalogueItems.length]);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -308,6 +335,22 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
       setIsSubmitting(false);
     }
   };
+
+  // Optional loader section (keeps layout clean)
+  if (loading) {
+    return (
+      <section
+        id="services"
+        dir={lang === "ar" ? "rtl" : "ltr"}
+        className="relative w-full min-h-screen bg-stone-50 flex items-center justify-center"
+      >
+        <div className="flex items-center gap-3 text-stone-400 text-xs uppercase tracking-widest">
+          <Loader2 className="animate-spin" size={16} />
+          {t.loadingCatalogue}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -403,9 +446,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                           : "opacity-100 md:opacity-0 translate-x-0 md:translate-x-4",
                       ].join(" ")}
                     >
-                      <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">
-                        {t.browse}
-                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">{t.browse}</span>
                       <div className="w-10 h-10 md:w-8 md:h-8 rounded-full border border-stone-800 flex items-center justify-center bg-white/80 backdrop-blur-md shadow-sm group-active:scale-95 transition-transform">
                         <ArrowUpRight size={16} className="md:w-3.5 md:h-3.5" />
                       </div>
@@ -428,9 +469,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                       hoveredIndex === index ? "opacity-100 translate-y-0" : "opacity-0 md:translate-x-12 translate-y-4",
                     ].join(" ")}
                   >
-                    <p className="font-serif italic text-stone-900 text-lg md:text-xl whitespace-nowrap">
-                      {item.desc}
-                    </p>
+                    <p className="font-serif italic text-stone-900 text-lg md:text-xl whitespace-nowrap">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -484,28 +523,31 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
             <div className="flex-1 overflow-y-auto p-6 md:p-12 scrollbar-hide">
               {!isInquiring ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-                    {activeCategory.gallery.map((art, i) => (
-                      <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
-                        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4 cursor-pointer">
-                          <img src={art.image} alt={art.title} className="w-full h-full object-cover" />
-                         
+                  {activeCategory.gallery.length === 0 ? (
+                    <div className="py-20 text-center text-stone-400 text-xs uppercase tracking-widest">
+                      {t.emptyCategory}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+                      {activeCategory.gallery.map((art, i) => (
+                        <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
+                          <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4 cursor-pointer">
+                            <img src={art.image} alt={art.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>
+                            <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400">
+                              {art.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>
-                          <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400">
-                            {art.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Category Footer */}
                   <div className="mt-20 border-t border-stone-100 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <p className="font-serif italic text-stone-500 max-w-sm text-center md:text-left">
-                      {t.curatedNote}
-                    </p>
+                    <p className="font-serif italic text-stone-500 max-w-sm text-center md:text-left">{t.curatedNote}</p>
                     <button
                       onClick={() => setIsInquiring(true)}
                       className="px-8 py-3 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-stone-700 transition-all"
@@ -617,7 +659,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
 
                       {submitStatus === "error" && (
                         <p className="text-[10px] uppercase tracking-widest text-red-500 text-center">
-                          {lang === "ar" ? "حدث خطأ. حاول مرة أخرى." : "Something went wrong. Please try again."}
+                          {t.errorTryAgain}
                         </p>
                       )}
                     </form>

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
-  Clock,
   Layers,
   ChevronLeft,
   ChevronRight,
@@ -17,7 +16,6 @@ import { Language } from "../types";
 import { getArtists } from "../lib/sanityQueries";
 import { urlFor } from "../lib/sanityImage";
 
-
 interface ArtistWork {
   id: string;
   artistName: string;
@@ -29,136 +27,6 @@ interface ArtistWork {
   description: string;
   dimensions: string;
 }
-
-{/*
-const artistsData: ArtistWork[] = [
-  {
-    id: "1",
-    artistName: "Véronique Locci",
-    collection: "Reflections of Light",
-    technique: "8-10 Weeks",
-    location: "France",
-    imageUrl:
-      "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1618219908412-a29a1bb7cbb9?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1618219740975-d40978bb7378?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "Hand-blown concave glass with engraved wooden supports. Each piece creates a hypnotic play of reflections that shift with their surroundings.",
-    dimensions: "120cm Diameter",
-  },
-  {
-    id: "2",
-    artistName: "Satoshi K.",
-    collection: "Negative Space Series",
-    technique: "6-8 Weeks",
-    location: "Japan",
-    imageUrl:
-      "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "Matte black steel sculpture exploring the relationship between form and void. A striking minimalist statement for modern interiors.",
-    dimensions: "180cm x 60cm",
-  },
-  {
-    id: "3",
-    artistName: "Elena Vora",
-    collection: "Atmosphere",
-    technique: "4-6 Weeks",
-    location: "Italy",
-    imageUrl:
-      "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1496317899792-9d7dbcd928a1?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "Large-scale oil on canvas layered with translucent glazes to create a sense of depth and atmospheric movement reminiscent of clouds.",
-    dimensions: "200cm x 150cm",
-  },
-  {
-    id: "4",
-    artistName: "Marcus Thorne",
-    collection: "Ancient Future",
-    technique: "12 Weeks",
-    location: "UK",
-    imageUrl:
-      "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "Cast bronze sculpture with a unique patina finish. Thorne blends classical techniques with abstract, fragmented forms.",
-    dimensions: "45cm x 30cm x 30cm",
-  },
-  {
-    id: "5",
-    artistName: "Lila K.",
-    collection: "Fiber Arts",
-    technique: "5-7 Weeks",
-    location: "UAE",
-    imageUrl:
-      "https://images.unsplash.com/photo-1631557999863-718554972e7a?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1631557999863-718554972e7a?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "Intricate textile installation using metallic threads that catch the light, created by local Dubai-based artist Lila K.",
-    dimensions: "Custom Installation",
-  },
-  {
-    id: "6",
-    artistName: "Adrian Mole",
-    collection: "Motion",
-    technique: "10-12 Weeks",
-    location: "Germany",
-    imageUrl:
-      "https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?q=80&w=2000&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1505330622279-bf7d7fc918f4?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2000&auto=format&fit=crop",
-    ],
-    description:
-      "A suspended geometric sculpture that slowly rotates with air currents, casting dynamic shadows across the space.",
-    dimensions: "80cm x 80cm",
-  },
-];
-*/}
-
-const [artistsData, setArtistsData] = useState<ArtistWork[]>([]);
-const [loading, setLoading] = useState(true);
-
-useEffect(() => {
-  getArtists().then((data) => {
-    const mapped = data.map((a: any) => ({
-      id: a._id,
-      artistName: a.name,
-      collection: a.collectionName,
-      leadTime: "On Request",
-      location: "",
-      imageUrl: urlFor(a.coverImage).width(1200).url(),
-      images: a.galleryImages?.map((img: any) =>
-        urlFor(img).width(1600).url()
-      ),
-      description: a.aboutArtist,
-      dimensions: a.dimensions,
-    }));
-
-    setArtistsData(mapped);
-    setLoading(false);
-  });
-}, []);
-
-
-
 
 const getContent = (lang: Language) => {
   if (lang === "ar") {
@@ -243,11 +111,60 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">(
-    "idle"
-  );
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [aiConfirmation, setAiConfirmation] = useState("");
   const [activeField, setActiveField] = useState<string | null>(null);
+
+  // ✅ MOVED INSIDE COMPONENT
+  const [artistsData, setArtistsData] = useState<ArtistWork[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ MOVED INSIDE COMPONENT
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      try {
+        const data = await getArtists();
+
+        const mapped: ArtistWork[] = (data || []).map((a: any) => {
+          const cover = a.coverImage ? urlFor(a.coverImage).width(1200).url() : "";
+
+          const galleryUrls: string[] = (a.galleryImages ?? [])
+            .map((img: any) => (img?.asset ? urlFor(img).width(1600).url() : ""))
+            .filter(Boolean)
+            .slice(0, 3); // ✅ max 3 gallery images
+
+          // ✅ store gallery separately (WITHOUT cover) in `images`
+          return {
+            id: a._id,
+            artistName: a.name ?? "",
+            collection: a.collection ?? "",
+            technique: a.technique ?? "On Request",
+            location: a.location ?? "",
+            imageUrl: cover,
+            images: galleryUrls,
+            description: a.about ?? "",
+            dimensions: a.dimensions ?? "",
+          };
+        });
+
+
+        if (!alive) return;
+        setArtistsData(mapped);
+      } catch (e) {
+        if (!alive) return;
+        setArtistsData([]);
+      } finally {
+        if (!alive) return;
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!activeArtwork) {
@@ -309,8 +226,6 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
       };
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // ✅ updated: pass lang + leadData
       const confirmation = await processLeadInquiry(lang, leadData);
       setAiConfirmation(confirmation);
       setSubmitStatus("success");
@@ -347,11 +262,15 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
 
   const galleryImages = useMemo(() => {
     if (!activeArtwork) return [];
-    const list = (activeArtwork.images?.length
-      ? activeArtwork.images
-      : [activeArtwork.imageUrl]
-    ).filter(Boolean);
-    return list.slice(0, 4);
+
+    const cover = activeArtwork.imageUrl ? [activeArtwork.imageUrl] : [];
+    const gallery = (activeArtwork.images ?? []).filter(Boolean).slice(0, 3);
+
+    // ✅ cover first + max 3 gallery = max 4 total
+    // ✅ also remove duplicates (sometimes cover is also in gallery)
+    const unique = Array.from(new Set([...cover, ...gallery]));
+
+    return unique;
   }, [activeArtwork]);
 
   const canNav = galleryImages.length > 1;
@@ -402,90 +321,86 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
             <span className="text-stone-300">{t.headerTitleBottom}</span>
           </h2>
 
-          <div
-            className={[
-              "mt-8 md:mt-0",
-              lang === "ar" ? "text-right" : "text-left md:text-right",
-            ].join(" ")}
-          >
+          <div className={["mt-8 md:mt-0", lang === "ar" ? "text-right" : "text-left md:text-right"].join(" ")}>
             <p className="font-serif italic text-2xl text-stone-500">{t.headerSub1}</p>
-            <p className="text-xs uppercase tracking-widest text-stone-400 mt-2">
-              {t.headerSub2}
-            </p>
+            <p className="text-xs uppercase tracking-widest text-stone-400 mt-2">{t.headerSub2}</p>
           </div>
         </div>
 
-        {/* Artist Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-          {artistsData.map((artist, index) => (
-            <div
-              key={artist.id}
-              className={`group relative cursor-pointer ${
-                index % 2 === 0 ? "md:mt-0" : "md:mt-12"
-              } transition-all duration-700`}
-              onClick={() => setActiveArtwork(artist)}
-            >
-              <div className="aspect-[3/4] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
-                <img
-                  src={artist.imageUrl}
-                  alt={artist.collection}
-                  className="
-                    w-full h-full object-cover
-                    will-change-transform
-                    transition-all duration-[1.3s] ease-out
-                    scale-[1.05]
-                    saturate-80 contrast-90 brightness-92
-                    group-hover:scale-110
-                    group-hover:saturate-115
-                    group-hover:contrast-105
-                    group-hover:brightness-105
-                  "
-                />
+        {/* Optional loader (keeps layout clean) */}
+        {loading ? (
+          <div className="py-20 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">
+            <Loader2 className="animate-spin mr-3" size={16} />
+            Loading artists...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+            {artistsData.map((artist, index) => (
+              <div
+                key={artist.id}
+                className={`group relative cursor-pointer ${
+                  index % 2 === 0 ? "md:mt-0" : "md:mt-12"
+                } transition-all duration-700`}
+                onClick={() => setActiveArtwork(artist)}
+              >
+                <div className="aspect-[3/4] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                  <img
+                    src={artist.imageUrl}
+                    alt={artist.collection}
+                    className="
+                      w-full h-full object-cover
+                      will-change-transform
+                      transition-all duration-[1.3s] ease-out
+                      scale-[1.05]
+                      saturate-80 contrast-90 brightness-92
+                      group-hover:scale-110
+                      group-hover:saturate-115
+                      group-hover:contrast-105
+                      group-hover:brightness-105
+                    "
+                  />
 
-                <div
-                  className="
-                    absolute inset-0
-                    bg-stone-200/30
-                    opacity-100
-                    group-hover:opacity-0
-                    transition-opacity duration-500
-                  "
-                />
+                  <div
+                    className="
+                      absolute inset-0
+                      bg-stone-200/30
+                      opacity-100
+                      group-hover:opacity-0
+                      transition-opacity duration-500
+                    "
+                  />
 
-                <div
-                  className="
-                    absolute inset-0
-                    bg-gradient-to-b
-                    from-black/0 via-black/0 to-black/10
-                    opacity-70
-                    group-hover:opacity-40
-                    transition-opacity duration-500
-                  "
-                />
+                  <div
+                    className="
+                      absolute inset-0
+                      bg-gradient-to-b
+                      from-black/0 via-black/0 to-black/10
+                      opacity-70
+                      group-hover:opacity-40
+                      transition-opacity duration-500
+                    "
+                  />
 
-                <div
-                  className={[
-                    "absolute bottom-6 bg-white/90 backdrop-blur-md px-4 py-3 border border-white/50 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
-                    lang === "ar" ? "right-6" : "left-6",
-                  ].join(" ")}
-                >
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-stone-900">
-                    {artist.artistName}
-                  </p>
+                  <div
+                    className={[
+                      "absolute bottom-6 bg-white/90 backdrop-blur-md px-4 py-3 border border-white/50 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
+                      lang === "ar" ? "right-6" : "left-6",
+                    ].join(" ")}
+                  >
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-stone-900">
+                      {artist.artistName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+                  <h3 className="font-serif italic text-2xl text-stone-900">{artist.collection}</h3>
+                  <p className="text-xs uppercase tracking-widest text-stone-400 mt-1">{artist.location}</p>
                 </div>
               </div>
-
-              <div className="mt-6 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
-                <h3 className="font-serif italic text-2xl text-stone-900">
-                  {artist.collection}
-                </h3>
-                <p className="text-xs uppercase tracking-widest text-stone-400 mt-1">
-                  {artist.location}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -557,9 +472,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                           key={`${src}-${i}`}
                           onClick={() => setGalleryIndex(i)}
                           className={`relative aspect-square overflow-hidden rounded-sm border transition ${
-                            i === galleryIndex
-                              ? "border-stone-900 shadow"
-                              : "border-stone-200 hover:border-stone-400"
+                            i === galleryIndex ? "border-stone-900 shadow" : "border-stone-200 hover:border-stone-400"
                           }`}
                           aria-label={`Select image ${i + 1}`}
                         >
@@ -601,7 +514,6 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                         </h3>
                       </div>
 
-
                       <div className="grid grid-cols-2 gap-8">
                         <div>
                           <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
@@ -628,9 +540,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                         <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-stone-400 block mb-2">
                           {t.labelAbout}
                         </span>
-                        <p className="font-serif text-lg leading-relaxed text-stone-600">
-                          {activeArtwork.description}
-                        </p>
+                        <p className="font-serif text-lg leading-relaxed text-stone-600">{activeArtwork.description}</p>
                       </div>
                     </div>
 
@@ -688,8 +598,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                             {t.inquiryTitle}
                           </h3>
                           <p className="font-serif italic text-stone-500">
-                            {t.subjectPrefix} {activeArtwork.collection} —{" "}
-                            {activeArtwork.artistName}
+                            {t.subjectPrefix} {activeArtwork.collection} — {activeArtwork.artistName}
                           </p>
                         </div>
 
@@ -697,12 +606,8 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                           <div className="grid grid-cols-1 gap-8">
                             <div className="relative">
                               <label
-                                className={`absolute ${
-                                  lang === "ar" ? "right-0" : "left-0"
-                                } transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                  activeField === "name" || formData.name
-                                    ? "-top-6 text-sky-500"
-                                    : "top-2 text-stone-400"
+                                className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
+                                  activeField === "name" || formData.name ? "-top-6 text-sky-500" : "top-2 text-stone-400"
                                 }`}
                               >
                                 {t.formName}
@@ -714,16 +619,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                                 onFocus={() => setActiveField("name")}
                                 onBlur={() => setActiveField(null)}
                                 className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent ${
-                                  errors.name
-                                    ? "border-red-400"
-                                    : "border-stone-200 focus:border-stone-900"
+                                  errors.name ? "border-red-400" : "border-stone-200 focus:border-stone-900"
                                 }`}
                               />
                               {errors.name && (
                                 <span
-                                  className={`absolute ${
-                                    lang === "ar" ? "right-0" : "left-0"
-                                  } -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
+                                  className={`absolute ${lang === "ar" ? "right-0" : "left-0"} -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
                                 >
                                   {errors.name}
                                 </span>
@@ -732,12 +633,8 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
 
                             <div className="relative">
                               <label
-                                className={`absolute ${
-                                  lang === "ar" ? "right-0" : "left-0"
-                                } transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                  activeField === "email" || formData.email
-                                    ? "-top-6 text-sky-500"
-                                    : "top-2 text-stone-400"
+                                className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
+                                  activeField === "email" || formData.email ? "-top-6 text-sky-500" : "top-2 text-stone-400"
                                 }`}
                               >
                                 {t.formEmail}
@@ -749,16 +646,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                                 onFocus={() => setActiveField("email")}
                                 onBlur={() => setActiveField(null)}
                                 className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent ${
-                                  errors.email
-                                    ? "border-red-400"
-                                    : "border-stone-200 focus:border-stone-900"
+                                  errors.email ? "border-red-400" : "border-stone-200 focus:border-stone-900"
                                 }`}
                               />
                               {errors.email && (
                                 <span
-                                  className={`absolute ${
-                                    lang === "ar" ? "right-0" : "left-0"
-                                  } -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
+                                  className={`absolute ${lang === "ar" ? "right-0" : "left-0"} -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
                                 >
                                   {errors.email}
                                 </span>
@@ -768,12 +661,8 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
 
                           <div className="relative">
                             <label
-                              className={`absolute ${
-                                lang === "ar" ? "right-0" : "left-0"
-                              } transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                activeField === "message" || formData.message
-                                  ? "-top-6 text-sky-500"
-                                  : "top-2 text-stone-400"
+                              className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
+                                activeField === "message" || formData.message ? "-top-6 text-sky-500" : "top-2 text-stone-400"
                               }`}
                             >
                               {t.formMessage}
@@ -785,16 +674,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                               onFocus={() => setActiveField("message")}
                               onBlur={() => setActiveField(null)}
                               className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent resize-none ${
-                                errors.message
-                                  ? "border-red-400"
-                                  : "border-stone-200 focus:border-stone-900"
+                                errors.message ? "border-red-400" : "border-stone-200 focus:border-stone-900"
                               }`}
                             />
                             {errors.message && (
                               <span
-                                className={`absolute ${
-                                  lang === "ar" ? "right-0" : "left-0"
-                                } -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
+                                className={`absolute ${lang === "ar" ? "right-0" : "left-0"} -bottom-4 text-[8px] text-red-400 uppercase tracking-widest`}
                               >
                                 {errors.message}
                               </span>

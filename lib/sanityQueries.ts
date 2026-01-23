@@ -8,12 +8,13 @@ export async function getArtists() {
     *[_type == "artist"] | order(_createdAt desc) {
       _id,
       name,
-      collectionName,
+      location,
+      collection,
       technique,
       dimensions,
-      aboutArtist,
+      about,
       coverImage,
-      galleryImages[]
+      galleryImages
     }
   `);
 }

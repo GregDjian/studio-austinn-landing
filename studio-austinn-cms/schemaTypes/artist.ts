@@ -57,7 +57,7 @@ export default defineType({
     }),
 
     defineField({
-      name: 'gallery',
+      name: 'galleryImages',
       title: 'Artist Gallery (up to 3 images)',
       type: 'array',
       of: [
