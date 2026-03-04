@@ -14,6 +14,13 @@ import { Language } from "../types";
 import { processLeadInquiry } from "../services/geminiService";
 import { getArtworks } from "../lib/sanityQueries";
 import { urlFor } from "../lib/sanityImage";
+import bespokeCover from "../public/cover/bespoke2-cover.jpeg";
+import paintingCover from "../public/cover/painting2-cover.jpeg";
+import sculptureCover from "../public/cover/sculpture-cover.jpeg";
+import installationCover from "../public/cover/installation-cover.jpeg";
+import chandelierCover from "../public/cover/chandelier-cover.jpeg";
+
+
 
 // Extend the IntrinsicElements interface globally to support custom web components like <model-viewer>.
 declare global {
@@ -137,8 +144,7 @@ const CATEGORY_META: Array<{
     titleAr: "لوحات",
     descEn: "Ethereal Canvas",
     descAr: "قماشٌ أثيري",
-    coverImage:
-      "https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=2600&auto=format&fit=crop",
+    coverImage: paintingCover,
   },
   {
     id: "02",
@@ -147,9 +153,7 @@ const CATEGORY_META: Array<{
     titleAr: "منحوتات",
     descEn: "Form & Void",
     descAr: "شكلٌ وفراغ",
-    coverImage:
-      "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2600&auto=format&fit=crop",
-    modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+    coverImage: sculptureCover,
     // IMPORTANT: keeping your original behavior (button won't show unless true)
     is3D: false,
   },
@@ -160,8 +164,7 @@ const CATEGORY_META: Array<{
     titleAr: "ثريات",
     descEn: "Spatial Glow",
     descAr: "وهجٌ مكاني",
-    coverImage:
-      "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=2600&auto=format&fit=crop",
+    coverImage: chandelierCover,
   },
   {
     id: "04",
@@ -170,8 +173,7 @@ const CATEGORY_META: Array<{
     titleAr: "تركيبات",
     descEn: "Immersive Space",
     descAr: "فضاءٌ غامر",
-    coverImage:
-      "https://images.unsplash.com/photo-1499916078039-922301b0eb9b?q=80&w=2600&auto=format&fit=crop",
+    coverImage: installationCover,
   },
   {
     id: "05",
@@ -180,8 +182,7 @@ const CATEGORY_META: Array<{
     titleAr: "حسب الطلب",
     descEn: "Commissioned",
     descAr: "تكليف خاص",
-    coverImage:
-      "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=2600&auto=format&fit=crop",
+    coverImage: bespokeCover,
   },
 ];
 
@@ -371,8 +372,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
           />
         ))}
         <div
-          className={[
-            "absolute inset-0 bg-white/40 md:bg-white/30 backdrop-blur-[4px] md:backdrop-blur-[2px] transition-opacity duration-700",
+          className={[,
             hoveredIndex !== null ? "opacity-60" : "opacity-100",
           ].join(" ")}
         />
@@ -389,7 +389,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                   className={[
                     "absolute top-0",
                     lang === "ar" ? "right-0" : "left-0",
-                    "text-[15vw] font-serif italic text-stone-900/10 leading-none transition-all duration-700 transform",
+                    "text-[15vw] font-serif italic text-white/20 leading-none transition-all duration-700 transform",
                     hoveredIndex === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
                   ].join(" ")}
                 >
@@ -469,7 +469,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                       hoveredIndex === index ? "opacity-100 translate-y-0" : "opacity-0 md:translate-x-12 translate-y-4",
                     ].join(" ")}
                   >
-                    <p className="font-serif italic text-stone-900 text-lg md:text-xl whitespace-nowrap">{item.desc}</p>
+                    <p className="font-serif italic text-white/60 text-lg md:text-xl whitespace-nowrap">{item.desc}</p>
                   </div>
                 </div>
               ))}

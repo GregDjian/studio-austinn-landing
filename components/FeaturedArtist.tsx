@@ -313,7 +313,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
         <div className="mb-24 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-100 pb-8">
           <h2
             className={[
-              "font-sans font-black text-6xl md:text-8xl uppercase tracking-tighter text-stone-900 leading-none",
+              "font-sans font-black text-6xl md:text-6xl uppercase tracking-tighter text-stone-900 leading-none",
               lang === "ar" ? "text-right" : "text-left",
             ].join(" ")}
           >
@@ -343,7 +343,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 } transition-all duration-700`}
                 onClick={() => setActiveArtwork(artist)}
               >
-                <div className="aspect-[3/4] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                <div className="aspect-[3/4] rounded-[8px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
                   <img
                     src={artist.imageUrl}
                     alt={artist.collection}
@@ -502,9 +502,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                       </h2>
                     </div>
 
-                    <div className="h-[1px] w-12 bg-stone-200 my-8" />
+                    <div className="h-[1px] w-12 bg-stone-200 my-2" />
 
-                    <div className="space-y-8">
+                    <div className="space-y-4">
                       <div>
                         <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
                           {t.labelCollection}
@@ -540,7 +540,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                         <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-stone-400 block mb-2">
                           {t.labelAbout}
                         </span>
-                        <p className="font-serif text-lg leading-relaxed text-stone-600">{activeArtwork.description}</p>
+                        <p className="text-stone-800 text-base md:text-lg leading-relaxed">{activeArtwork.description}</p>
                       </div>
                     </div>
 

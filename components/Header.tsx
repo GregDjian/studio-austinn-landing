@@ -176,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
           </nav>
 
           <button
-            className={["md:hidden z-50 transition-colors", isSolid ? "text-stone-900" : "text-white"].join(" ")}
+            className={["md:hidden z-50 transition-colors", isSolid ? "text-stone-600" : "text-black"].join(" ")}
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label={mobileMenuOpen ? t.closeMenu : t.openMenu}
             aria-expanded={mobileMenuOpen}
@@ -200,7 +200,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
             key={item.label}
             href={item.href}
             onClick={() => setMobileMenuOpen(false)}
-            className="font-sans font-black text-4xl uppercase tracking-tighter text-stone-900 hover:text-stone-500 transition-colors"
+            className="font-sans font-black text-2xl uppercase tracking-tighter text-stone-800 hover:text-stone-500 transition-colors"
           >
             {item.label}
           </a>
@@ -209,19 +209,24 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
         {/* Mobile language switch */}
         <button
           type="button"
-          onClick={() => {
-            toggleLang();
-            setMobileMenuOpen(false);
-          }}
-          className="font-sans font-bold text-xl uppercase text-stone-400 hover:text-stone-700 transition-colors"
+          onClick={toggleLang}
+          className={[
+            "flex items-center gap-2 text-[14px] font-bold uppercase tracking-widest transition-colors mt-8",
+            isSolid ? "text-stone-900" : "text-black",
+          ].join(" ")}
         >
+          <Globe size={20} />
           {t.switchTo}
         </button>
 
         <a
           href="#contact"
-          onClick={() => setMobileMenuOpen(false)}
-          className="font-sans font-black text-4xl uppercase tracking-tighter text-stone-900 hover:text-stone-500 transition-colors"
+          className={[
+            "px-6 py-2 border text-[14px] font-bold uppercase tracking-[0.2em] transition-all duration-300",
+            isSolid
+              ? "border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white"
+              : "border-black text-black hover:bg-white hover:text-stone-900 hover:border-white",
+          ].join(" ")}
         >
           {t.contact}
         </a>

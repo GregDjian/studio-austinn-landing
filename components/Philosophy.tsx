@@ -1,5 +1,8 @@
 import React from "react";
 import { Language } from "../types";
+import Owner from "../public/philo/artistProfile.jpeg";
+import studio1 from "../public/philo/studio1.jpeg";
+import studio2 from "../public/philo/studio2.jpeg";
 
 const getContent = (lang: Language) => {
   if (lang === "ar") {
@@ -14,12 +17,14 @@ const getContent = (lang: Language) => {
       made: "صُنع",
       inUae: "في الإمارات",
       madeDesc:
-        "يقع استوديو أوستن في قلب <strong>القوز</strong>، حيث تتشكّل الأفكار إلى أعمال ملموسة. نتعاون مع حرفيين مهرة ومورّدين محليين لضمان أعلى درجات الإتقان.",
+        "يقع استوديو أوستن في قلب <strong class='text-stone-950'>القوز</strong>، حيث تتشكّل الأفكار إلى أعمال ملموسة. نتعاون مع حرفيين مهرة ومورّدين محليين لضمان أعلى درجات الإتقان.",
       imgAlt1: "تفاصيل من الورشة",
       imgAlt2: "الخامات",
-      closingQuote:
-        "يُجسّد Studio Austinn التفاني للفن وقدرته على الإلهام. هدفي أن أجعل الفن أكثر قرباً، أكثر تأثيراً، وأكثر حضوراً في الذاكرة.",
-      signature: "Marine Bordier-Cros",
+      meta: "فلسفة الاستوديو",
+      chip1: "تصميم",
+      chip2: "مواد",
+      chip3: "تنفيذ",
+      footer: "من الفكرة إلى القطعة النهائية — كل خطوة تُصنع بعناية.",
     };
   }
 
@@ -34,12 +39,14 @@ const getContent = (lang: Language) => {
     made: "Made",
     inUae: "In U.A.E.",
     madeDesc:
-      'Located in the heart of <strong className="text-stone-900">Al Quoz</strong>, our studio is where creativity takes shape. We collaborate with skilled artisans and local suppliers to ensure exceptional craftsmanship.',
-    imgAlt1: "Workshop details",
-    imgAlt2: "Materials",
-    closingQuote:
-      "Studio Austinn is a reflection of devotion to art and its power to inspire. My aim is to make art accessible, transformative, and unforgettable.",
-    signature: "Marine Bordier-Cros",
+      'Located in the heart of <strong class="text-stone-950">Al Quoz</strong>, our studio is where creativity takes shape. We collaborate with skilled artisans and local suppliers to ensure exceptional craftsmanship.',
+    imgAlt1: "The Studio",
+    imgAlt2: "Atelier",
+    meta: "Studio philosophy",
+    chip1: "Design",
+    chip2: "Materials",
+    chip3: "Craft",
+    footer: "From concept to final piece — every step is crafted with care.",
   };
 };
 
@@ -50,18 +57,27 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
     <section
       id="philosophy"
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="relative py-32 md:py-48 bg-stone-50 overflow-hidden"
+      className="relative py-16 md:py-16 bg-stone-50 overflow-hidden"
+      aria-label={t.meta}
     >
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-100/40 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none animate-float" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-stone-200/30 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+      {/* ✅ ORIGINAL WHITE/BLUISH AMBIENT BACKGROUND */}
+      <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-sky-100/50 rounded-full blur-[130px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-stone-200/35 rounded-full blur-[110px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10">
-        <div className="flex flex-col md:flex-row gap-16 lg:gap-32">
-          {/* Left Column - Sticky Title & Founder Profile */}
-          <div className="md:w-5/12 relative">
-            <div className="sticky top-32">
-              {/* Editorial Title */}
+      {/* Modern subtle upgrades (same vibe): grain + thin grid */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(0,0,0,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.25)_1px,transparent_1px)] [background-size:84px_84px]" />
+        <div className="absolute inset-0 opacity-[0.08] mix-blend-multiply [background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22160%22 height=%22160%22 filter=%22url(%23n)%22 opacity=%220.35%22/%3E%3C/svg%3E')]" />
+      </div>
+
+      <div className="container mx-auto px-6 md:px-12 relative z-10 mt-14">
+        {/* ✅ IMPORTANT: items-stretch so both columns share the same row height */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
+          {/* ===== Left: Title + Founder (image grows to match right column height) ===== */}
+          <div className="lg:col-span-5 flex">
+            {/* keep sticky, but allow full height */}
+            <div className="lg:sticky lg:top-24 h-full w-full flex flex-col">
+              {/* Title */}
               <div className="relative mb-12">
                 <span
                   className={[
@@ -72,110 +88,154 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
                   {t.behind}
                 </span>
 
-                <h2 className="relative z-10 font-sans font-black text-6xl md:text-7xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
-                  {lang === "ar" ? (
-                    <>
-                      {t.titleTop} <br /> {t.titleBottom}
-                    </>
-                  ) : (
-                    <>
-                      {t.titleTop} <br /> {t.titleBottom}
-                    </>
-                  )}
+                <h2 className="relative z-10 font-sans font-black text-6xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
+                  {t.titleTop} <br /> {t.titleBottom}
                 </h2>
               </div>
 
-              {/* Founder Image */}
-              <div className="relative aspect-[3/4] overflow-hidden rounded-sm shadow-2xl shadow-stone-200/50 group">
-                <img
-                  src="https://images.unsplash.com/photo-1544208849-0d321526487e?q=80&w=2600&auto=format&fit=crop"
-                  alt={`${t.founderName} - ${t.founderRole}`}
-                  className="w-full h-full object-cover filter grayscale contrast-125 transition-all duration-[1.5s] ease-out group-hover:grayscale-0 group-hover:scale-105"
-                />
+              {/* ✅ Founder card fills remaining height (so bottoms align) */}
+              <div className="mt-0 flex-1 flex">
+                <div className="w-full rounded-[8px] overflow-hidden border border-stone-900/10 bg-white shadow-[0_35px_90px_-70px_rgba(0,0,0,0.28)] flex flex-col">
+                  {/* ✅ image grows: remove aspect ratio, use flex-1 */}
+                  <div className="relative flex-1 min-h-[340px] overflow-hidden">
+                    <img
+                      src={Owner}
+                      alt={`${t.founderName} - ${t.founderRole}`}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-[1.05]"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-white/10 pointer-events-none" />
+                  </div>
 
-                {/* Name Badge */}
-                <div
-                  className={[
-                    "absolute bottom-6 bg-white/90 backdrop-blur-md px-6 py-4 border border-white/50 shadow-sm",
-                    lang === "ar" ? "left-6 text-right" : "right-6 text-right",
-                  ].join(" ")}
-                >
-                  <p className="font-serif italic text-stone-900 text-lg leading-none mb-1">
-                    {t.founderName}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    {t.founderRole}
-                  </p>
+                  {/* footer stays fixed */}
+                  <div className="p-6 flex items-center justify-between gap-6 shrink-0">
+                    <div>
+                      <p className="text-stone-950 font-semibold tracking-[-0.02em] text-lg">
+                        {t.founderName}
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-stone-900/10 bg-stone-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-stone-600">
+                      {t.founderRole}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Narrative Flow */}
-          <div className="md:w-6/12 pt-12 md:pt-40 space-y-12">
-            {/* Introduction */}
-            <div className="group">
-              <p className="font-serif text-2xl md:text-3xl leading-relaxed text-stone-800 mb-8 transition-colors duration-500 group-hover:text-stone-900">
-                "{t.introQuote}"
-              </p>
-              <div className="h-[2px] w-12 bg-stone-900 mb-8 group-hover:w-32 transition-all duration-700 ease-out" />
-            </div>
-
-            {/* Made in UAE Feature Card */}
-            <div className="relative">
-              {/* Decorative Blob */}
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-200/20 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative z-10">
-                <div className="flex items-baseline gap-4 mb-4">
-                  <h3 className="font-script text-6xl text-stone-400">{t.made}</h3>
-                  <h2 className="font-sans font-black text-4xl md:text-5xl uppercase tracking-tighter text-stone-900">
-                    {t.inUae}
-                  </h2>
-                </div>
-
-                <p
-                  className="font-serif text-md text-stone-700 leading-relaxed mb-8"
-                  dangerouslySetInnerHTML={{ __html: t.madeDesc }}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="aspect-square bg-stone-200 rounded-sm overflow-hidden">
-                    <img
-                      src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop"
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
-                      alt={t.imgAlt1}
-                    />
-                  </div>
-                  <div className="aspect-square bg-stone-200 rounded-sm overflow-hidden">
-                    <img
-                      src="https://images.unsplash.com/photo-1605218427368-35b0185e49f7?q=80&w=800&auto=format&fit=crop"
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
-                      alt={t.imgAlt2}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Closing Statement */}
-            <div className="flex flex-col items-start gap-10">
-              <p
-                className={[
-                  "font-serif text-xl leading-loose text-stone-800 border-sky-200 pl-6",
-                  lang === "ar" ? "border-r-2 pr-6 pl-0" : "border-l-2",
-                ].join(" ")}
-              >
-                "{t.closingQuote}"
-              </p>
-
-              {/* Signature */}
-              <div className="mt-4">
-                <p className="font-script text-6xl text-stone-900 transform -rotate-2">
-                  {t.signature}
+          {/* ===== Right: Made in UAE + gallery ===== */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="rounded-[8px] border backdrop-blur-xl p-8 md:p-10 shadow-[0_35px_90px_-70px_rgba(0,0,0,0.30)]">
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <p className="text-stone-800 text-base md:text-lg leading-relaxed">
+                  {t.introQuote}
                 </p>
+
+                <div>
+                  <p className="text-stone-500 text-xs uppercase tracking-[0.32em]">
+                    {t.made}
+                  </p>
+                  <h3 className="mt-2 text-stone-950 text-3xl md:text-4xl font-semibold tracking-[-0.05em]">
+                    {t.inUae}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="h-1 w-12 rounded-full bg-gradient-to-r from-sky-400/70 via-indigo-400/60 to-emerald-300/70" />
+                  <span className="text-stone-500 text-xs uppercase tracking-[0.30em]">
+                    Local craft
+                  </span>
+                </div>
+              </div>
+
+              <p
+                className="mt-4 text-stone-800 text-base md:text-lg leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: t.madeDesc }}
+              />
+
+              <div className="mt-8 grid grid-cols-12 gap-4">
+                <div className="col-span-12 md:col-span-7">
+                  <div className="group relative overflow-hidden rounded-[8px] border border-stone-900/10 bg-white">
+                    <div className="aspect-[16/11] md:aspect-[4/3] overflow-hidden">
+                      <img
+                        src={studio1}
+                        alt={t.imgAlt1}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 p-4">
+                      <div className="rounded-[8px] border border-white/50 bg-white/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
+                        <p className="text-stone-700 text-xs uppercase tracking-[0.26em]">
+                          {t.imgAlt1}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-span-12 md:col-span-5">
+                  <div className="group relative overflow-hidden rounded-[8px] border border-stone-900/10 bg-white h-full">
+                    <div className="aspect-[16/11] md:aspect-[4/3] overflow-hidden h-full">
+                      <img
+                        src={studio2}
+                        alt={t.imgAlt2}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 p-4">
+                      <div className="rounded-[8px] border border-white/50 bg-white/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
+                        <p className="text-stone-700 text-xs uppercase tracking-[0.26em]">
+                          {t.imgAlt2}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer line */}
+              <div className="mt-8 flex items-center gap-4">
+                <span className="h-[2px] w-12 bg-stone-950/70" />
+                <p className="text-stone-600 text-sm">{t.footer}</p>
               </div>
             </div>
+
+            {/*
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { k: "01", v: t.chip1 },
+                { k: "02", v: t.chip2 },
+                { k: "03", v: t.chip3 },
+              ].map((item) => (
+                <div
+                  key={item.k}
+                  className="rounded-[12px] border border-stone-900/10 bg-white/70 backdrop-blur-xl p-5 shadow-[0_25px_70px_-60px_rgba(0,0,0,0.25)]"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-stone-500 text-xs uppercase tracking-[0.34em]">
+                      {item.k}
+                    </p>
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500/40" />
+                  </div>
+
+                  <p className="mt-2 text-stone-950 text-lg font-semibold tracking-[-0.03em]">
+                    {item.v}
+                  </p>
+
+                  <div className="mt-4 h-px w-full bg-stone-900/10" />
+
+                  <p className="mt-3 text-stone-600 text-sm leading-relaxed">
+                    {lang === "ar"
+                      ? "نهج معاصر مع عناية بالتفاصيل."
+                      : "Contemporary approach with obsessive detail."}
+                  </p>
+                </div>
+              ))}
+            </div>
+            */}
           </div>
         </div>
       </div>

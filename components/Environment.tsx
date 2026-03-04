@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Language } from "../types";
+import privateVilla from "../public/environment/privateVillas.jpeg"
+import yachts from "../public/environment/yachts.jpeg"
+import mall from "../public/environment/mall.jpg"
+import publicSpace from "../public/environment/publicSpace.jpg"
+
 
 interface Sector {
   title: string;
@@ -14,8 +19,7 @@ const getSectors = (lang: Language): Sector[] => {
       {
         title: "فلل خاصة",
         category: "سكني",
-        image:
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop",
+        image: privateVilla,
         description:
           "تركيبات فنية مخصّصة صُمّمت لأرقى المساكن الخاصة في دولة الإمارات.",
       },
@@ -25,15 +29,14 @@ const getSectors = (lang: Language): Sector[] => {
         image:
           "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2000&auto=format&fit=crop",
         description:
-          "إعادة صياغة تجربة الضيوف من خلال منحوتات مميّزة ومعارض فنية منسّقة.",
+          "إعادة ابتكار تجربة الضيوف من خلال منحوتات مميّزة ومعارض فنية منسّقة.",
       },
       {
-        title: "فن الطهو",
-        category: "مطاعم",
-        image:
-          "https://images.unsplash.com/photo-1550966841-3ee4ad6b107c?q=80&w=2000&auto=format&fit=crop",
+        title: "اليخوت والطائرات الخاصة",
+        category: "التنقّل الفاخر",
+        image: yachts,
         description:
-          "تعزيز السرد الذوقي عبر فنون غامرة وإضاءة مدروسة بعناية.",
+          "أعمال فنية وعناصر نحتية حصرية مصمّمة لليخوت الفاخرة ومقصورات الطائرات الخاصة.",
       },
       {
         title: "شركاء التصميم",
@@ -44,20 +47,18 @@ const getSectors = (lang: Language): Sector[] => {
           "التعاون مع معماريين عالميين لدمج الفن منذ المراحل الأولى للتصميم.",
       },
       {
-        title: "تجزئة فاخرة",
+        title: "التجزئة الفاخرة",
         category: "مراكز تسوق وبوتيكات",
-        image:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000&auto=format&fit=crop",
+        image: mall,
         description:
-          "ابتكار تجارب علامية غامرة من خلال التقاء الفن والتجارة.",
+          "ابتكار تجارب علامة تجارية غامرة من خلال التقاء الفن والتجارة.",
       },
       {
-        title: "مساحات عامة",
+        title: "المساحات العامة",
         category: "مدنية ومؤسسية",
-        image:
-          "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
+        image: publicSpace,
         description:
-          "تركيبات واسعة النطاق تعيد تعريف المشهد العام وبيئات العمل.",
+          "تركيبات واسعة النطاق تعيد تعريف المشهد الحضري وبيئات العمل.",
       },
     ];
   }
@@ -66,26 +67,24 @@ const getSectors = (lang: Language): Sector[] => {
     {
       title: "Private Villas",
       category: "Residential",
-      image:
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop",
+      image: privateVilla,
       description:
         "Bespoke art installations tailored for the most exclusive residences in the UAE.",
     },
     {
       title: "Hospitality",
-      category: "Hotels & Resorts",
+      category: "Hotels & Gastronomy",
       image:
         "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2000&auto=format&fit=crop",
       description:
         "Transforming guest experiences with statement sculptures and curated galleries.",
     },
     {
-      title: "Gastronomy",
-      category: "Restaurants",
-      image:
-        "https://images.unsplash.com/photo-1550966841-3ee4ad6b107c?q=80&w=2000&auto=format&fit=crop",
+      title: "Yachts & Jets",
+      category: "Ultra Luxury Mobility",
+      image: yachts,
       description:
-        "Enhancing culinary narratives through atmospheric art and lighting.",
+        "Exclusive artworks and sculptural elements designed for yachts and private aviation interiors.",
     },
     {
       title: "Design Partners",
@@ -98,16 +97,13 @@ const getSectors = (lang: Language): Sector[] => {
     {
       title: "Luxury Retail",
       category: "Malls & Boutiques",
-      image:
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2000&auto=format&fit=crop",
-      description:
-        "Creating immersive brand experiences through artistic commerce.",
+      image: mall,
+      description: "Creating immersive brand experiences through artistic commerce.",
     },
     {
       title: "Public Spaces",
       category: "Civic & Corporate",
-      image:
-        "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop",
+      image: publicSpace,
       description:
         "Large-scale installations that redefine public landscapes and workspaces.",
     },
@@ -157,7 +153,7 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
 
             <h2
               className={[
-                "font-sans font-black text-5xl md:text-7xl uppercase tracking-tighter text-stone-900 leading-none",
+                "font-sans font-black text-6xl md:text-6xl uppercase tracking-tighter text-stone-900 leading-none",
                 lang === "ar" ? "text-right" : "text-left",
               ].join(" ")}
             >
@@ -178,7 +174,7 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
           {sectors.map((sector, index) => (
             <div
               key={index}
-              className="relative aspect-[4/3] group overflow-hidden bg-stone-200 cursor-crosshair"
+              className="relative aspect-[4/3] rounded-[8px] group overflow-hidden bg-stone-200 cursor-crosshair"
               onMouseEnter={() => setActiveSector(index)}
               onMouseLeave={() => setActiveSector(null)}
             >

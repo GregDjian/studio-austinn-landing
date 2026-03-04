@@ -5,12 +5,13 @@ import {
   MapPin,
   ArrowRight,
   Instagram,
-  Linkedin,
   Send,
   CheckCircle2,
   AlertCircle,
   Loader2,
+  MessageCircle,
 } from "lucide-react";
+import { FaWhatsapp, FaInstagram, FaPinterestP } from "react-icons/fa";
 import { processLeadInquiry } from "../services/geminiService";
 import { Language } from "../types";
 
@@ -88,7 +89,7 @@ const getContent = (lang: Language) => {
     },
     atelierLabel: "The Atelier",
     digitalLabel: "Digital",
-    addressTitle: "Al Quoz Dubai",
+    addressTitle: "Al Quoz 4, Dubai",
   };
 };
 
@@ -189,7 +190,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
     <footer
       id="contact"
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="bg-stone-900 text-stone-200 py-32 relative overflow-hidden"
+      className="bg-stone-900 text-stone-200 pt-32 pb-12 relative overflow-hidden"
     >
       {/* Editorial Background Text */}
       <div className="absolute top-1/4 -left-20 pointer-events-none select-none opacity-[0.03]">
@@ -215,7 +216,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                 {content.subtitle}
               </span>
 
-              <h2 className="relative z-10 font-sans font-black text-6xl md:text-7xl leading-[0.85] text-white uppercase tracking-tighter">
+              <h2 className="relative z-10 font-sans font-black text-6xl md:text-6xl leading-[0.85] text-white uppercase tracking-tighter">
                 {lang === "en" ? (
                   <>
                     Begin The <br />
@@ -230,7 +231,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               </h2>
             </div>
 
-            <p className="font-serif text-xl text-stone-400 mb-16 max-w-sm leading-relaxed">
+            <p className="font-sans mb-16 max-w-sm leading-relaxed">
               {content.desc}
             </p>
 
@@ -248,9 +249,6 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                     <strong className="block text-white mb-1">
                       {content.addressTitle}
                     </strong>
-                    Building 7, Office 304
-                    <br />
-                    Al Khail Road, Dubai, UAE
                   </p>
                 </div>
               </div>
@@ -265,22 +263,51 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                   </div>
                   <div className="space-y-3">
                     <a
-                      href="mailto:hello@studioaustinn.ae"
+                      href="mailto:hello@studioaustinn.com"
                       className="flex items-center gap-3 font-sans text-stone-300 hover:text-white transition-colors"
                     >
                       <Mail size={16} className="text-stone-600" />
-                      hello@studioaustinn.ae
+                      hello@studioaustinn.com
                     </a>
                     <a
-                      href="tel:+971501234567"
+                      href="tel:+9710581558866"
                       className="flex items-center gap-3 font-sans text-stone-300 hover:text-white transition-colors"
                     >
                       <Phone size={16} className="text-stone-600" />
-                      +971 50 123 4567
+                      +971 58 155 8866
                     </a>
                   </div>
                 </div>
               </div>
+              <div className="flex items-center gap-8">
+            <a href="#" className="group flex flex-col items-center gap-2">
+              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
+                <Instagram size={18} strokeWidth={1.5} />
+              </div>
+              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
+                Instagram
+              </span>
+            </a>
+
+            <a href="#" className="group flex flex-col items-center gap-2">
+              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
+                <FaWhatsapp size={18} strokeWidth={1.5} />
+              </div>
+              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
+                Whatsapp
+              </span>
+            </a>
+
+            <a href="#" className="group flex flex-col items-center gap-2"> 
+              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500"> 
+               <FaPinterestP size={18} strokeWidth={1.5} />
+              </div> 
+              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors"> 
+                Pinterest 
+              </span> 
+            </a>
+
+          </div>
             </div>
           </div>
 
@@ -334,7 +361,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                           } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                             activeField === "name" || formData.name
                               ? "-top-6 text-sky-300"
-                              : "top-2 text-stone-500"
+                              : "top-2 text-stone-300"
                           }`}
                         >
                           {content.labelName}
@@ -370,7 +397,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                           } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                             activeField === "email" || formData.email
                               ? "-top-6 text-sky-300"
-                              : "top-2 text-stone-500"
+                              : "top-2 text-stone-300"
                           }`}
                         >
                           {content.labelEmail}
@@ -404,7 +431,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                     <div className="relative">
                       <label
                         className={`block text-[10px] uppercase tracking-widest mb-6 ${
-                          errors.interest ? "text-red-500" : "text-stone-500"
+                          errors.interest ? "text-red-500" : "text-stone-300"
                         }`}
                       >
                         {content.labelInterest}
@@ -450,7 +477,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                         } transition-all duration-300 text-[10px] uppercase tracking-widest ${
                           activeField === "message" || formData.message
                             ? "-top-6 text-sky-300"
-                            : "top-2 text-stone-500"
+                            : "top-2 text-stone-300"
                         }`}
                       >
                         {content.labelMessage}
@@ -520,7 +547,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
         </div>
 
         {/* Footer Bottom */}
-        <div className="mt-12 pt-16 border-t border-stone-800/50 flex flex-col md:flex-row justify-between items-center gap-10">
+        <div className="mt-6 pt-8 border-t border-stone-800/50 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex flex-col items-start leading-none opacity-50">
               <span className="font-sans font-black text-xl uppercase tracking-tighter">
@@ -530,52 +557,16 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                 Austinn
               </span>
             </div>
+          </div>
+          <div className="flex flex-col items-center md:items-start gap-4">
             <span className="text-[9px] text-stone-600 uppercase tracking-[0.3em]">
-              &copy; {new Date().getFullYear()} Studio Austinn Art Consultancy FZ-LLC.
+              &copy; {new Date().getFullYear()} Atelier Austinn Trading LLC
             </span>
           </div>
 
-          <div className="flex items-center gap-8">
-            <a href="#" className="group flex flex-col items-center gap-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
-                <Instagram size={18} strokeWidth={1.5} />
-              </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
-                Instagram
-              </span>
-            </a>
-
-            <a href="#" className="group flex flex-col items-center gap-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
-                <Linkedin size={18} strokeWidth={1.5} />
-              </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
-                Whatsapp
-              </span>
-            </a>
-
-            <a href="#" className="group flex flex-col items-center gap-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
-                Pinterest
-              </span>
-            </a>
-          </div>
-
+          
+        
+          {/*
           <div className="flex gap-8 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-600">
             <a href="#" className="hover:text-white transition-colors">
               Privacy Policy
@@ -584,6 +575,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               Terms of Service
             </a>
           </div>
+          */}
         </div>
       </div>
     </footer>
