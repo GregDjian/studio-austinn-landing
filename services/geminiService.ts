@@ -104,6 +104,7 @@ export const processLeadInquiry = async (
     });
 
     const data = await resp.json().catch(() => ({}));
+    console.log("LEAD API response:", { ok: resp.ok, status: resp.status, data });
 
     if (!resp.ok) {
       console.error("Lead API error:", { status: resp.status, data });

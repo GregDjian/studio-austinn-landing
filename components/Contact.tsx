@@ -186,6 +186,18 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
     }
   };
 
+  const whatsappNumber = "+971581558866";
+  const whatsappText =
+    lang === "ar"
+      ? "مرحباً Studio Austinn، أنا مهتم بخدماتكم الفنية."
+      : "Hello Studio Austinn, I'm interested in your art services.";
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    whatsappText
+  )}`;
+
+  const instagramUrl = 'https://www.instagram.com/studio_austinn/'
+  const pinterestUrl = 'https://fr.pinterest.com/marinebordiercros/'
+
   return (
     <footer
       id="contact"
@@ -280,7 +292,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                 </div>
               </div>
               <div className="flex items-center gap-8">
-            <a href="#" className="group flex flex-col items-center gap-2">
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
               <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
                 <Instagram size={18} strokeWidth={1.5} />
               </div>
@@ -289,7 +301,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               </span>
             </a>
 
-            <a href="#" className="group flex flex-col items-center gap-2">
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
               <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
                 <FaWhatsapp size={18} strokeWidth={1.5} />
               </div>
@@ -298,7 +310,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               </span>
             </a>
 
-            <a href="#" className="group flex flex-col items-center gap-2"> 
+            <a href={pinterestUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2"> 
               <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500"> 
                <FaPinterestP size={18} strokeWidth={1.5} />
               </div> 
@@ -517,7 +529,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="relative w-full overflow-hidden px-8 py-5 bg-white text-stone-900 text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 group-hover:bg-sky-300 transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative w-full overflow-hidden px-8 py-4 bg-white text-stone-900 text-[10px] rounded-[8px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 group-hover:bg-sky-300 transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? (
                           <>
