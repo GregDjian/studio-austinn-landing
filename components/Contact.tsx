@@ -29,7 +29,7 @@ type InterestOption = (typeof INTEREST_OPTIONS)[number];
 type FormData = {
   name: string;
   email: string;
-  interest: InterestOption[]; // multi-select
+  interest: InterestOption[];
   message: string;
 };
 
@@ -149,7 +149,6 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
       const next = exists
         ? prev.interest.filter((i) => i !== interest)
         : [...prev.interest, interest];
-
       return { ...prev, interest: next };
     });
     clearError("interest");
@@ -163,16 +162,13 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
     setSubmitStatus("idle");
 
     try {
-      // Simulate API call to lead management system
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Send to Gemini: join interests into a readable string
       const payloadForAI = {
         ...formData,
         interest: formData.interest.join(", "),
       };
 
-      // ✅ updated: pass lang + leadData
       const confirmation = await processLeadInquiry(lang, payloadForAI as any);
       setAiConfirmation(confirmation);
 
@@ -191,18 +187,16 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
     lang === "ar"
       ? "مرحباً Studio Austinn، أنا مهتم بخدماتكم الفنية."
       : "Hello Studio Austinn, I'm interested in your art services.";
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    whatsappText
-  )}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappText)}`;
 
-  const instagramUrl = 'https://www.instagram.com/studio_austinn/'
-  const pinterestUrl = 'https://fr.pinterest.com/marinebordiercros/'
+  const instagramUrl = "https://www.instagram.com/studio_austinn/";
+  const pinterestUrl = "https://fr.pinterest.com/marinebordiercros/";
 
   return (
     <footer
       id="contact"
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="bg-stone-900 text-stone-200 pt-32 pb-12 relative overflow-hidden"
+      className="bg-[#5A0A23] text-stone-200 pt-16 md:pt-32 pb-12 relative overflow-hidden"
     >
       {/* Editorial Background Text */}
       <div className="absolute top-1/4 -left-20 pointer-events-none select-none opacity-[0.03]">
@@ -228,7 +222,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                 {content.subtitle}
               </span>
 
-              <h2 className="relative z-10 font-sans font-black text-6xl md:text-6xl leading-[0.85] text-white uppercase tracking-tighter">
+              <h2 className="relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-white uppercase tracking-tighter">
                 {lang === "en" ? (
                   <>
                     Begin The <br />
@@ -247,11 +241,11 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               {content.desc}
             </p>
 
-            <div className="space-y-12 mb-16">
+            <div className="space-y-12 mb-0 md:mb-16">
               <div className="group cursor-default">
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-sky-300 transition-all duration-500" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 group-hover:text-stone-300 transition-colors">
+                  <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-white transition-all duration-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400 group-hover:text-stone-300 transition-colors">
                     {content.atelierLabel}
                   </span>
                 </div>
@@ -268,8 +262,8 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="group cursor-default">
                   <div className="flex items-center gap-4 mb-3">
-                    <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-sky-300 transition-all duration-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-500 group-hover:text-stone-300 transition-colors">
+                    <div className="w-8 h-[1px] bg-stone-700 group-hover:w-12 group-hover:bg-white transition-all duration-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400 group-hover:text-stone-300 transition-colors">
                       {content.digitalLabel}
                     </span>
                   </div>
@@ -291,41 +285,41 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-8">
-            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
-                <Instagram size={18} strokeWidth={1.5} />
+
+              <div className="flex items-center justify-center md:justify-start gap-8">
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
+                    <Instagram size={18} strokeWidth={1.5} />
+                  </div>
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-stone-400 group-hover:text-stone-300 transition-colors">
+                    Instagram
+                  </span>
+                </a>
+
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
+                    <FaWhatsapp size={18} />
+                  </div>
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-stone-400 group-hover:text-stone-300 transition-colors">
+                    Whatsapp
+                  </span>
+                </a>
+
+                <a href={pinterestUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/50 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
+                    <FaPinterestP size={18} />
+                  </div>
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-stone-400 group-hover:text-stone-300 transition-colors">
+                    Pinterest
+                  </span>
+                </a>
               </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
-                Instagram
-              </span>
-            </a>
-
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2">
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500">
-                <FaWhatsapp size={18} strokeWidth={1.5} />
-              </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors">
-                Whatsapp
-              </span>
-            </a>
-
-            <a href={pinterestUrl} target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-2"> 
-              <div className="w-12 h-12 flex items-center justify-center rounded-full border border-stone-800 group-hover:border-white group-hover:bg-white group-hover:text-stone-900 transition-all duration-500"> 
-               <FaPinterestP size={18} strokeWidth={1.5} />
-              </div> 
-              <span className="text-[8px] font-bold uppercase tracking-widest text-stone-600 group-hover:text-stone-300 transition-colors"> 
-                Pinterest 
-              </span> 
-            </a>
-
-          </div>
             </div>
           </div>
 
           {/* Right Column: Form */}
           <div className="lg:col-span-7">
-            <div className="bg-stone-800/50 backdrop-blur-xl border border-white/5 p-10 md:p-16 relative overflow-hidden min-h-[600px] flex flex-col justify-center">
+            <div className="bg-[#3D0718]/50 backdrop-blur-xl border border-white/5 p-10 md:p-16 relative overflow-hidden min-h-[600px] flex flex-col justify-center">
               {submitStatus === "success" ? (
                 <div className="relative z-10 text-center animate-fade-in-up">
                   <div className="flex justify-center mb-8">
@@ -338,7 +332,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                     {content.successTitle}
                   </h3>
 
-                  <div className="bg-stone-900/40 p-8 rounded-sm border border-white/5 mb-8">
+                  <div className="bg-[#3D0718]/40 p-8 rounded-sm border border-white/5 mb-8">
                     <p className="font-serif italic text-lg text-stone-300 leading-relaxed">
                       "{aiConfirmation}"
                     </p>
@@ -346,7 +340,7 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
 
                   <button
                     onClick={() => setSubmitStatus("idle")}
-                    className="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-white transition-colors underline underline-offset-8"
+                    className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors underline underline-offset-8"
                   >
                     {content.sendAnother}
                   </button>
@@ -358,11 +352,10 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                       size={40}
                       className={[
                         "text-white transform rotate-12",
-                        lang === "ar" ? "-scale-x-100" : "" // flip horizontally in Arabic (points left)
+                        lang === "ar" ? "-scale-x-100" : "",
                       ].join(" ")}
                     />
                   </div>
-
 
                   <form className="relative z-10 space-y-10" onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -452,7 +445,6 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
                       <div className="flex flex-wrap gap-3">
                         {INTEREST_OPTIONS.map((interest) => {
                           const isActive = formData.interest.includes(interest);
-
                           return (
                             <button
                               key={interest}
@@ -552,14 +544,14 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               )}
             </div>
 
-            <div className="mt-12 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-stone-600">
+            <div className="mt-12 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-stone-400">
               <p>{content.responseTime}</p>
             </div>
           </div>
         </div>
 
         {/* Footer Bottom */}
-        <div className="mt-6 pt-8 border-t border-stone-800/50 flex flex-col md:flex-row justify-between items-center gap-10">
+        <div className="mt-6 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex flex-col items-start leading-none opacity-50">
               <span className="font-sans font-black text-xl uppercase tracking-tighter">
@@ -571,23 +563,10 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
             </div>
           </div>
           <div className="flex flex-col items-center md:items-start gap-4">
-            <span className="text-[9px] text-stone-600 uppercase tracking-[0.3em]">
+            <span className="text-[9px] text-stone-400 uppercase tracking-[0.3em]">
               &copy; {new Date().getFullYear()} Atelier Austinn Trading LLC
             </span>
           </div>
-
-          
-        
-          {/*
-          <div className="flex gap-8 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-600">
-            <a href="#" className="hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Terms of Service
-            </a>
-          </div>
-          */}
         </div>
       </div>
     </footer>

@@ -36,21 +36,14 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       }`}
     >
       <div className="flex flex-col items-center leading-none">
-        {/* Studio (safe to clip for reveal) */}
-        <div className="overflow-hidden mb-2">
-          <h1 className="font-sans font-black text-4xl md:text-6xl uppercase tracking-tighter text-stone-900 animate-fade-in-up">
-            Studio
-          </h1>
+        {/* Studio logo */}
+        <div className="overflow-hidden mb-0 animate-fade-in-up">
+          <img src="/logo/openStudio.png" alt="Studio" className="h-60 md:h-60 w-auto" draggable={false} />
         </div>
 
-        {/* Austinn (do NOT clip, add breathing room so full height shows) */}
-        <div className="pb-2">
-          <h1
-            className="font-script text-5xl md:text-7xl text-stone-500 animate-fade-in-up leading-tight"
-            style={{ animationDelay: "0.2s" }}
-          >
-            Austinn
-          </h1>
+        {/* Austinn logo */}
+        <div className="-mt-60 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+          <img src="/logo/openAustinn.png" alt="Austinn" className="h-60 md:h-60 w-auto" draggable={false} />
         </div>
 
         {/* Loading Line */}

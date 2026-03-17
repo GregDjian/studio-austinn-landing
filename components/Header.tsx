@@ -114,7 +114,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
           <a href="#" className="relative z-50">
             <img
-              src="/logo/SA_logo.png"
+              src={isSolid ? "/logo/SA_logo.png" : "/logo/SA_logoWhite.png"}
               alt="Studio Austinn"
               className="h-16 md:h-20 w-auto"
               draggable={false}
@@ -128,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 href={item.href}
                 className={[
                   "text-[10px] font-bold uppercase tracking-[0.2em] relative group overflow-hidden transition-colors duration-300",
-                  isSolid ? "text-stone-900 hover:text-stone-600" : "text-black/90 hover:text-black",
+                  isSolid ? "text-stone-900 hover:text-stone-600" : "text-white hover:text-white/70",
                 ].join(" ")}
               >
                 <span className="inline-block transition-transform duration-300 group-hover:-translate-y-full">
@@ -153,7 +153,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 onClick={toggleLang}
                 className={[
                   "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors",
-                  isSolid ? "text-stone-900" : "text-black",
+                  isSolid ? "text-stone-900" : "text-white",
                 ].join(" ")}
               >
                 <Globe size={14} />
@@ -168,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
                 "px-6 py-2 border text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300",
                 isSolid
                   ? "border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white"
-                  : "border-black text-black hover:bg-white hover:text-stone-900 hover:border-white",
+                  : "border-white text-white hover:bg-white hover:text-stone-900 hover:border-white",
               ].join(" ")}
             >
               {t.contact}
@@ -176,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
           </nav>
 
           <button
-            className={["md:hidden z-50 transition-colors", isSolid ? "text-stone-600" : "text-black"].join(" ")}
+            className={["md:hidden z-50 transition-colors", isSolid ? "text-stone-600" : "text-white"].join(" ")}
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label={mobileMenuOpen ? t.closeMenu : t.openMenu}
             aria-expanded={mobileMenuOpen}

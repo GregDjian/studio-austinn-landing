@@ -193,7 +193,10 @@ interface ServicesProps {
 const Services: React.FC<ServicesProps> = ({ lang }) => {
   const t = getUI(lang);
 
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(0);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState<number>(0);
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const activeIndex = isMobile ? mobileActiveIndex : hoveredIndex;
 
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | null>(null);
   const [active3DModel, setActive3DModel] = useState<string | null>(null);
@@ -284,7 +287,10 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = Number(entry.target.getAttribute("data-index"));
-            setHoveredIndex(index);
+            setTimeout(() => {
+              setMobileActiveIndex(index);
+              setHoveredIndex(index);
+            }, 1000);
           }
         });
       },
@@ -366,7 +372,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
             key={item.id}
             className={[
               "absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out",
-              hoveredIndex === index ? "opacity-100 scale-105 grayscale-0" : "opacity-0 scale-100 grayscale",
+              activeIndex === index ? "opacity-100 scale-105 grayscale-0" : "opacity-0 scale-100 grayscale",
             ].join(" ")}
             style={{ backgroundImage: `url('${item.image}')` }}
           />
@@ -390,7 +396,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     "absolute top-0",
                     lang === "ar" ? "right-0" : "left-0",
                     "text-[15vw] font-serif italic text-white/20 leading-none transition-all duration-700 transform",
-                    hoveredIndex === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
                   ].join(" ")}
                 >
                   {item.id}
@@ -430,7 +436,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                   }}
                   className="group relative cursor-pointer w-full text-center md:text-right"
                   onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
+                  onMouseLeave={() => setHoveredIndex(0)}
                   onClick={() => setActiveCategory(item)}
                 >
                   <span className="md:hidden block text-[8px] font-bold tracking-[0.3em] text-stone-400 mb-2 uppercase">
@@ -441,7 +447,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     <div
                       className={[
                         "flex items-center gap-2 text-stone-800 transition-all duration-500 order-2 md:order-1",
-                        hoveredIndex === index
+                        activeIndex === index
                           ? "opacity-100 translate-x-0"
                           : "opacity-100 md:opacity-0 translate-x-0 md:translate-x-4",
                       ].join(" ")}
@@ -455,7 +461,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     <h2
                       className={[
                         "font-sans font-black text-4xl sm:text-5xl md:text-7xl uppercase tracking-tighter transition-all duration-500 order-1 md:order-2",
-                        hoveredIndex === index ? "text-stone-900 translate-x-0" : "text-stone-300 md:translate-x-4",
+                        activeIndex === index ? "text-stone-900 translate-x-0" : "text-stone-300 md:translate-x-4",
                       ].join(" ")}
                     >
                       {item.title}
@@ -466,7 +472,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     className={[
                       "mt-2 md:mt-0 md:absolute md:top-1/2 md:-translate-y-1/2 transition-all duration-500",
                       lang === "ar" ? "md:left-full md:ml-32" : "md:right-full md:mr-32",
-                      hoveredIndex === index ? "opacity-100 translate-y-0" : "opacity-0 md:translate-x-12 translate-y-4",
+                      activeIndex === index ? "opacity-100 translate-y-0" : "opacity-0 md:translate-x-12 translate-y-4",
                     ].join(" ")}
                   >
                     <p className="font-serif italic text-white/60 text-lg md:text-xl whitespace-nowrap">{item.desc}</p>

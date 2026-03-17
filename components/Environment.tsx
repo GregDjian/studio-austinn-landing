@@ -3,7 +3,10 @@ import { Language } from "../types";
 import privateVilla from "../public/environment/privateVillas.jpeg";
 import yachts from "../public/environment/yachts.jpeg";
 import mall from "../public/environment/mall.jpg";
-import publicSpace from "../public/environment/publicSpace.jpg";
+import publicSpace from "../public/environment/publicSpace.jpeg";
+import designPartner from "../public/environment/designPartner.jpeg";
+import hospitality from "../public/environment/hospitality.jpeg";
+import luxuryRetail from "../public/environment/luxuryRetail.jpeg";
 
 type ImgLike = string | { src?: string } | any;
 
@@ -34,8 +37,7 @@ const getSectors = (lang: Language): Sector[] => {
       {
         title: "الضيافة",
         category: "فنادق ومنتجعات",
-        image:
-          "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2000&auto=format&fit=crop",
+        image: hospitality,
         description: "إعادة ابتكار تجربة الضيوف من خلال منحوتات مميّزة ومعارض فنية منسّقة.",
       },
       {
@@ -47,14 +49,13 @@ const getSectors = (lang: Language): Sector[] => {
       {
         title: "شركاء التصميم",
         category: "معماريون",
-        image:
-          "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop",
+        image: designPartner,
         description: "التعاون مع معماريين عالميين لدمج الفن منذ المراحل الأولى للتصميم.",
       },
       {
         title: "التجزئة الفاخرة",
         category: "مراكز تسوق وبوتيكات",
-        image: mall,
+        image: luxuryRetail,
         description: "ابتكار تجارب علامة تجارية غامرة من خلال التقاء الفن والتجارة.",
       },
       {
@@ -76,8 +77,7 @@ const getSectors = (lang: Language): Sector[] => {
     {
       title: "Hospitality",
       category: "Hotels & Gastronomy",
-      image:
-        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2000&auto=format&fit=crop",
+      image: hospitality,
       description: "Transforming guest experiences with statement sculptures and curated galleries.",
     },
     {
@@ -89,14 +89,13 @@ const getSectors = (lang: Language): Sector[] => {
     {
       title: "Design Partners",
       category: "Architects",
-      image:
-        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop",
+      image: designPartner,
       description: "Collaborating with world-class architects to integrate art from the blueprint phase.",
     },
     {
       title: "Luxury Retail",
       category: "Malls & Boutiques",
-      image: mall,
+      image: luxuryRetail,
       description: "Creating immersive brand experiences through artistic commerce.",
     },
     {
@@ -123,7 +122,7 @@ const getContent = (lang: Language) => {
     ecosystem: "Ecosystem",
     titleTop: "Where Art",
     titleBottom: "Resides",
-    subtitle: "From intimate private sanctuaries to expansive public landmarks.",
+    subtitle: "From intimate private sanctuaries to grand public landmarks.",
     partners: ["Architects", "Developers", "Designers", "Proprietors"],
   };
 };
@@ -260,7 +259,7 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
       }}
       id="spaces"
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="py-24 bg-stone-100 overflow-hidden"
+      className="py-16 md:py-24 bg-stone-100 overflow-hidden"
     >
       <div className="container mx-auto px-6 md:px-12">
         {/* Header */}
@@ -272,7 +271,7 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
 
             <h2
               className={[
-                "font-sans font-black text-6xl md:text-6xl uppercase tracking-tighter text-stone-900 leading-none",
+                "relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter",
                 lang === "ar" ? "text-right" : "text-left",
               ].join(" ")}
             >
@@ -299,21 +298,21 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
                 ref={(el) => {
                   itemRefs.current[index] = el;
                 }}
-                className="relative aspect-[4/3] rounded-[8px] group overflow-hidden bg-stone-200 cursor-crosshair"
-                onMouseEnter={() => handleMouseEnter(index)}
+                className="relative aspect-[4/3] rounded-[8px] group overflow-hidden bg-stone-200 cursor-crosshair md:cursor-crosshair cursor-pointer"                onMouseEnter={() => handleMouseEnter(index)}
                 onMouseLeave={handleMouseLeave}
+                onClick={() => { if (isMobile()) setActiveSector(index); }}
               >
                 <img
                   src={src}
                   alt={sector.title}
                   className={[
-                    "absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out grayscale",
-                    // Desktop hover behavior
-                    "md:opacity-40 md:group-hover:opacity-100 md:group-hover:grayscale-0 md:group-hover:scale-105",
-                    // ✅ Mobile: ONLY active one shows cover clearly
+                    "absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out",
+                    // Desktop
+                    "md:grayscale md:opacity-40 md:group-hover:opacity-100 md:group-hover:grayscale-0 md:group-hover:scale-105",
+                    // Mobile
                     activeSector === index
                       ? "opacity-100 scale-105 grayscale-0"
-                      : "opacity-0 scale-100",
+                      : "opacity-40 scale-100 grayscale",
                   ].join(" ")}
                 />
 

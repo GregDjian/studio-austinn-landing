@@ -1,8 +1,6 @@
 import React from "react";
 import { Language } from "../types";
-import Owner from "../public/philo/artistProfile.jpeg";
-import studio1 from "../public/philo/studio1.jpeg";
-import studio2 from "../public/philo/studio2.jpeg";
+import Owner from "../public/philo/philosophy.jpeg";
 
 const getContent = (lang: Language) => {
   if (lang === "ar") {
@@ -11,7 +9,7 @@ const getContent = (lang: Language) => {
       titleTop: "لوحة",
       titleBottom: "القصة",
       founderName: "Marine Bordier-Cros",
-      founderRole: "المؤسِّسة",
+      founderRole: "المؤسِّسة",
       introQuote:
         "لطالما كان الفن في قلب حياتي. بدأت رحلتي بدراسة تاريخ الفن وعلم الآثار، وهو ما منحني تقديراً عميقاً للقصص التي يمكن للفن أن يرويها.",
       made: "صُنع",
@@ -52,192 +50,125 @@ const getContent = (lang: Language) => {
 
 const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
   const t = getContent(lang);
+  const isAr = lang === "ar";
 
   return (
     <section
       id="philosophy"
-      dir={lang === "ar" ? "rtl" : "ltr"}
-      className="relative py-16 md:py-16 bg-stone-50 overflow-hidden"
+      dir={isAr ? "rtl" : "ltr"}
+      className="relative bg-stone-50 overflow-hidden"
       aria-label={t.meta}
     >
-      {/* ✅ ORIGINAL WHITE/BLUISH AMBIENT BACKGROUND */}
-      <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-sky-100/50 rounded-full blur-[130px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-stone-200/35 rounded-full blur-[110px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+      <div className={`flex flex-col-reverse ${isAr ? "lg:flex-row-reverse" : "lg:flex-row"} min-h-[70vh]`}>
 
-      {/* Modern subtle upgrades (same vibe): grain + thin grid */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(0,0,0,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.25)_1px,transparent_1px)] [background-size:84px_84px]" />
-        <div className="absolute inset-0 opacity-[0.08] mix-blend-multiply [background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22160%22 height=%22160%22 filter=%22url(%23n)%22 opacity=%220.35%22/%3E%3C/svg%3E')]" />
-      </div>
+        {/* ── LEFT: Content ── */}
+        <div className="relative w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-14 lg:px-16 py-20 pb-8 lg:py-22 lg:pb-22 bg-stone-50">
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10 mt-14">
-        {/* ✅ IMPORTANT: items-stretch so both columns share the same row height */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-stretch">
-          {/* ===== Left: Title + Founder (image grows to match right column height) ===== */}
-          <div className="lg:col-span-5 flex">
-            {/* keep sticky, but allow full height */}
-            <div className="lg:sticky lg:top-24 h-full w-full flex flex-col">
-              {/* Title */}
-              <div className="relative mb-12">
-                <span
-                  className={[
-                    "font-script text-8xl md:text-9xl text-stone-300 absolute -top-14 z-0 opacity-60 mix-blend-multiply select-none",
-                    lang === "ar" ? "right-0 md:-right-6" : "left-0 md:-left-6",
-                  ].join(" ")}
-                >
-                  {t.behind}
-                </span>
+          {/* Ambient blobs */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-100/50 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-stone-200/40 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
 
-                <h2 className="relative z-10 font-sans font-black text-6xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
-                  {t.titleTop} <br /> {t.titleBottom}
-                </h2>
-              </div>
+          {/* Subtle grid */}
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none [background-image:linear-gradient(to_right,rgba(0,0,0,0.3)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.3)_1px,transparent_1px)] [background-size:72px_72px]" />
 
-              {/* ✅ Founder card fills remaining height (so bottoms align) */}
-              <div className="mt-0 flex-1 flex">
-                <div className="w-full rounded-[8px] overflow-hidden border border-stone-900/10 bg-white shadow-[0_35px_90px_-70px_rgba(0,0,0,0.28)] flex flex-col">
-                  {/* ✅ image grows: remove aspect ratio, use flex-1 */}
-                  <div className="relative flex-1 min-h-[340px] overflow-hidden">
-                    <img
-                      src={Owner}
-                      alt={`${t.founderName} - ${t.founderRole}`}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-[1.05]"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-white/10 pointer-events-none" />
-                  </div>
+          <div className="relative z-10 max-w-lg">
 
-                  {/* footer stays fixed */}
-                  <div className="p-6 flex items-center justify-between gap-6 shrink-0">
-                    <div>
-                      <p className="text-stone-950 font-semibold tracking-[-0.02em] text-lg">
-                        {t.founderName}
-                      </p>
-                    </div>
-
-                    <span className="rounded-full border border-stone-900/10 bg-stone-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-stone-600">
-                      {t.founderRole}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            {/* Title */}
+            <div className="relative mb-10">
+              <span
+                className={[
+                  "font-script text-6xl md:text-8xl text-stone-200 absolute -top-8 md:-top-10 z-0 select-none pointer-events-none",
+                  isAr ? "right-0" : "-left-3",
+                ].join(" ")}
+              >
+                {t.behind}
+              </span>
+              <h2 className="relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
+                {t.titleTop} <br />
+                <span className="text-stone-400">{t.titleBottom}</span>
+              </h2>
             </div>
-          </div>
 
-          {/* ===== Right: Made in UAE + gallery ===== */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="rounded-[8px] border backdrop-blur-xl p-8 md:p-10 shadow-[0_35px_90px_-70px_rgba(0,0,0,0.30)]">
-              <div className="flex flex-wrap items-end justify-between gap-6">
-                <p className="text-stone-800 text-base md:text-lg leading-relaxed">
-                  {t.introQuote}
-                </p>
+            {/* image on mobile view only */}
+            <div className="relative w-full lg:w-1/2 h-[60vw] lg:h-auto lg:min-h-[70vh] mb-4 overflow-hidden block lg:hidden">
+              <img
+                src={Owner}
+                alt={`${t.founderName} - ${t.founderRole}`}
+                className="absolute inset-0 w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+              {/* subtle gradient at bottom to blend into right panel on mobile */}
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent lg:hidden" />
+              {/* vertical gradient on the inner edge for desktop */}
+              <div className={`hidden lg:block absolute inset-y-0 w-32 bg-gradient-to-${isAr ? "l" : "r"} from-transparent to-stone-50/20 ${isAr ? "left-0" : "right-0"}`} />
 
-                <div>
-                  <p className="text-stone-500 text-xs uppercase tracking-[0.32em]">
-                    {t.made}
-                  </p>
-                  <h3 className="mt-2 text-stone-950 text-3xl md:text-4xl font-semibold tracking-[-0.05em]">
-                    {t.inUae}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="h-1 w-12 rounded-full bg-gradient-to-r from-sky-400/70 via-indigo-400/60 to-emerald-300/70" />
-                  <span className="text-stone-500 text-xs uppercase tracking-[0.30em]">
-                    Local craft
+              {/* Founder badge — pinned to bottom left */}
+              <div className={`absolute bottom-8 ${isAr ? "right-8" : "left-8"} z-10`}>
+                <div className="rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg">
+                  <div>
+                    <p className="text-white font-semibold tracking-tight text-sm">{t.founderName}</p>
+                  </div>
+                  <span className="rounded-full border border-white/50 bg-white/20 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.28em] text-white">
+                    {t.founderRole}
                   </span>
                 </div>
               </div>
+            </div>
 
-              <p
-                className="mt-4 text-stone-800 text-base md:text-lg leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: t.madeDesc }}
-              />
+            {/* Intro quote */}
+            <p className="text-stone-600 text-sm md:text-base leading-relaxed mb-8 border-l-2 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5">
+              {t.introQuote}
+            </p>
 
-              <div className="mt-8 grid grid-cols-12 gap-4">
-                <div className="col-span-12 md:col-span-7">
-                  <div className="group relative overflow-hidden rounded-[8px] border border-stone-900/10 bg-white">
-                    <div className="aspect-[16/11] md:aspect-[4/3] overflow-hidden">
-                      <img
-                        src={studio1}
-                        alt={t.imgAlt1}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <div className="rounded-[8px] border border-white/50 bg-white/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
-                        <p className="text-stone-700 text-xs uppercase tracking-[0.26em]">
-                          {t.imgAlt1}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* Made desc */}
+            <p
+              className="text-stone-600 text-sm md:text-base leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: t.madeDesc }}
+            />
+            
+            {/* Footer line */}
+            <div className="flex items-center gap-4 pt-4">
+              <p className="text-stone-600 text-sm md:text-base leading-relaxed">{t.footer}</p>
+            </div>
 
-                <div className="col-span-12 md:col-span-5">
-                  <div className="group relative overflow-hidden rounded-[8px] border border-stone-900/10 bg-white h-full">
-                    <div className="aspect-[16/11] md:aspect-[4/3] overflow-hidden h-full">
-                      <img
-                        src={studio2}
-                        alt={t.imgAlt2}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <div className="rounded-[8px] border border-white/50 bg-white/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
-                        <p className="text-stone-700 text-xs uppercase tracking-[0.26em]">
-                          {t.imgAlt2}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer line */}
-              <div className="mt-8 flex items-center gap-4">
-                <span className="h-[2px] w-12 bg-stone-950/70" />
-                <p className="text-stone-600 text-sm">{t.footer}</p>
+            {/* Made in UAE badge */}
+            <div className="flex items-end justify-center md:justify-start gap-4 mt-8 border-t border-stone-200 pt-4">
+              <div>
+                <strong className="text-stone-950 text-[22px]"> <span>{t.made}</span> {t.inUae}</strong>
               </div>
             </div>
 
-            {/*
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { k: "01", v: t.chip1 },
-                { k: "02", v: t.chip2 },
-                { k: "03", v: t.chip3 },
-              ].map((item) => (
-                <div
-                  key={item.k}
-                  className="rounded-[12px] border border-stone-900/10 bg-white/70 backdrop-blur-xl p-5 shadow-[0_25px_70px_-60px_rgba(0,0,0,0.25)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-stone-500 text-xs uppercase tracking-[0.34em]">
-                      {item.k}
-                    </p>
-                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500/40" />
-                  </div>
-
-                  <p className="mt-2 text-stone-950 text-lg font-semibold tracking-[-0.03em]">
-                    {item.v}
-                  </p>
-
-                  <div className="mt-4 h-px w-full bg-stone-900/10" />
-
-                  <p className="mt-3 text-stone-600 text-sm leading-relaxed">
-                    {lang === "ar"
-                      ? "نهج معاصر مع عناية بالتفاصيل."
-                      : "Contemporary approach with obsessive detail."}
-                  </p>
-                </div>
-              ))}
-            </div>
-            */}
           </div>
         </div>
+
+
+        {/* ── RIGHT: Full-bleed image ── */}
+        <div className="relative w-full lg:w-1/2 h-[60vw] lg:h-auto lg:min-h-[70vh] overflow-hidden hidden lg:block">
+          <img
+            src={Owner}
+            alt={`${t.founderName} - ${t.founderRole}`}
+            className="absolute inset-0 w-full h-full object-cover object-top"
+            loading="lazy"
+          />
+          {/* subtle gradient at bottom to blend into right panel on mobile */}
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent lg:hidden" />
+          {/* vertical gradient on the inner edge for desktop */}
+          <div className={`hidden lg:block absolute inset-y-0 w-32 bg-gradient-to-${isAr ? "l" : "r"} from-transparent to-stone-50/20 ${isAr ? "left-0" : "right-0"}`} />
+
+          {/* Founder badge — pinned to bottom left */}
+          <div className={`absolute bottom-8 ${isAr ? "right-8" : "left-8"} z-10`}>
+            <div className="rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg">
+              <div>
+                <p className="text-white font-semibold tracking-tight text-sm">{t.founderName}</p>
+              </div>
+              <span className="rounded-full border border-white/50 bg-white/20 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.28em] text-white">
+                {t.founderRole}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        
       </div>
     </section>
   );

@@ -304,16 +304,16 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
       id="artists"
       ref={sectionRef}
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="py-32 bg-white relative overflow-hidden min-h-screen"
+      className=" py-16 md:py-32 bg-white relative overflow-hidden min-h-screen"
     >
       <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-stone-50 to-transparent z-10 pointer-events-none" />
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
         {/* Header */}
-        <div className="mb-24 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-100 pb-8">
+        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-100 pb-8">
           <h2
             className={[
-              "font-sans font-black text-6xl md:text-6xl uppercase tracking-tighter text-stone-900 leading-none",
+              "relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter",
               lang === "ar" ? "text-right" : "text-left",
             ].join(" ")}
           >
@@ -343,7 +343,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 } transition-all duration-700`}
                 onClick={() => setActiveArtwork(artist)}
               >
-                <div className="aspect-[3/4] rounded-[8px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                <div className="aspect-[5/6] rounded-[8px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
                   <img
                     src={artist.imageUrl}
                     alt={artist.collection}
