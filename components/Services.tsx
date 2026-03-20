@@ -452,7 +452,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                           : "opacity-100 md:opacity-0 translate-x-0 md:translate-x-4",
                       ].join(" ")}
                     >
-                      <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">{t.browse}</span>
+                      <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden md:inline">{t.browse}</span>
                       <div className="w-10 h-10 md:w-8 md:h-8 rounded-full border border-stone-800 flex items-center justify-center bg-white/80 backdrop-blur-md shadow-sm group-active:scale-95 transition-transform">
                         <ArrowUpRight size={16} className="md:w-3.5 md:h-3.5" />
                       </div>

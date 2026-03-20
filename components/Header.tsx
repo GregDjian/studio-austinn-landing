@@ -14,14 +14,14 @@ const getNavItems = (lang: Language): NavItem[] => {
       { label: "الفلسفة", href: "#philosophy" },
       { label: "الكتالوج", href: "#services" },
       { label: "مختارات", href: "#artists" },
-      { label: "المساحات", href: "#spaces" },
+      { label: "المساحات والمشاريع", href: "#spaces-projects" }
     ];
   }
   return [
     { label: "Philosophy", href: "#philosophy" },
     { label: "Catalogue", href: "#services" },
     { label: "Featured", href: "#artists" },
-    { label: "Spaces", href: "#spaces" },
+    { label: "Spaces & Projects", href: "#spaces-projects" },
   ];
 };
 

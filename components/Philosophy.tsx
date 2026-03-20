@@ -37,7 +37,7 @@ const getContent = (lang: Language) => {
     made: "Made",
     inUae: "In U.A.E.",
     madeDesc:
-      'Located in the heart of <strong class="text-stone-950">Al Quoz</strong>, our studio is where creativity takes shape. We collaborate with skilled artisans and local suppliers to ensure exceptional craftsmanship.',
+      'Located in the heart of <strong class="text-stone-950">Al Quoz</strong> in Dubai, our studio is where creativity takes shape. We collaborate with skilled artisans and local suppliers to ensure exceptional craftsmanship.',
     imgAlt1: "The Studio",
     imgAlt2: "Atelier",
     meta: "Studio philosophy",
@@ -62,7 +62,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
       <div className={`flex flex-col-reverse ${isAr ? "lg:flex-row-reverse" : "lg:flex-row"} min-h-[70vh]`}>
 
         {/* ── LEFT: Content ── */}
-        <div className="relative w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-14 lg:px-16 py-20 pb-8 lg:py-22 lg:pb-22 bg-stone-50">
+        <div className="relative w-full lg:w-1/2 flex flex-col justify-center px-6 md:px-14 lg:px-16 py-20 pb-8 lg:py-22 lg:pb-22 bg-stone-50 mt-10 mb-8">
 
           {/* Ambient blobs */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-100/50 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/3 pointer-events-none" />
@@ -90,25 +90,27 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
             </div>
 
             {/* image on mobile view only */}
-            <div className="relative w-full lg:w-1/2 h-[60vw] lg:h-auto lg:min-h-[70vh] mb-4 overflow-hidden block lg:hidden">
-              <img
-                src={Owner}
-                alt={`${t.founderName} - ${t.founderRole}`}
-                className="absolute inset-0 w-full h-full object-cover object-top"
-                loading="lazy"
-              />
-              {/* subtle gradient at bottom to blend into right panel on mobile */}
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent lg:hidden" />
-              {/* vertical gradient on the inner edge for desktop */}
-              <div className={`hidden lg:block absolute inset-y-0 w-32 bg-gradient-to-${isAr ? "l" : "r"} from-transparent to-stone-50/20 ${isAr ? "left-0" : "right-0"}`} />
+            <div className="block lg:hidden mb-4">
+              {/* Image */}
+              <div className="relative w-full h-[60vw] overflow-hidden">
+                <img
+                  src={Owner}
+                  alt={`${t.founderName} - ${t.founderRole}`}
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  loading="lazy"
+                />
+                {/* subtle gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent" />
+              </div>
 
-              {/* Founder badge — pinned to bottom left */}
-              <div className={`absolute bottom-8 ${isAr ? "right-8" : "left-8"} z-10`}>
-                <div className="rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg">
-                  <div>
-                    <p className="text-white font-semibold tracking-tight text-sm">{t.founderName}</p>
-                  </div>
-                  <span className="rounded-full border border-white/50 bg-white/20 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.28em] text-white">
+              {/* Founder badge under image */}
+              <div className="mt-4 w-full">
+                <div className="w-full rounded-[8px] border border-stone-200 bg-white/70 backdrop-blur-md px-5 py-3 flex items-center justify-between gap-4 shadow-lg">
+                  <p className="text-stone-900 font-semibold tracking-tight text-sm">
+                    {t.founderName}
+                  </p>
+
+                  <span className="rounded-full border border-stone-300 bg-stone-100/80 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.28em] text-stone-700 whitespace-nowrap">
                     {t.founderRole}
                   </span>
                 </div>
@@ -122,17 +124,17 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
 
             {/* Made desc */}
             <p
-              className="text-stone-600 text-sm md:text-base leading-relaxed"
+              className="text-stone-600 text-sm md:text-base leading-relaxed mb-8 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5"
               dangerouslySetInnerHTML={{ __html: t.madeDesc }}
             />
             
             {/* Footer line */}
-            <div className="flex items-center gap-4 pt-4">
+            <div className="text-stone-600 text-sm md:text-base leading-relaxed mb-8 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5">
               <p className="text-stone-600 text-sm md:text-base leading-relaxed">{t.footer}</p>
             </div>
 
             {/* Made in UAE badge */}
-            <div className="flex items-end justify-center md:justify-start gap-4 mt-8 border-t border-stone-200 pt-4">
+            <div className="flex items-end justify-center md:justify-start gap-4 mt-8 border-t border-stone-200 pt-4 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5">
               <div>
                 <strong className="text-stone-950 text-[22px]"> <span>{t.made}</span> {t.inUae}</strong>
               </div>

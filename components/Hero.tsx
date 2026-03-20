@@ -57,7 +57,7 @@ const Hero: React.FC<{ lang: Language }> = ({ lang }) => {
             ].join(" ")}
             style={{ animationDelay: "0.2s" }}
           >
-            {isAr ? "السماء هي لوحتك" : "The Sky is your canvas"}
+            {isAr ? "أعمال فنية حصرية لمساحات استثنائية" : "Bespoke Art for Exceptional Spaces"}
           </p>
 
           {/* Headline */}

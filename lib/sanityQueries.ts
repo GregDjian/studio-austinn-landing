@@ -33,3 +33,24 @@ export async function getArtworks() {
     }
   `);
 }
+
+/* =========================
+   PROJECTS
+========================= */
+
+export async function getProjects() {
+  return sanityClient.fetch(`
+    *[_type == "project"] | order(_createdAt desc) {
+      _id,
+      title,
+      location,
+      year,
+      size,
+      summary,
+      sector,
+      tags,
+      coverImage,
+      images
+    }
+  `);
+}

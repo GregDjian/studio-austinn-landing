@@ -310,7 +310,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
         {/* Header */}
-        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-100 pb-8">
+        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-100 pb-8">
           <h2
             className={[
               "relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter",
@@ -343,7 +343,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 } transition-all duration-700`}
                 onClick={() => setActiveArtwork(artist)}
               >
-                <div className="aspect-[5/6] rounded-[8px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                <div className="aspect-[5/6] rounded-[6px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
                   <img
                     src={artist.imageUrl}
                     alt={artist.collection}
@@ -383,11 +383,11 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
 
                   <div
                     className={[
-                      "absolute bottom-6 bg-white/90 backdrop-blur-md px-4 py-3 border border-white/50 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
+                      "absolute bottom-6 rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
                       lang === "ar" ? "right-6" : "left-6",
                     ].join(" ")}
                   >
-                    <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-stone-900">
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-white">
                       {artist.artistName}
                     </p>
                   </div>
