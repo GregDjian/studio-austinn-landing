@@ -3,14 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Studio Austinn | UAE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <!-- Primary SEO -->
+    <title>Studio Austinn | Bespoke Art, Sculptures & Installations Dubai UAE</title>
+    <meta name="description" content="Studio Austinn creates bespoke sculptures, paintings and art installations for private villas, luxury hotels, yachts and public spaces across Dubai and the UAE." />
+    <meta name="keywords" content="bespoke art dubai, art installations UAE, custom sculptures dubai, art studio dubai, contemporary art UAE, interior art dubai, bespoke sculptures, art consultant dubai, luxury art UAE" />
+    <meta name="author" content="Studio Austinn" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.studioaustinn.com/" />
+
+    <!-- Open Graph (WhatsApp, LinkedIn, Facebook) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.studioaustinn.com/" />
+    <meta property="og:title" content="Studio Austinn | Bespoke Art & Sculptures Dubai" />
+    <meta property="og:description" content="Bespoke sculptures, paintings and art installations for luxury spaces across the UAE." />
+    <meta property="og:image" content="https://www.studioaustinn.com/og-image.jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_AE" />
+    <meta property="og:locale:alternate" content="ar_AE" />
+    <meta property="og:site_name" content="Studio Austinn" />
+
+    <!-- Geo targeting -->
+    <meta name="geo.region" content="AE-DU" />
+    <meta name="geo.placename" content="Dubai" />
+    <meta name="geo.position" content="25.1972;55.2796" />
+    <meta name="ICBM" content="25.1972, 55.2796" />
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/logo/SA_logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+
     <!-- Model Viewer for 3D content -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -84,19 +116,16 @@
         }
       }
     </script>
+
     <style>
       html, body {
-        /* Cursor set to auto to ensure mouse is always visible */
         cursor: auto;
         scroll-behavior: smooth;
         overflow-x: hidden;
       }
-      
-      /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 0px; /* Hidden scrollbar for cleaner look */
+        width: 0px;
       }
-      
       .text-outline {
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
         color: transparent;
@@ -105,7 +134,6 @@
         -webkit-text-stroke: 1px rgba(0, 0, 0, 0.8);
         color: transparent;
       }
-      
       .bg-noise {
         position: fixed;
         top: -50%;
@@ -121,21 +149,54 @@
         pointer-events: none;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+      }
+    }
+    </script>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ArtGallery",
+      "name": "Studio Austinn",
+      "description": "Bespoke sculptures, paintings and art installations for luxury spaces across the UAE.",
+      "url": "https://www.studioaustinn.com",
+      "logo": "https://www.studioaustinn.com/logo/SA_logo.png",
+      "image": "https://www.studioaustinn.com/og-image.jpeg",
+      "telephone": "+971581558866",
+      "email": "hello@studioaustinn.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Al Quoz 4",
+        "addressLocality": "Dubai",
+        "addressCountry": "AE"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 25.1972,
+        "longitude": 55.2796
+      },
+      "openingHours": "Mo-Fr 09:00-18:00",
+      "sameAs": [
+        "https://www.instagram.com/studio_austinn/",
+        "https://fr.pinterest.com/marinebordiercros/"
+      ],
+      "priceRange": "$$"
+    }
+    </script>
+
+  </head>
   <body class="bg-stone-50 text-stone-900 antialiased selection:bg-sky-200 selection:text-stone-900">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>
