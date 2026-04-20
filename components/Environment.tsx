@@ -7,7 +7,7 @@ import designPartner from "../public/environment/designPartner.jpeg";
 import hospitality from "../public/environment/hospitality.jpeg";
 import luxuryRetail from "../public/environment/luxuryRetail.jpeg";
 import { getProjects } from "../lib/sanityQueries";
-import { urlFor } from "../lib/sanityClient";
+import { urlFor } from "../lib/sanityImage";
 import SectorModal, { Sector } from "./SectorModal";
 
 type ImgLike = string | { src?: string } | any;
@@ -109,8 +109,10 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
           summary: p.summary ?? "",
           sector: p.sector ?? "",
           tags: p.tags ?? [],
-          cover: p.coverImage ? urlFor(p.coverImage).width(1200).url() : "",
-          images: (p.images ?? []).map((img: any) => urlFor(img).width(1600).url()),
+          cover: p.coverImage?.asset ? urlFor(p.coverImage).width(1200).url() : "",
+          images: (p.images ?? [])
+            .filter((img: any) => img?.asset)
+            .map((img: any) => urlFor(img).width(1600).url()),
         }));
 
         const grouped: ProjectsBySector = {};

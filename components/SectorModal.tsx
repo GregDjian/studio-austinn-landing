@@ -77,7 +77,7 @@ const SectorModal: React.FC<SectorModalProps> = ({ sector, onClose, lang }) => {
       dir={lang === "ar" ? "rtl" : "ltr"}
     >
       {/* Hero banner */}
-      <div className="relative h-[40vh] md:h-[45vh] shrink-0 overflow-hidden">
+      <div className="relative h-[30vh] md:h-[30vh] shrink-0 overflow-hidden">
         <img src={getImgSrc(sector.image)} alt={sector.title} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-stone-50" />
 
@@ -120,7 +120,10 @@ const SectorModal: React.FC<SectorModalProps> = ({ sector, onClose, lang }) => {
                   key={project.id}
                   className="group cursor-pointer"
                   style={{ animationDelay: `${i * 80}ms` }}
-                  onClick={() => setActiveProject(project)}
+                  onClick={() => setActiveProject({
+                    ...project,
+                    images: [project.cover, ...project.images].filter(Boolean),
+                  })}
                 >
                   <div className="relative aspect-[4/3] overflow-hidden rounded-[8px] mb-4 bg-stone-200">
                     <img

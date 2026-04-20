@@ -21,6 +21,7 @@ const Hero: React.FC<{ lang: Language }> = ({ lang }) => {
   return (
     <section
       dir={isAr ? "rtl" : "ltr"}
+      aria-label={isAr ? "الصفحة الرئيسية - ستوديو أوستن" : "Studio Austinn — Bespoke Art Dubai"}
       className="relative w-full h-screen min-h-[700px] overflow-hidden"
     >
       {/* Full background image with parallax */}
@@ -31,10 +32,10 @@ const Hero: React.FC<{ lang: Language }> = ({ lang }) => {
       >
         <img
           src={heroImg}
-          alt=""
-          aria-hidden="true"
+          alt="Studio Austinn — Bespoke art installations and sculptures for luxury spaces in Dubai, UAE"
           draggable={false}
-          className="w-full h-full object-cover object-[25%] md:object-center pointer-events-none select-none"        />
+          className="w-full h-full object-cover object-[25%] md:object-center pointer-events-none select-none"
+        />
       </div>
 
       {/* Dark overlay — stronger on the right (text side) */}
@@ -78,6 +79,13 @@ const Hero: React.FC<{ lang: Language }> = ({ lang }) => {
               {isAr ? "الإبداعي" : "COMPANION"}
             </span>
           </h1>
+
+          {/* Visually hidden SEO description */}
+          <p className="sr-only">
+            {isAr
+              ? "ستوديو أوستن — منحوتات ولوحات وتركيبات فنية مخصصة للفلل الخاصة والفنادق والمساحات الفاخرة في الإمارات"
+              : "Studio Austinn — Bespoke sculptures, paintings and art installations for private villas, hotels and luxury spaces across the UAE"}
+          </p>
         </div>
       </div>
 

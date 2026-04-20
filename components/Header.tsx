@@ -95,6 +95,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
     <>
       <header
         dir={lang === "ar" ? "rtl" : "ltr"}
+        aria-label={lang === "ar" ? "التنقل الرئيسي" : "Main navigation"}
         className={[
           "fixed top-0 left-0 w-full z-50",
           "transition-[padding,color] duration-500 ease-out",
@@ -112,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
         />
 
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
-          <a href="#" className="relative z-50">
+          <a href="#" aria-label="Studio Austinn — Home" className="relative z-50">
             <img
               src={isSolid ? "/logo/SA_logo.png" : "/logo/SA_logoWhite.png"}
               alt="Studio Austinn"
@@ -121,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang }) => {
             />
           </a>
 
-          <nav className="hidden md:flex gap-12 items-center">
+          <nav aria-label="Primary navigation" className="hidden md:flex gap-12 items-center">
             {navItems.map((item) => (
               <a
                 key={item.label}

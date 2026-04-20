@@ -304,6 +304,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
       id="artists"
       ref={sectionRef}
       dir={lang === "ar" ? "rtl" : "ltr"}
+      aria-label={lang === "ar" ? "فنانون مختارون — ستوديو أوستن" : "Curated Artists — Studio Austinn Dubai"}
       className=" py-16 md:py-32 bg-white relative overflow-hidden min-h-screen"
     >
       <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-stone-50 to-transparent z-10 pointer-events-none" />
@@ -312,6 +313,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
         {/* Header */}
         <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-100 pb-8">
           <h2
+            aria-label={lang === "ar" ? "فنانون مختارون" : "Curated Artists — Bespoke Art Dubai"}
             className={[
               "relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter",
               lang === "ar" ? "text-right" : "text-left",
@@ -326,6 +328,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
             <p className="text-xs uppercase tracking-widest text-stone-400 mt-2">{t.headerSub2}</p>
           </div>
         </div>
+
+        <p className="sr-only">
+          {lang === "ar"
+            ? "اكتشف مجموعة من الفنانين المختارين الذين يقدمون منحوتات ولوحات وتركيبات فنية حصرية في دبي والإمارات"
+            : "Discover curated artists offering bespoke sculptures, paintings and art installations in Dubai and across the UAE through Studio Austinn."}
+        </p>
 
         {/* Optional loader (keeps layout clean) */}
         {loading ? (
@@ -346,7 +354,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 <div className="aspect-[5/6] rounded-[6px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
                   <img
                     src={artist.imageUrl}
-                    alt={artist.collection}
+                    alt={`${artist.artistName} — ${artist.collection} | Studio Austinn Dubai`}
                     className="
                       w-full h-full object-cover
                       will-change-transform

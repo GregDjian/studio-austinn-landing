@@ -363,6 +363,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
     <section
       id="services"
       dir={lang === "ar" ? "rtl" : "ltr"}
+      aria-label={lang === "ar" ? "كتالوج الأعمال الفنية — ستوديو أوستن" : "Art Catalogue — Studio Austinn Dubai. Paintings, sculptures, chandeliers, installations and bespoke art."}
       className="relative w-full min-h-screen bg-stone-50 overflow-hidden flex items-center py-24 md:py-20"
     >
       {/* Dynamic Background Images */}
@@ -418,6 +419,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
 
           <div className="col-span-1 md:col-span-8 flex flex-col items-center md:items-end">
             <h3
+              aria-label={lang === "ar" ? "كتالوج ستوديو أوستن" : "Studio Austinn Art Catalogue"}
               className={[
                 "text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-12 md:mb-16",
                 lang === "ar" ? "md:ml-1" : "md:mr-1",
@@ -425,6 +427,12 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
             >
               {t.catalogue}
             </h3>
+
+            <p className="sr-only">
+              {lang === "ar"
+                ? "كتالوج ستوديو أوستن — لوحات، منحوتات، ثريات، تركيبات فنية، وأعمال مخصصة في دبي والإمارات"
+                : "Studio Austinn catalogue — paintings, sculptures, chandeliers, installations and bespoke commissioned artworks in Dubai, UAE"}
+            </p>
 
             <div className="w-full flex flex-col items-center md:items-end space-y-12 md:space-y-6">
               {catalogueItems.map((item, index) => (
@@ -538,7 +546,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                       {activeCategory.gallery.map((art, i) => (
                         <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
                           <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4 cursor-pointer">
-                            <img src={art.image} alt={art.title} className="w-full h-full object-cover" />
+                            <img src={art.image} alt={`${art.title} — ${activeCategory.title} | Studio Austinn`} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex flex-col gap-1">
                             <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>

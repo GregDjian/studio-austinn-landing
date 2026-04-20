@@ -83,7 +83,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
               >
                 {t.behind}
               </span>
-              <h2 className="relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
+              <h2 id="philosophy-title" className="relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter">
                 {t.titleTop} <br />
                 <span className="text-stone-400">{t.titleBottom}</span>
               </h2>
@@ -132,6 +132,11 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
             <div className="text-stone-600 text-sm md:text-base leading-relaxed mb-8 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5">
               <p className="text-stone-600 text-sm md:text-base leading-relaxed">{t.footer}</p>
             </div>
+            <p className="sr-only">
+              {isAr
+                ? "ستوديو أوستن في القوز دبي — فن معاصر مخصص، منحوتات، وتركيبات فنية للمساحات الفاخرة"
+                : "Studio Austinn is a bespoke art studio based in Al Quoz, Dubai, UAE. We create custom sculptures, paintings and installations for luxury residential and commercial spaces in all middle east and gcc countries."}
+            </p>
 
             {/* Made in UAE badge */}
             <div className="flex items-end justify-center md:justify-start gap-4 mt-8 border-t border-stone-200 pt-4 border-stone-300 pl-5 rtl:border-l-0 rtl:border-r-2 rtl:pl-0 rtl:pr-5">
