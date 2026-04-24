@@ -204,6 +204,23 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
     setIsPinMode(false);
   };
 
+  const compressImage = (file: File, maxWidth = 1200): Promise<File> => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement("canvas");
+        const img = new Image();
+        img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+            resolve(new File([blob!], file.name, { type: "image/jpeg" }));
+        }, "image/jpeg", 0.8);
+        };
+        img.src = URL.createObjectURL(file);
+    });
+    };
+
   const handleGenerate = async () => {
     if (!roomFile || !selectedArtwork) return;
     setIsGenerating(true);
@@ -211,7 +228,8 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
     setResult(null);
 
     try {
-      const { base64: roomB64, mimeType: roomMime } = await fileToBase64(roomFile);
+      const compressed = await compressImage(roomFile);
+      const { base64: roomB64, mimeType: roomMime } = await fileToBase64(compressed);
       const { base64: artB64, mimeType: artMime } = await urlToBase64(selectedArtwork.image);
 
       const description = await visualizeArtworkInSpace(
@@ -240,6 +258,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
   };
 
   const canGenerate = roomFile && selectedArtwork && !isGenerating;
+
 
   return (
     <section
