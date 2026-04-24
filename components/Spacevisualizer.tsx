@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Upload, Sparkles, ArrowUpRight, RotateCcw, ImageIcon, X, MapPin } from "lucide-react";
-import { GoogleGenAI } from "@google/genai";
 import { Language } from "../types";
 import { getArtworks } from "../lib/sanityQueries";
 import { urlFor } from "../lib/sanityImage";
@@ -78,8 +77,8 @@ function getPositionDescription(x: number, y: number, lang: Language): string {
   return `${v} ${h} wall`;
 }
 
-// ── Compress image before sending ─────────────────────────────────────────
-const compressImage = (file: File, maxWidth = 1200): Promise<File> => {
+// ── Compress image aggressively ────────────────────────────────────────────
+const compressImage = (file: File, maxWidth = 600): Promise<File> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
     const img = new Image();
@@ -89,8 +88,8 @@ const compressImage = (file: File, maxWidth = 1200): Promise<File> => {
       canvas.height = img.height * scale;
       canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
       canvas.toBlob((blob) => {
-        resolve(new File([blob!], file.name, { type: "image/jpeg" }));
-      }, "image/jpeg", 0.8);
+        resolve(new File([blob!], "compressed.jpg", { type: "image/jpeg" }));
+      }, "image/jpeg", 0.5);
     };
     img.src = URL.createObjectURL(file);
   });
@@ -124,12 +123,10 @@ async function urlToBase64(url: string): Promise<{ base64: string; mimeType: str
   });
 }
 
-// ── Gemini direct call with images ────────────────────────────────────────
+// ── Visualize via /api/gemini ──────────────────────────────────────────────
 async function visualizeArtworkInSpace(
   roomImageBase64: string,
-  roomMimeType: string,
   artworkImageBase64: string,
-  artworkMimeType: string,
   artworkTitle: string,
   pinPosition: PinPosition | null,
   lang: Language
@@ -142,26 +139,28 @@ async function visualizeArtworkInSpace(
 
   const prompt =
     lang === "ar"
-      ? `${positionHint}أنت مصمم داخلي خبير ومستشار فني. بناءً على الصورتين، صِف بشكل واقعي ومُلهم كيف ستبدو القطعة الفنية "${artworkTitle}" في هذه المساحة: التأثير البصري، التناسق مع الديكور الموجود، والجو العام الذي ستخلقه. اجعل الوصف غنياً وخاصاً بما تراه في الصورتين.`
-      : `${positionHint}You are an expert interior designer and art consultant. Based on both images, give a vivid and realistic description of how the artwork "${artworkTitle}" would look placed in this specific room: the visual impact, how it harmonizes with the existing decor and colors, the atmosphere it would create, and why it is a perfect fit. Be specific to what you see in both images.`;
+      ? `${positionHint}أنت مصمم داخلي خبير ومستشار فني. بناءً على الصورتين، صِف بشكل واقعي ومُلهم كيف ستبدو القطعة الفنية "${artworkTitle}" في هذه المساحة: التأثير البصري، التناسق مع الديكور الموجود، والجو العام الذي ستخلقه.`
+      : `${positionHint}You are an expert interior designer and art consultant. Based on both images, give a vivid and realistic description of how the artwork "${artworkTitle}" would look in this specific room: the visual impact, how it harmonizes with the existing decor, and the atmosphere it would create.`;
 
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.GEMINI_API_KEY });
-
-  const resp = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: roomMimeType as any, data: roomImageBase64 } },
-          { inlineData: { mimeType: artworkMimeType as any, data: artworkImageBase64 } },
-          { text: prompt },
-        ],
-      },
-    ],
+  const resp = await fetch("/api/gemini", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: "visualize",
+      lang,
+      prompt,
+      roomImage: { base64: roomImageBase64, mimeType: "image/jpeg" },
+      artworkImage: { base64: artworkImageBase64, mimeType: "image/jpeg" },
+    }),
   });
 
-  return resp.text ?? "";
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(`API error ${resp.status}`);
+  return typeof data?.text === "string" && data.text.trim().length > 0
+    ? data.text.trim()
+    : lang === "ar"
+    ? "عذراً، لم أتمكن من تحليل الصورتين. حاول مرة أخرى."
+    : "Sorry, I could not analyze the images. Please try again.";
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -226,13 +225,20 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
     setResult(null);
 
     try {
-      const compressed = await compressImage(roomFile);
-      const { base64: roomB64, mimeType: roomMime } = await fileToBase64(compressed);
-      const { base64: artB64, mimeType: artMime } = await urlToBase64(selectedArtwork.image);
+      // Compress room image
+      const compressedRoom = await compressImage(roomFile, 600);
+      const { base64: roomB64 } = await fileToBase64(compressedRoom);
+
+      // Compress artwork image
+      const artRaw = await urlToBase64(selectedArtwork.image);
+      const artBlob = await fetch(`data:${artRaw.mimeType};base64,${artRaw.base64}`).then(r => r.blob());
+      const artFile = new File([artBlob], "artwork.jpg", { type: artRaw.mimeType });
+      const artCompressed = await compressImage(artFile, 600);
+      const { base64: artB64 } = await fileToBase64(artCompressed);
 
       const description = await visualizeArtworkInSpace(
-        roomB64, roomMime,
-        artB64, artMime,
+        roomB64,
+        artB64,
         selectedArtwork.title,
         pinPosition,
         lang
@@ -393,10 +399,10 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                   <div className="flex items-center gap-2">
                     {pinPosition && !isPinMode ? (
                       <>
-                        <div className="flex items-center gap-1.5 flex-1 text-[10px] font-bold uppercase tracking-widest">
+                        <div className="flex items-center gap-1.5 flex-1 text-[10px] font-bold uppercase tracking-widest overflow-hidden">
                           <MapPin size={12} className="text-stone-900 shrink-0" />
-                          <span className="text-stone-900">{t.pinSet}</span>
-                          <span className="text-stone-400">— {getPositionDescription(pinPosition.x, pinPosition.y, lang)}</span>
+                          <span className="text-stone-900 shrink-0">{t.pinSet}</span>
+                          <span className="text-stone-400 truncate">— {getPositionDescription(pinPosition.x, pinPosition.y, lang)}</span>
                         </div>
                         <button
                           onClick={() => { setPinPosition(null); setIsPinMode(true); }}
