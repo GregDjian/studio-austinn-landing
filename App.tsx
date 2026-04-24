@@ -30,7 +30,6 @@ function App() {
       <Hero lang={lang} />
       <Philosophy lang={lang} />
       <Services lang={lang} />
-      <SpaceVisualizer lang={lang} />
       <FeaturedArtist lang={lang} />
       <Environments lang={lang} />
       <Contact lang={lang} />
