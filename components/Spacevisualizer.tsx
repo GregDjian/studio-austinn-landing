@@ -145,7 +145,7 @@ async function visualizeArtworkInSpace(
       ? `${positionHint}أنت مصمم داخلي خبير ومستشار فني. بناءً على الصورتين، صِف بشكل واقعي ومُلهم كيف ستبدو القطعة الفنية "${artworkTitle}" في هذه المساحة: التأثير البصري، التناسق مع الديكور الموجود، والجو العام الذي ستخلقه. اجعل الوصف غنياً وخاصاً بما تراه في الصورتين.`
       : `${positionHint}You are an expert interior designer and art consultant. Based on both images, give a vivid and realistic description of how the artwork "${artworkTitle}" would look placed in this specific room: the visual impact, how it harmonizes with the existing decor and colors, the atmosphere it would create, and why it is a perfect fit. Be specific to what you see in both images.`;
 
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.GEMINI_API_KEY });
 
   const resp = await ai.models.generateContent({
     model: "gemini-1.5-flash",
