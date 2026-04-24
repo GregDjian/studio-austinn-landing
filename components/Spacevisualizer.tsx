@@ -186,13 +186,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
       const compressedRoom = await compressImage(roomFile, 800);
       const roomData = await fileToBase64(compressedRoom);
 
-      // Compress artwork image
-      const artRaw = await urlToBase64(selectedArtwork.image);
-      const artBlob = await fetch(`data:${artRaw.mimeType};base64,${artRaw.base64}`).then(r => r.blob());
-      const artFile = new File([artBlob], "artwork.jpg", { type: artRaw.mimeType });
-      const artCompressed = await compressImage(artFile, 600);
-      const artData = await fileToBase64(artCompressed);
-
       const positionDescription = pinPosition
         ? getPositionDescription(pinPosition.x, pinPosition.y, lang)
         : null;
@@ -202,8 +195,8 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           roomImage: { base64: roomData.base64, mimeType: "image/jpeg" },
-          artworkImage: { base64: artData.base64, mimeType: "image/jpeg" },
           artworkTitle: selectedArtwork.title,
+          artworkType: selectedArtwork.type,
           positionDescription,
           lang,
         }),
