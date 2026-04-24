@@ -20,9 +20,6 @@ import sculptureCover from "../public/cover/sculpture-cover.jpeg";
 import installationCover from "../public/cover/installation-cover.jpeg";
 import chandelierCover from "../public/cover/chandelier-cover.jpeg";
 
-
-
-// Extend the IntrinsicElements interface globally to support custom web components like <model-viewer>.
 declare global {
   namespace React {
     namespace JSX {
@@ -46,7 +43,7 @@ interface Artwork {
   id: string;
   title: string;
   description: string;
-  image: string; // URL from Sanity
+  image: string;
   type: ArtworkType;
 }
 
@@ -54,15 +51,10 @@ interface ServiceCategory {
   id: string;
   title: string;
   desc: string;
-  image: string; // ✅ fixed background image per category (NOT dependent on gallery)
+  image: string;
   modelUrl?: string;
   is3D?: boolean;
-  gallery: Array<{
-    id: string;
-    title: string;
-    description: string;
-    image: string;
-  }>;
+  gallery: Array<{ id: string; title: string; description: string; image: string }>;
 }
 
 const getUI = (lang: Language) => {
@@ -79,8 +71,6 @@ const getUI = (lang: Language) => {
       viewerHint: "حرّك للتدوير والتقريب",
       rotate: "تدوير",
       zoom: "تقريب",
-
-      // Inquiry form
       name: "الاسم الكامل",
       email: "البريد الإلكتروني",
       message: "رسالتك",
@@ -93,13 +83,11 @@ const getUI = (lang: Language) => {
       emptyCategory: "لا توجد أعمال حالياً في هذا القسم.",
     };
   }
-
   return {
     catalogue: "Catalogue",
     part: "Part",
     browse: "Browse",
-    curatedNote:
-      "Every piece in our collection is meticulously curated to meet the highest standards of artistic expression.",
+    curatedNote: "Every piece in our collection is meticulously curated to meet the highest standards of artistic expression.",
     inquire: "Inquire for availability",
     close: "Close",
     view3d: "3D View",
@@ -107,8 +95,6 @@ const getUI = (lang: Language) => {
     viewerHint: "Interact to rotate & zoom",
     rotate: "Rotate",
     zoom: "Zoom",
-
-    // Inquiry form
     name: "Full Name",
     email: "Email Address",
     message: "Your Message",
@@ -122,10 +108,6 @@ const getUI = (lang: Language) => {
   };
 };
 
-/**
- * ✅ Fixed cover images for the SERVICES list (backgrounds).
- * These stay constant and do NOT depend on fetched artworks.
- */
 const CATEGORY_META: Array<{
   id: string;
   type: ArtworkType;
@@ -133,57 +115,15 @@ const CATEGORY_META: Array<{
   titleAr: string;
   descEn: string;
   descAr: string;
-  coverImage: string; // ✅ fixed
+  coverImage: string;
   modelUrl?: string;
   is3D?: boolean;
 }> = [
-  {
-    id: "01",
-    type: "painting",
-    titleEn: "Paintings",
-    titleAr: "لوحات",
-    descEn: "Ethereal Canvas",
-    descAr: "قماشٌ أثيري",
-    coverImage: paintingCover,
-  },
-  {
-    id: "02",
-    type: "sculpture",
-    titleEn: "Sculptures",
-    titleAr: "منحوتات",
-    descEn: "Form & Void",
-    descAr: "شكلٌ وفراغ",
-    coverImage: sculptureCover,
-    // IMPORTANT: keeping your original behavior (button won't show unless true)
-    is3D: false,
-  },
-  {
-    id: "03",
-    type: "chandelier",
-    titleEn: "Chandeliers",
-    titleAr: "ثريات",
-    descEn: "Spatial Glow",
-    descAr: "وهجٌ مكاني",
-    coverImage: chandelierCover,
-  },
-  {
-    id: "04",
-    type: "installation",
-    titleEn: "Installations",
-    titleAr: "تركيبات",
-    descEn: "Immersive Space",
-    descAr: "فضاءٌ غامر",
-    coverImage: installationCover,
-  },
-  {
-    id: "05",
-    type: "bespoke",
-    titleEn: "Bespoke",
-    titleAr: "حسب الطلب",
-    descEn: "Commissioned",
-    descAr: "تكليف خاص",
-    coverImage: bespokeCover,
-  },
+  { id: "01", type: "painting",      titleEn: "Paintings",      titleAr: "لوحات",       descEn: "Ethereal Canvas",   descAr: "قماشٌ أثيري",   coverImage: paintingCover },
+  { id: "02", type: "sculpture",     titleEn: "Sculptures",     titleAr: "منحوتات",     descEn: "Form & Void",       descAr: "شكلٌ وفراغ",    coverImage: sculptureCover, is3D: false },
+  { id: "03", type: "chandelier",    titleEn: "Chandeliers",    titleAr: "ثريات",       descEn: "Spatial Glow",      descAr: "وهجٌ مكاني",    coverImage: chandelierCover },
+  { id: "04", type: "installation",  titleEn: "Installations",  titleAr: "تركيبات",    descEn: "Immersive Space",   descAr: "فضاءٌ غامر",    coverImage: installationCover },
+  { id: "05", type: "bespoke",       titleEn: "Bespoke",        titleAr: "حسب الطلب",  descEn: "Commissioned",      descAr: "تكليف خاص",     coverImage: bespokeCover },
 ];
 
 interface ServicesProps {
@@ -193,47 +133,28 @@ interface ServicesProps {
 const Services: React.FC<ServicesProps> = ({ lang }) => {
   const t = getUI(lang);
 
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(0);
-  const [mobileActiveIndex, setMobileActiveIndex] = useState<number>(0);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const activeIndex = isMobile ? mobileActiveIndex : hoveredIndex;
-
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | null>(null);
   const [active3DModel, setActive3DModel] = useState<string | null>(null);
   const [isInquiring, setIsInquiring] = useState(false);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  // Inquiry form states
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [aiConfirmation, setAiConfirmation] = useState("");
 
-  // Sanity artworks fetch (FeaturedArtist-style)
   const [artworksData, setArtworksData] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-
     (async () => {
       try {
         const data = await getArtworks();
-
         const mapped: Artwork[] = (data || [])
           .map((a: any) => {
             const cover = a.coverImage ? urlFor(a.coverImage).width(1600).url() : "";
-
-            return {
-              id: a._id,
-              title: a.title ?? "",
-              description: a.description ?? "",
-              image: cover,
-              type: a.type as ArtworkType,
-            };
+            return { id: a._id, title: a.title ?? "", description: a.description ?? "", image: cover, type: a.type as ArtworkType };
           })
           .filter((x: Artwork) => Boolean(x.id && x.type && x.image));
-
         if (!alive) return;
         setArtworksData(mapped);
       } catch (e) {
@@ -244,113 +165,60 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
         setLoading(false);
       }
     })();
-
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, []);
 
-  // ✅ Build catalogue from Sanity data (gallery), but keep FIXED cover images for the services list
   const catalogueItems: ServiceCategory[] = useMemo(() => {
     const grouped = artworksData.reduce<Record<ArtworkType, Artwork[]>>((acc, art) => {
       (acc[art.type] ||= []).push(art);
       return acc;
     }, {} as Record<ArtworkType, Artwork[]>);
 
-    return CATEGORY_META.map((cat) => {
-      const galleryArts = (grouped[cat.type] ?? []).map((art) => ({
-        id: art.id,
-        title: art.title,
-        description: art.description,
-        image: art.image,
-      }));
-
-      return {
-        id: cat.id,
-        title: lang === "ar" ? cat.titleAr : cat.titleEn,
-        desc: lang === "ar" ? cat.descAr : cat.descEn,
-        image: cat.coverImage, // ✅ fixed cover image (NOT dependent on gallery)
-        modelUrl: cat.modelUrl,
-        is3D: cat.is3D,
-        gallery: galleryArts,
-      };
-    });
+    return CATEGORY_META.map((cat) => ({
+      id: cat.id,
+      title: lang === "ar" ? cat.titleAr : cat.titleEn,
+      desc: lang === "ar" ? cat.descAr : cat.descEn,
+      image: cat.coverImage,
+      modelUrl: cat.modelUrl,
+      is3D: cat.is3D,
+      gallery: (grouped[cat.type] ?? []).map((art) => ({
+        id: art.id, title: art.title, description: art.description, image: art.image,
+      })),
+    }));
   }, [artworksData, lang]);
 
-  // Mobile scroll tracking
-  useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    if (!isMobile) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute("data-index"));
-            setTimeout(() => {
-              setMobileActiveIndex(index);
-              setHoveredIndex(index);
-            }, 1000);
-          }
-        });
-      },
-      { root: null, threshold: 0.6 }
-    );
-
-    itemRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => observer.disconnect();
-  }, [catalogueItems.length]);
-
-  // Prevent background scroll when modal is open
   useEffect(() => {
     if (activeCategory || active3DModel) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
-      // reset inquiry state when closing modal(s)
       setIsInquiring(false);
       setSubmitStatus("idle");
       setFormData({ name: "", email: "", message: "" });
       setAiConfirmation("");
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+    return () => { document.body.style.overflow = "unset"; };
   }, [activeCategory, active3DModel]);
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) return;
-
     setIsSubmitting(true);
     setSubmitStatus("idle");
-
     try {
-      const response = await processLeadInquiry(lang, {
-        ...formData,
-        interest: activeCategory?.title || "",
-      });
-
+      const response = await processLeadInquiry(lang, { ...formData, interest: activeCategory?.title || "" });
       setAiConfirmation(response);
       setSubmitStatus("success");
-    } catch (error) {
+    } catch {
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Optional loader section (keeps layout clean)
   if (loading) {
     return (
-      <section
-        id="services"
-        dir={lang === "ar" ? "rtl" : "ltr"}
-        className="relative w-full min-h-screen bg-stone-50 flex items-center justify-center"
-      >
+      <section id="services" dir={lang === "ar" ? "rtl" : "ltr"} className="relative w-full min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="flex items-center gap-3 text-stone-400 text-xs uppercase tracking-widest">
           <Loader2 className="animate-spin" size={16} />
           {t.loadingCatalogue}
@@ -363,134 +231,77 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
     <section
       id="services"
       dir={lang === "ar" ? "rtl" : "ltr"}
-      aria-label={lang === "ar" ? "كتالوج الأعمال الفنية — ستوديو أوستن" : "Art Catalogue — Studio Austinn Dubai. Paintings, sculptures, chandeliers, installations and bespoke art."}
-      className="relative w-full min-h-screen bg-stone-50 overflow-hidden flex items-center py-24 md:py-20"
+      aria-label={lang === "ar" ? "كتالوج الأعمال الفنية — ستوديو أوستن" : "Art Catalogue — Studio Austinn Dubai"}
+      className="relative w-full bg-stone-950"
     >
-      {/* Dynamic Background Images */}
-      <div className="absolute inset-0 z-0">
-        {catalogueItems.map((item, index) => (
-          <div
-            key={item.id}
-            className={[
-              "absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out",
-              activeIndex === index ? "opacity-100 scale-105 grayscale-0" : "opacity-0 scale-100 grayscale",
-            ].join(" ")}
-            style={{ backgroundImage: `url('${item.image}')` }}
-          />
-        ))}
-        <div
-          className={[,
-            hoveredIndex !== null ? "opacity-60" : "opacity-100",
-          ].join(" ")}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-stone-50 via-sky-50 to-white transition-opacity duration-700 -z-10" />
-      </div>
+      <p className="sr-only">
+        {lang === "ar"
+          ? "كتالوج ستوديو أوستن — لوحات، منحوتات، ثريات، تركيبات فنية، وأعمال مخصصة في دبي والإمارات"
+          : "Studio Austinn catalogue — paintings, sculptures, chandeliers, installations and commissioned artworks in Dubai, UAE"}
+      </p>
 
-      <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col justify-center h-full">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          <div className="hidden md:block md:col-span-4">
-            <div className="relative h-64 w-full overflow-hidden">
-              {catalogueItems.map((item, index) => (
-                <span
-                  key={index}
-                  className={[
-                    "absolute top-0",
-                    lang === "ar" ? "right-0" : "left-0",
-                    "text-[15vw] font-serif italic text-white/20 leading-none transition-all duration-700 transform",
-                    activeIndex === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-                  ].join(" ")}
-                >
-                  {item.id}
-                </span>
-              ))}
-              {hoveredIndex === null && (
-                <span
-                  className={[
-                    "absolute top-0",
-                    lang === "ar" ? "right-0" : "left-0",
-                    "text-[15vw] font-serif italic text-stone-900/5 leading-none",
-                  ].join(" ")}
-                >
-                  00
-                </span>
-              )}
-            </div>
+      {catalogueItems.map((item, index) => (
+        <div
+          key={item.id}
+          className="relative w-full h-[20vh] min-h-[100px] overflow-hidden group cursor-pointer"
+          onClick={() => setActiveCategory(item)}
+        >
+          {/* Background image */}
+          <img
+            src={item.image}
+            alt={`${item.title} — Studio Austinn`}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/25 transition-colors duration-700" />
+
+          {/* Bottom gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          {/* Top left: index */}
+          <div className={`absolute top-8 ${lang === "ar" ? "right-8 md:right-12" : "left-8 md:left-12"} z-10`}>
+            <span className="font-serif italic text-white/30 text-2xl md:text-3xl leading-none select-none">
+              {item.id}
+            </span>
           </div>
 
-          <div className="col-span-1 md:col-span-8 flex flex-col items-center md:items-end">
-            <h3
-              aria-label={lang === "ar" ? "كتالوج ستوديو أوستن" : "Studio Austinn Art Catalogue"}
-              className={[
-                "text-stone-400 text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-12 md:mb-16",
-                lang === "ar" ? "md:ml-1" : "md:mr-1",
-              ].join(" ")}
-            >
+          {/* Top right: catalogue label */}
+          <div className={`absolute bottom-3 right-4 md:top-10 md:bottom-auto ${lang === "ar" ? "md:left-8 md:right-auto" : "md:right-8 md:right-12"} z-10`}>
+            <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/40">
               {t.catalogue}
-            </h3>
+            </span>
+          </div>
 
-            <p className="sr-only">
-              {lang === "ar"
-                ? "كتالوج ستوديو أوستن — لوحات، منحوتات، ثريات، تركيبات فنية، وأعمال مخصصة في دبي والإمارات"
-                : "Studio Austinn catalogue — paintings, sculptures, chandeliers, installations and bespoke commissioned artworks in Dubai, UAE"}
+          {/* Bottom content */}
+          <div className="absolute inset-0 z-10 p-4 md:p-6 flex flex-col items-center justify-center text-center">
+            {/* Category desc */}
+            <p className="font-serif italic text-white/50 text-xs mb-1 tracking-wide">
+              {item.desc}
             </p>
 
-            <div className="w-full flex flex-col items-center md:items-end space-y-12 md:space-y-6">
-              {catalogueItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  data-index={index}
-                  ref={(el) => {
-                    itemRefs.current[index] = el;
-                  }}
-                  className="group relative cursor-pointer w-full text-center md:text-right"
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(0)}
-                  onClick={() => setActiveCategory(item)}
-                >
-                  <span className="md:hidden block text-[8px] font-bold tracking-[0.3em] text-stone-400 mb-2 uppercase">
-                    {t.part} {item.id}
-                  </span>
+            {/* Title */}
+            <h2 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl uppercase tracking-tighter text-white leading-none mb-2">
+              {item.title}
+            </h2>
 
-                  <div className="flex flex-col md:flex-row items-center justify-center md:justify-end gap-3 md:gap-6">
-                    <div
-                      className={[
-                        "flex items-center gap-2 text-stone-800 transition-all duration-500 order-2 md:order-1",
-                        activeIndex === index
-                          ? "opacity-100 translate-x-0"
-                          : "opacity-100 md:opacity-0 translate-x-0 md:translate-x-4",
-                      ].join(" ")}
-                    >
-                      <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden md:inline">{t.browse}</span>
-                      <div className="w-10 h-10 md:w-8 md:h-8 rounded-full border border-stone-800 flex items-center justify-center bg-white/80 backdrop-blur-md shadow-sm group-active:scale-95 transition-transform">
-                        <ArrowUpRight size={16} className="md:w-3.5 md:h-3.5" />
-                      </div>
-                    </div>
-
-                    <h2
-                      className={[
-                        "font-sans font-black text-4xl sm:text-5xl md:text-7xl uppercase tracking-tighter transition-all duration-500 order-1 md:order-2",
-                        activeIndex === index ? "text-stone-900 translate-x-0" : "text-stone-300 md:translate-x-4",
-                      ].join(" ")}
-                    >
-                      {item.title}
-                    </h2>
-                  </div>
-
-                  <div
-                    className={[
-                      "mt-2 md:mt-0 md:absolute md:top-1/2 md:-translate-y-1/2 transition-all duration-500",
-                      lang === "ar" ? "md:left-full md:ml-32" : "md:right-full md:mr-32",
-                      activeIndex === index ? "opacity-100 translate-y-0" : "opacity-0 md:translate-x-12 translate-y-4",
-                    ].join(" ")}
-                  >
-                    <p className="font-serif italic text-white/60 text-lg md:text-xl whitespace-nowrap">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Browse CTA */}
+            <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">
+                {t.browse}
+              </span>
+              <div className="w-9 h-9 rounded-full border border-white/50 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+                <ArrowUpRight size={15} className="text-white" />
+              </div>
             </div>
           </div>
+
+          {/* Divider line between sections */}
+          {index < catalogueItems.length - 1 && (
+            <div className="absolute bottom-0 inset-x-0 h-[1px] bg-white/10 z-20" />
+          )}
         </div>
-      </div>
+      ))}
 
       {/* Gallery Modal */}
       {activeCategory && (
@@ -509,13 +320,9 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                 <h2 className="font-sans font-black text-3xl md:text-5xl uppercase tracking-tighter text-stone-900 leading-none">
                   {activeCategory.title}
                 </h2>
-
                 {activeCategory.is3D && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActive3DModel(activeCategory.modelUrl || null);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); setActive3DModel(activeCategory.modelUrl || null); }}
                     className="flex items-center gap-2 px-3 py-1 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors"
                   >
                     <Box size={14} />
@@ -523,7 +330,6 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                   </button>
                 )}
               </div>
-
               <button
                 onClick={() => setActiveCategory(null)}
                 className="p-3 bg-stone-100 hover:bg-stone-900 hover:text-white rounded-full transition-all"
@@ -545,21 +351,17 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
                       {activeCategory.gallery.map((art, i) => (
                         <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
-                          <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4 cursor-pointer">
+                          <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4">
                             <img src={art.image} alt={`${art.title} — ${activeCategory.title} | Studio Austinn`} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex flex-col gap-1">
                             <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>
-                            <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400">
-                              {art.description}
-                            </p>
+                            <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400">{art.description}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
-
-                  {/* Category Footer */}
                   <div className="mt-20 border-t border-stone-100 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="font-serif italic text-stone-500 max-w-sm text-center md:text-left">{t.curatedNote}</p>
                     <button
@@ -573,10 +375,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
               ) : (
                 <div className="max-w-2xl mx-auto py-10 animate-fade-in-up">
                   <button
-                    onClick={() => {
-                      setIsInquiring(false);
-                      setSubmitStatus("idle");
-                    }}
+                    onClick={() => { setIsInquiring(false); setSubmitStatus("idle"); }}
                     className="flex items-center gap-2 text-stone-400 hover:text-stone-900 transition-colors text-[10px] font-bold uppercase tracking-widest mb-12"
                   >
                     <ArrowLeft size={14} className="rtl:rotate-180" /> {t.back}
@@ -587,9 +386,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                       <div className="flex justify-center mb-6 text-sky-400">
                         <CheckCircle2 size={48} />
                       </div>
-                      <h3 className="font-sans font-black text-3xl uppercase tracking-tighter text-stone-900 mb-4">
-                        {t.success}
-                      </h3>
+                      <h3 className="font-sans font-black text-3xl uppercase tracking-tighter text-stone-900 mb-4">{t.success}</h3>
                       <div className="bg-stone-50 p-8 border border-stone-100 italic font-serif text-stone-600 leading-relaxed">
                         "{aiConfirmation}"
                       </div>
@@ -598,83 +395,44 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     <form className="space-y-10" onSubmit={handleInquirySubmit}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="relative">
-                          <label
-                            className={[
-                              "absolute",
-                              lang === "ar" ? "right-0" : "left-0",
-                              "transition-all duration-300 text-[10px] uppercase tracking-widest",
-                              formData.name ? "-top-6 text-stone-400" : "top-2 text-stone-300",
-                            ].join(" ")}
-                          >
+                          <label className={["absolute", lang === "ar" ? "right-0" : "left-0", "transition-all duration-300 text-[10px] uppercase tracking-widest", formData.name ? "-top-6 text-stone-400" : "top-2 text-stone-300"].join(" ")}>
                             {t.name}
                           </label>
                           <input
-                            type="text"
-                            required
-                            value={formData.name}
+                            type="text" required value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="w-full bg-transparent border-b border-stone-200 py-2 focus:outline-none focus:border-stone-900 transition-colors text-stone-900"
                           />
                         </div>
-
                         <div className="relative">
-                          <label
-                            className={[
-                              "absolute",
-                              lang === "ar" ? "right-0" : "left-0",
-                              "transition-all duration-300 text-[10px] uppercase tracking-widest",
-                              formData.email ? "-top-6 text-stone-400" : "top-2 text-stone-300",
-                            ].join(" ")}
-                          >
+                          <label className={["absolute", lang === "ar" ? "right-0" : "left-0", "transition-all duration-300 text-[10px] uppercase tracking-widest", formData.email ? "-top-6 text-stone-400" : "top-2 text-stone-300"].join(" ")}>
                             {t.email}
                           </label>
                           <input
-                            type="email"
-                            required
-                            value={formData.email}
+                            type="email" required value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="w-full bg-transparent border-b border-stone-200 py-2 focus:outline-none focus:border-stone-900 transition-colors text-stone-900"
                           />
                         </div>
                       </div>
-
                       <div className="relative">
-                        <label
-                          className={[
-                            "absolute",
-                            lang === "ar" ? "right-0" : "left-0",
-                            "transition-all duration-300 text-[10px] uppercase tracking-widest",
-                            formData.message ? "-top-6 text-stone-400" : "top-2 text-stone-300",
-                          ].join(" ")}
-                        >
+                        <label className={["absolute", lang === "ar" ? "right-0" : "left-0", "transition-all duration-300 text-[10px] uppercase tracking-widest", formData.message ? "-top-6 text-stone-400" : "top-2 text-stone-300"].join(" ")}>
                           {t.message}
                         </label>
                         <textarea
-                          rows={4}
-                          value={formData.message}
+                          rows={4} value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           className="w-full bg-transparent border-b border-stone-200 py-2 focus:outline-none focus:border-stone-900 transition-colors text-stone-900 resize-none"
                         />
                       </div>
-
                       <button
-                        type="submit"
-                        disabled={isSubmitting}
+                        type="submit" disabled={isSubmitting}
                         className="w-full py-5 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-stone-800 transition-all disabled:opacity-50"
                       >
-                        {isSubmitting ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <>
-                            <Send size={14} className="rtl:rotate-180" /> {t.send}
-                          </>
-                        )}
+                        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><Send size={14} className="rtl:rotate-180" /> {t.send}</>}
                       </button>
-
                       {submitStatus === "error" && (
-                        <p className="text-[10px] uppercase tracking-widest text-red-500 text-center">
-                          {t.errorTryAgain}
-                        </p>
+                        <p className="text-[10px] uppercase tracking-widest text-red-500 text-center">{t.errorTryAgain}</p>
                       )}
                     </form>
                   )}
@@ -700,32 +458,16 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
             >
               <X size={20} className="text-stone-900 md:w-6 md:h-6" />
             </button>
-
             <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20 pointer-events-none mix-blend-multiply">
-              <h3 className="font-sans font-black text-xl md:text-2xl uppercase tracking-tighter text-stone-900 leading-none">
-                {t.viewerTitle}
-              </h3>
+              <h3 className="font-sans font-black text-xl md:text-2xl uppercase tracking-tighter text-stone-900 leading-none">{t.viewerTitle}</h3>
               <p className="font-serif italic text-stone-500 text-xs md:text-base">{t.viewerHint}</p>
             </div>
-
             <div className="w-full h-full pt-16">
-              <model-viewer
-                src={active3DModel}
-                shadow-intensity="1"
-                camera-controls
-                auto-rotate
-                touch-action="pan-y"
-                style={{ width: "100%", height: "100%", backgroundColor: "transparent" } as React.CSSProperties}
-              />
+              <model-viewer src={active3DModel} shadow-intensity="1" camera-controls auto-rotate touch-action="pan-y" style={{ width: "100%", height: "100%", backgroundColor: "transparent" } as React.CSSProperties} />
             </div>
-
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-4 text-[9px] md:text-xs font-bold uppercase tracking-widest text-stone-400 pointer-events-none bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full">
-              <span className="flex items-center gap-1">
-                <Rotate3d size={14} /> {t.rotate}
-              </span>
-              <span className="flex items-center gap-1">
-                <Move3d size={14} /> {t.zoom}
-              </span>
+              <span className="flex items-center gap-1"><Rotate3d size={14} /> {t.rotate}</span>
+              <span className="flex items-center gap-1"><Move3d size={14} /> {t.zoom}</span>
             </div>
           </div>
         </div>

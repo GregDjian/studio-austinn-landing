@@ -351,7 +351,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 } transition-all duration-700`}
                 onClick={() => setActiveArtwork(artist)}
               >
-                <div className="aspect-[5/6] rounded-[6px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                <div className="aspect-[9/10] rounded-[6px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
                   <img
                     src={artist.imageUrl}
                     alt={`${artist.artistName} — ${artist.collection} | Studio Austinn Dubai`}
