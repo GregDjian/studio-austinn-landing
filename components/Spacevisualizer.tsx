@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Upload, Sparkles, ArrowUpRight, RotateCcw, ImageIcon, X, MapPin } from "lucide-react";
+import { GoogleGenAI } from "@google/genai";
 import { Language } from "../types";
 import { getArtworks } from "../lib/sanityQueries";
 import { urlFor } from "../lib/sanityImage";
@@ -12,8 +13,8 @@ interface Artwork {
 }
 
 interface PinPosition {
-  x: number; // 0-1 relative
-  y: number; // 0-1 relative
+  x: number;
+  y: number;
 }
 
 const getContent = (lang: Language) => {
@@ -65,7 +66,7 @@ const getContent = (lang: Language) => {
   };
 };
 
-// ── Position → human-readable description ─────────────────────────────────
+// ── Position → human-readable ──────────────────────────────────────────────
 function getPositionDescription(x: number, y: number, lang: Language): string {
   if (lang === "ar") {
     const h = x < 0.33 ? "الجانب الأيسر" : x < 0.66 ? "وسط" : "الجانب الأيمن";
@@ -76,6 +77,24 @@ function getPositionDescription(x: number, y: number, lang: Language): string {
   const v = y < 0.33 ? "upper" : y < 0.66 ? "middle" : "lower";
   return `${v} ${h} wall`;
 }
+
+// ── Compress image before sending ─────────────────────────────────────────
+const compressImage = (file: File, maxWidth = 1200): Promise<File> => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        resolve(new File([blob!], file.name, { type: "image/jpeg" }));
+      }, "image/jpeg", 0.8);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+};
 
 // ── File → base64 ──────────────────────────────────────────────────────────
 function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
@@ -105,7 +124,7 @@ async function urlToBase64(url: string): Promise<{ base64: string; mimeType: str
   });
 }
 
-// ── Visualize via /api/gemini ──────────────────────────────────────────────
+// ── Gemini direct call with images ────────────────────────────────────────
 async function visualizeArtworkInSpace(
   roomImageBase64: string,
   roomMimeType: string,
@@ -123,28 +142,26 @@ async function visualizeArtworkInSpace(
 
   const prompt =
     lang === "ar"
-      ? `${positionHint}أنت مصمم داخلي خبير ومستشار فني. صِف بشكل واقعي ومُلهم كيف ستبدو القطعة الفنية "${artworkTitle}" في هذه المساحة: التأثير البصري، التناسق مع الديكور الموجود، والجو العام الذي ستخلقه. اجعل الوصف غنياً وخاصاً بما تراه في الصورتين.`
-      : `${positionHint}You are an expert interior designer and art consultant. Based on both images provided, give a vivid and realistic description of how the artwork "${artworkTitle}" would look placed in this specific room: the visual impact, how it harmonizes with the existing decor and colors, the atmosphere it would create, and why it is a perfect fit for this space. Be specific to what you see in both images.`;
+      ? `${positionHint}أنت مصمم داخلي خبير ومستشار فني. بناءً على الصورتين، صِف بشكل واقعي ومُلهم كيف ستبدو القطعة الفنية "${artworkTitle}" في هذه المساحة: التأثير البصري، التناسق مع الديكور الموجود، والجو العام الذي ستخلقه. اجعل الوصف غنياً وخاصاً بما تراه في الصورتين.`
+      : `${positionHint}You are an expert interior designer and art consultant. Based on both images, give a vivid and realistic description of how the artwork "${artworkTitle}" would look placed in this specific room: the visual impact, how it harmonizes with the existing decor and colors, the atmosphere it would create, and why it is a perfect fit. Be specific to what you see in both images.`;
 
-  const resp = await fetch("/api/gemini", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      type: "visualize",
-      lang,
-      prompt,
-      roomImage: { base64: roomImageBase64, mimeType: roomMimeType },
-      artworkImage: { base64: artworkImageBase64, mimeType: artworkMimeType },
-    }),
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+
+  const resp = await ai.models.generateContent({
+    model: "gemini-1.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: roomMimeType as any, data: roomImageBase64 } },
+          { inlineData: { mimeType: artworkMimeType as any, data: artworkImageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
   });
 
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error("API error");
-  return typeof data?.text === "string" && data.text.trim().length > 0
-    ? data.text.trim()
-    : lang === "ar"
-    ? "عذراً، لم أتمكن من تحليل الصورتين. حاول مرة أخرى."
-    : "Sorry, I could not analyze the images. Please try again.";
+  return resp.text ?? "";
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -164,9 +181,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
   const [showArtworkPicker, setShowArtworkPicker] = useState(false);
 
   const roomInputRef = useRef<HTMLInputElement>(null);
-  const roomImageRef = useRef<HTMLDivElement>(null);
 
-  // Fetch artworks from Sanity
   useEffect(() => {
     (async () => {
       try {
@@ -192,7 +207,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
     setPinPosition(null);
     setResult(null);
     setError(null);
-    setIsPinMode(true); // automatically enter pin mode after upload
+    setIsPinMode(true);
   };
 
   const handleRoomClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -203,23 +218,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
     setPinPosition({ x, y });
     setIsPinMode(false);
   };
-
-  const compressImage = (file: File, maxWidth = 1200): Promise<File> => {
-    return new Promise((resolve) => {
-        const canvas = document.createElement("canvas");
-        const img = new Image();
-        img.onload = () => {
-        const scale = Math.min(1, maxWidth / img.width);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-            resolve(new File([blob!], file.name, { type: "image/jpeg" }));
-        }, "image/jpeg", 0.8);
-        };
-        img.src = URL.createObjectURL(file);
-    });
-    };
 
   const handleGenerate = async () => {
     if (!roomFile || !selectedArtwork) return;
@@ -240,7 +238,8 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
         lang
       );
       setResult(description);
-    } catch {
+    } catch (e) {
+      console.error("Visualization error:", e);
       setError(t.error);
     } finally {
       setIsGenerating(false);
@@ -259,13 +258,11 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
 
   const canGenerate = roomFile && selectedArtwork && !isGenerating;
 
-
   return (
     <section
       dir={isAr ? "rtl" : "ltr"}
       className="relative bg-stone-50 border-t border-stone-200 py-16 md:py-20 overflow-hidden"
     >
-      {/* Subtle grid */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none [background-image:linear-gradient(to_right,rgba(0,0,0,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.4)_1px,transparent_1px)] [background-size:60px_60px]" />
 
       <div className="container mx-auto px-6 md:px-12 relative z-10">
@@ -287,7 +284,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
         {!result ? (
           <div className="space-y-4">
 
-            {/* Steps indicator */}
+            {/* Steps */}
             <div className="flex items-center gap-6 mb-6">
               {[t.step1, t.step2, t.step3].map((step, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -305,10 +302,9 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
 
-              {/* ── Room upload + pin ── */}
+              {/* Room upload + pin */}
               <div className="flex flex-col gap-2">
                 <div
-                  ref={roomImageRef}
                   className={`relative group rounded-[8px] border-2 overflow-hidden bg-white transition-all duration-300 ${
                     isPinMode
                       ? "border-stone-900 cursor-crosshair"
@@ -364,7 +360,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                         </div>
                       )}
 
-                      {/* Remove photo button */}
+                      {/* Remove photo */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -397,14 +393,14 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                   <div className="flex items-center gap-2">
                     {pinPosition && !isPinMode ? (
                       <>
-                        <div className="flex items-center gap-1.5 text-stone-500 text-[10px] font-bold uppercase tracking-widest flex-1">
-                          <MapPin size={12} className="text-stone-900" />
+                        <div className="flex items-center gap-1.5 flex-1 text-[10px] font-bold uppercase tracking-widest">
+                          <MapPin size={12} className="text-stone-900 shrink-0" />
                           <span className="text-stone-900">{t.pinSet}</span>
                           <span className="text-stone-400">— {getPositionDescription(pinPosition.x, pinPosition.y, lang)}</span>
                         </div>
                         <button
                           onClick={() => { setPinPosition(null); setIsPinMode(true); }}
-                          className="text-[9px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors underline underline-offset-4"
+                          className="text-[9px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors underline underline-offset-4 shrink-0"
                         >
                           {isAr ? "تغيير" : "Change"}
                         </button>
@@ -422,7 +418,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                 )}
               </div>
 
-              {/* ── Select artwork ── */}
+              {/* Select artwork */}
               <div
                 className="relative group cursor-pointer rounded-[8px] border-2 border-dashed border-stone-300 hover:border-stone-900 transition-colors duration-300 overflow-hidden bg-white"
                 style={{ minHeight: "220px" }}
@@ -483,10 +479,9 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
             {error && <p className="text-center text-red-500 text-[10px] uppercase tracking-widest mt-2">{error}</p>}
           </div>
         ) : (
-          /* ── Result ── */
+          /* Result */
           <div className="animate-fade-in-up">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Room with pin */}
               <div className="relative rounded-[8px] overflow-hidden aspect-[4/3]">
                 {roomPreview && <img src={roomPreview} alt="Your space" className="w-full h-full object-cover" />}
                 {pinPosition && (
@@ -508,8 +503,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                   {isAr ? "مساحتك" : "Your Space"}
                 </div>
               </div>
-
-              {/* Artwork */}
               {selectedArtwork && (
                 <div className="relative rounded-[8px] overflow-hidden aspect-[4/3]">
                   <img src={selectedArtwork.image} alt={selectedArtwork.title} className="w-full h-full object-cover" />
@@ -520,7 +513,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
               )}
             </div>
 
-            {/* AI description */}
             <div className="bg-white border border-stone-200 rounded-[8px] p-6 md:p-8 mb-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-4 flex items-center gap-2">
                 <Sparkles size={11} /> {t.result}
@@ -530,7 +522,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
               </p>
             </div>
 
-            {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href="#contact"
@@ -549,7 +540,7 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
         )}
       </div>
 
-      {/* ── Artwork Picker Modal ── */}
+      {/* Artwork Picker Modal */}
       {showArtworkPicker && (
         <div className="fixed inset-0 z-[120] bg-stone-950/80 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-8 animate-fade-in-up">
           <div className="relative w-full md:max-w-3xl bg-white rounded-t-[16px] md:rounded-[8px] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
@@ -562,7 +553,6 @@ const SpaceVisualizer: React.FC<{ lang: Language }> = ({ lang }) => {
                 <X size={16} className="text-stone-900" />
               </button>
             </div>
-
             <div className="overflow-y-auto p-4 md:p-6">
               {artworks.length === 0 ? (
                 <p className="text-center text-stone-400 text-xs uppercase tracking-widest py-10">{t.loadingArtworks}</p>
