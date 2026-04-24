@@ -9,6 +9,35 @@ export const config = {
   },
 };
 
+// ── Upload base64 image to Replicate file hosting ─────────────────────────
+async function uploadImageToReplicate(
+  base64: string,
+  mimeType: string,
+  apiKey: string
+): Promise<string> {
+  const buffer = Buffer.from(base64, "base64");
+
+  const resp = await fetch("https://api.replicate.com/v1/files", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": mimeType,
+      "Content-Length": String(buffer.length),
+    },
+    body: buffer,
+  });
+
+  const data = await resp.json();
+
+  if (!resp.ok) {
+    console.error("Replicate file upload error:", data);
+    throw new Error(`File upload failed: ${JSON.stringify(data)}`);
+  }
+
+  // Returns a URL to the uploaded file
+  return data.urls?.get || data.url || data.id;
+}
+
 // ── Poll Replicate prediction until done ──────────────────────────────────
 async function pollPrediction(
   predictionId: string,
@@ -53,27 +82,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-
     const { roomImage, artworkImage, artworkTitle, positionDescription, lang } = body;
 
-    if (!roomImage || !artworkImage) {
+    if (!roomImage?.base64 || !artworkImage?.base64) {
       return res.status(400).json({ error: "Missing images" });
     }
 
-    // Convert base64 to data URLs for Replicate
-    const roomDataUrl = `data:${roomImage.mimeType};base64,${roomImage.base64}`;
-    const artworkDataUrl = `data:${artworkImage.mimeType};base64,${artworkImage.base64}`;
+    // Upload both images to Replicate file hosting
+    const [roomUrl, artworkUrl] = await Promise.all([
+      uploadImageToReplicate(roomImage.base64, roomImage.mimeType || "image/jpeg", apiKey),
+      uploadImageToReplicate(artworkImage.base64, artworkImage.mimeType || "image/jpeg", apiKey),
+    ]);
 
-    // Build prompt for flux-kontext-pro
+    // Build prompt
     const positionHint = positionDescription
       ? `Place the artwork on the ${positionDescription}.`
       : "Place the artwork naturally on the wall.";
 
     const prompt = lang === "ar"
-      ? `ضع هذه القطعة الفنية "${artworkTitle}" بشكل واقعي في هذه الغرفة. ${positionHint} احرص على أن تبدو القطعة كأنها جزء طبيعي من الغرفة مع الحفاظ على كل عناصر الغرفة الأصلية.`
-      : `Interior design photo. ${positionHint} The room should look exactly as in the reference photo with the artwork "${artworkTitle}" mounted naturally on the wall. Photorealistic, high quality interior photography. Keep all existing furniture, lighting and decor unchanged.`;
+      ? `ضع هذه القطعة الفنية بشكل واقعي في هذه الغرفة على الجدار. احرص على أن تبدو القطعة كأنها جزء طبيعي من الغرفة مع الحفاظ على كل عناصر الغرفة الأصلية.`
+      : `${positionHint} Mount the artwork "${artworkTitle}" on the wall of this room. Photorealistic interior photography. Keep all existing furniture, decor and lighting unchanged. The artwork should look naturally hung on the wall.`;
 
-    // Create prediction using flux-kontext-pro
+    // Create prediction with flux-kontext-pro
     const createResp = await fetch("https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions", {
       method: "POST",
       headers: {
@@ -84,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         input: {
           prompt,
-          input_image: roomDataUrl,
+          input_image: roomUrl,
           guidance: 3.5,
           steps: 28,
           output_format: "webp",
@@ -100,19 +130,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(502).json({ error: "Failed to create prediction", detail: prediction });
     }
 
-    // If already succeeded (wait=5 worked)
+    // If already done
     if (prediction.status === "succeeded") {
       const output = prediction.output;
       const url = typeof output === "string" ? output : Array.isArray(output) ? output[0] : null;
       if (url) return res.status(200).json({ imageUrl: url });
     }
 
-    // Otherwise poll
+    // Poll for result
     const imageUrl = await pollPrediction(prediction.id, apiKey);
     return res.status(200).json({ imageUrl });
 
   } catch (err: any) {
-    console.error("Visualize error:", err);
+    console.error("Visualize error:", err?.message || err);
     return res.status(500).json({ error: err?.message || "Server error" });
   }
 }
