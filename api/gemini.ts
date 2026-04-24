@@ -3,6 +3,15 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
 import { GoogleGenAI } from "@google/genai";
 
+// ── Increase body size limit for image payloads ────────────────────────────
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
+
 // ---- Simple in-memory rate limiter (best-effort on serverless) ----
 type RateEntry = { count: number; resetAt: number };
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -139,7 +148,7 @@ async function callGemini(opts: {
   }
 }
 
-// ── NEW: Gemini with image support ────────────────────────────────────────
+// ── Gemini with image support ──────────────────────────────────────────────
 async function callGeminiWithImages(opts: {
   apiKey: string;
   model: string;
@@ -177,7 +186,7 @@ async function callGeminiWithImages(opts: {
     const text = (resp as any)?.text || "";
     return { ok: true as const, text };
   } catch (err: any) {
-    console.error("Gemini image SDK error:", err);
+    console.error("Gemini image SDK error:", JSON.stringify(err));
     return {
       ok: false as const,
       status: 500,
@@ -262,7 +271,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const result = await callGeminiWithImages({
         apiKey,
-        model: "gemini-2.0-flash",
+        model: "gemini-3-flash-preview",
         prompt,
         roomImage: {
           base64: roomImage.base64,
@@ -275,7 +284,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       if (!result.ok) {
-        return res.status(502).json({ error: "Upstream AI service error" });
+        return res.status(502).json({ error: "Upstream AI service error", detail: result.data });
       }
 
       return res.status(200).json({ text: result.text });
