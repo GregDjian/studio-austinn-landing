@@ -5,6 +5,16 @@ import { ChatMessage, Language } from "../types";
 import { Chat } from "@google/genai";
 import { ChatSession } from "../services/geminiService";
 
+// Google Ads conversion tracking
+const trackWhatsAppClick = (url: string): void => {
+  if (typeof (window as any).gtag === "function") {
+    (window as any).gtag("event", "conversion_event_contact", {
+      event_callback: () => { window.location.href = url; },
+      event_timeout: 2000,
+    });
+  }
+};
+
 const getContent = (lang: Language) => {
   if (lang === "ar") {
     return {
@@ -57,19 +67,16 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
     whatsappText
   )}`;
 
-  // ✅ Reset greeting when language changes (keeps experience consistent)
   useEffect(() => {
     setMessages([{ role: "model", text: t.initialMessage }]);
     setInput("");
     setIsLoading(false);
-    // keep chatSession as-is; it is created with lang below
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
   useEffect(() => {
     if (isChatOpen && !chatSession) {
       try {
-        // ✅ updated: create session with lang
         const session = createChatSession(lang);
         setChatSession(session);
       } catch (e) {
@@ -132,6 +139,7 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackWhatsAppClick(whatsappUrl)}
             className="flex items-center gap-4 bg-white border border-stone-200 px-5 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-x-2 transition-all duration-300 group"
           >
             <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500 group-hover:text-stone-900 transition-colors">
@@ -180,6 +188,7 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick(whatsappUrl)}
                 className="hover:text-[#25D366] transition-colors p-1"
                 title={t.whatsappTitle}
               >
