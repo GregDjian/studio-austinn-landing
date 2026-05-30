@@ -8,6 +8,7 @@ import Environments from './components/Environment';
 import Contact from './components/Contact';
 import ChatWidget from './components/ChatWidget';
 import Preloader from './components/Preloader';
+import LatestPieces from './components/LatestPieces';
 import SpaceVisualizer from './components/Spacevisualizer';
 import { Language } from './types';
 
@@ -29,6 +30,7 @@ function App() {
       <Header lang={lang} setLang={setLang} />
       <Hero lang={lang} />
       <Philosophy lang={lang} />
+      <LatestPieces lang={lang} />
       <Services lang={lang} />
       <FeaturedArtist lang={lang} />
       <Environments lang={lang} />
