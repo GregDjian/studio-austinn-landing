@@ -16,11 +16,12 @@ interface Artwork {
 const getContent = (lang: Language) => {
   if (lang === "ar") {
     return {
-      heroTitle: "أحدث ما وصلنا",
-      heroSub: "مجموعة مختارة بعناية",
-      viewAll: "عرض كل الأعمال",
+      heroTitle: "من المحترف",
+      heroSub: "أحدث إبداعاتنا",
+      subtitle: "اكتشف آخر ما ابتكرناه",
+      viewAll: "عرض جميع الأعمال",
       noType: "عمل فني",
-      updatedOn: "أُضيف",
+      updatedOn: "أُضيف بتاريخ",
     };
   }
   return {
