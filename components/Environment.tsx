@@ -204,9 +204,8 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
         dir={lang === "ar" ? "rtl" : "ltr"}
         className="py-16 md:py-24 bg-stone-100 overflow-hidden"
       >
-        <div className="container mx-auto px-6 md:px-12">
-
-          {/* Header */}
+        {/* Header — inside container */}
+        <div className="container mx-auto px-6 md:px-14 lg:px-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
             <div className="max-w-2xl">
               <h2 className={["font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter", lang === "ar" ? "text-right" : "text-left"].join(" ")}>
@@ -218,63 +217,66 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
               <p className="font-serif italic text-xl text-stone-600 max-w-sm">{t.subtitle}</p>
             </div>
           </div>
+        </div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
-            {sectors.map((sector, index) => {
-              const src = getImgSrc(sector.image);
-              const projectCount = (projectsBySector[sector.title] ?? []).length;
+        {/* Grid — full width, outside container */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-0">
+          {sectors.map((sector, index) => {
+            const src = getImgSrc(sector.image);
+            const projectCount = (projectsBySector[sector.title] ?? []).length;
 
-              return (
-                <div
-                  key={index}
-                  ref={(el) => { itemRefs.current[index] = el; }}
-                  className="relative aspect-[4/3] rounded-[8px] group overflow-hidden bg-stone-200 cursor-pointer"
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={() => {
-                    if (isMobile()) setActiveSector(index);
-                    setOpenSector(sector);
-                  }}
-                >
-                  <img
-                    src={src}
-                    alt={sector.title}
-                    className={[
-                      "absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out",
-                      "md:grayscale md:opacity-40 md:group-hover:opacity-100 md:group-hover:grayscale-0 md:group-hover:scale-105",
-                      activeSector === index ? "opacity-100 scale-105 grayscale-0" : "opacity-40 scale-100 grayscale",
-                    ].join(" ")}
-                  />
+            return (
+              <div
+                key={index}
+                ref={(el) => { itemRefs.current[index] = el; }}
+                className="relative aspect-square md:aspect-[4/3] rounded-none md:rounded-[0px] group overflow-hidden bg-stone-200 cursor-pointer"
+                onMouseEnter={() => handleMouseEnter(index)}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => {
+                  if (isMobile()) setActiveSector(index);
+                  setOpenSector(sector);
+                }}
+              >
+                <img
+                  src={src}
+                  alt={sector.title}
+                  className={[
+                    "absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out",
+                    "grayscale-[0.6] opacity-90 group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-105",
+                    activeSector === index ? "opacity-100 scale-105 grayscale-0" : "opacity-40 scale-100 grayscale",
+                  ].join(" ")}
+                />
 
-                  <div className={["absolute inset-0 transition-colors duration-500", "md:bg-stone-900/40 md:group-hover:bg-stone-900/10", activeSector === index ? "bg-stone-900/15" : "bg-stone-900/40"].join(" ")} />
+                <div className={["absolute inset-0 transition-colors duration-500", "md:bg-stone-900/40 md:group-hover:bg-stone-900/10", activeSector === index ? "bg-stone-900/15" : "bg-stone-900/40"].join(" ")} />
 
-                  <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] mb-2 opacity-80 transition-all duration-500">
-                      {sector.category}
-                    </span>
-                    <h3 className="font-sans font-black text-2xl md:text-3xl uppercase tracking-tighter md:group-hover:-translate-y-2 transition-transform duration-500">
-                      {sector.title}
-                    </h3>
-                    <div className={["overflow-hidden transition-all duration-500", "md:h-0 md:opacity-0 md:group-hover:h-auto md:group-hover:opacity-100", activeSector === index ? "h-auto opacity-100 mt-4" : "h-0 opacity-0 mt-0"].join(" ")}>
-                      <p className="font-serif italic text-sm text-stone-100 leading-relaxed max-w-[250px]">
-                        {sector.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Project count badge */}
-                  <div className={["absolute top-4", lang === "ar" ? "left-4" : "right-4"].join(" ")}>
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-white/70 bg-black/30 backdrop-blur-sm px-2 py-1 rounded">
-                      {projectCount} {t.projects}
-                    </span>
+                <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] mb-2 opacity-80 transition-all duration-500">
+                    {sector.category}
+                  </span>
+                  <h3 className="font-sans font-black text-2xl md:text-3xl uppercase tracking-tighter md:group-hover:-translate-y-2 transition-transform duration-500">
+                    {sector.title}
+                  </h3>
+                  <div className={["overflow-hidden transition-all duration-500", "md:h-0 md:opacity-0 md:group-hover:h-auto md:group-hover:opacity-100", activeSector === index ? "h-auto opacity-100 mt-4" : "h-0 opacity-0 mt-0"].join(" ")}>
+                    <p className="font-serif italic text-sm text-stone-100 leading-relaxed max-w-[250px]">
+                      {sector.description}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Partner note */}
+                {/* Project count badge 
+                <div className={["absolute top-4", lang === "ar" ? "left-4" : "right-4"].join(" ")}>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-white/70 bg-black/30 backdrop-blur-sm px-2 py-1 rounded">
+                    {projectCount} {t.projects}
+                  </span>
+                </div>
+                */}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Partner note — back inside container */}
+        <div className="container mx-auto px-6 md:px-12">
           <div className="mt-20 flex flex-wrap justify-center items-center gap-x-12 gap-y-6 opacity-40 grayscale hover:grayscale-0 transition-all duration-1000">
             {t.partners.map((p, i) => (
               <React.Fragment key={p}>

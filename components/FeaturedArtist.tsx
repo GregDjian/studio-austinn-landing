@@ -98,12 +98,35 @@ const getContent = (lang: Language) => {
   };
 };
 
+// ── Responsive visible count hook ──────────────────────────────────────────
+const useVisibleCount = () => {
+  const [visible, setVisible] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768 ? 2 : 3
+  );
+
+  useEffect(() => {
+    const update = () => setVisible(window.innerWidth < 768 ? 2 : 3);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return visible;
+};
+
 const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
   const t = getContent(lang);
 
+  // Responsive carousel count: 2 on mobile, 3 on desktop
+  const VISIBLE = useVisibleCount();
+  const GAP = VISIBLE === 2 ? "1rem" : "3rem";
+
   const sectionRef = useRef<HTMLElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [scrollOffset, setScrollOffset] = useState(0);
   const [activeArtwork, setActiveArtwork] = useState<ArtistWork | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const [galleryIndex, setGalleryIndex] = useState(0);
 
@@ -115,11 +138,10 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
   const [aiConfirmation, setAiConfirmation] = useState("");
   const [activeField, setActiveField] = useState<string | null>(null);
 
-  // ✅ MOVED INSIDE COMPONENT
   const [artistsData, setArtistsData] = useState<ArtistWork[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ MOVED INSIDE COMPONENT
+  // ── Fetch artists ──────────────────────────────────────────────────────────
   useEffect(() => {
     let alive = true;
 
@@ -133,9 +155,8 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
           const galleryUrls: string[] = (a.galleryImages ?? [])
             .map((img: any) => (img?.asset ? urlFor(img).width(1600).url() : ""))
             .filter(Boolean)
-            .slice(0, 3); // ✅ max 3 gallery images
+            .slice(0, 3);
 
-          // ✅ store gallery separately (WITHOUT cover) in `images`
           return {
             id: a._id,
             artistName: a.name ?? "",
@@ -148,7 +169,6 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
             dimensions: a.dimensions ?? "",
           };
         });
-
 
         if (!alive) return;
         setArtistsData(mapped);
@@ -166,6 +186,41 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     };
   }, []);
 
+  // ── Carousel helpers ───────────────────────────────────────────────────────
+  const totalSlides = Math.max(0, artistsData.length - VISIBLE + 1);
+
+  // Clamp currentSlide when VISIBLE changes (e.g. on resize)
+  useEffect(() => {
+    setCurrentSlide((i) => Math.min(i, Math.max(0, totalSlides - 1)));
+  }, [totalSlides]);
+
+  const goTo = (index: number) => {
+    const clamped = Math.max(0, Math.min(index, totalSlides - 1));
+    setCurrentSlide(clamped);
+  };
+
+  const next = () =>
+    setCurrentSlide((i) => (i + 1 >= totalSlides ? 0 : i + 1));
+
+  const prev = () =>
+    setCurrentSlide((i) => (i - 1 < 0 ? totalSlides - 1 : i - 1));
+
+  const startAutoPlay = () => {
+    if (artistsData.length <= VISIBLE) return;
+    autoPlayRef.current = setInterval(next, 2000);
+  };
+
+  const stopAutoPlay = () => {
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+  };
+
+  useEffect(() => {
+    startAutoPlay();
+    return stopAutoPlay;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artistsData.length, totalSlides]);
+
+  // ── Modal reset ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!activeArtwork) {
       setIsInquiring(false);
@@ -185,6 +240,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     setGalleryIndex(0);
   }, [activeArtwork?.id]);
 
+  // ── Form validation ────────────────────────────────────────────────────────
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = t.errors.nameRequired;
@@ -236,6 +292,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     }
   };
 
+  // ── Body scroll lock when modal open ──────────────────────────────────────
   useEffect(() => {
     if (!activeArtwork) return;
     const prev = document.body.style.overflow;
@@ -245,6 +302,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     };
   }, [activeArtwork]);
 
+  // ── Parallax scroll offset ─────────────────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
       if (sectionRef.current) {
@@ -260,14 +318,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ── Gallery images for modal ───────────────────────────────────────────────
   const galleryImages = useMemo(() => {
     if (!activeArtwork) return [];
 
     const cover = activeArtwork.imageUrl ? [activeArtwork.imageUrl] : [];
     const gallery = (activeArtwork.images ?? []).filter(Boolean).slice(0, 3);
-
-    // ✅ cover first + max 3 gallery = max 4 total
-    // ✅ also remove duplicates (sometimes cover is also in gallery)
     const unique = Array.from(new Set([...cover, ...gallery]));
 
     return unique;
@@ -285,6 +341,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     setGalleryIndex((i) => (i + 1) % galleryImages.length);
   };
 
+  // ── Keyboard nav ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!activeArtwork) return;
 
@@ -299,13 +356,18 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeArtwork, galleryImages.length]);
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <section
       id="artists"
       ref={sectionRef}
       dir={lang === "ar" ? "rtl" : "ltr"}
-      aria-label={lang === "ar" ? "فنانون مختارون — ستوديو أوستن" : "Curated Artists — Studio Austinn Dubai"}
-      className=" py-16 md:py-32 bg-white relative overflow-hidden min-h-screen"
+      aria-label={
+        lang === "ar"
+          ? "فنانون مختارون — ستوديو أوستن"
+          : "Curated Artists — Studio Austinn Dubai"
+      }
+      className="py-16 mb-0 md:py-32 bg-white relative overflow-hidden md:min-h-screen"
     >
       <div className="absolute top-0 w-full h-32 bg-gradient-to-b from-stone-50 to-transparent z-10 pointer-events-none" />
 
@@ -313,7 +375,11 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
         {/* Header */}
         <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-100 pb-8">
           <h2
-            aria-label={lang === "ar" ? "فنانون مختارون" : "Curated Artists — Bespoke Art Dubai"}
+            aria-label={
+              lang === "ar"
+                ? "فنانون مختارون"
+                : "Curated Artists — Bespoke Art Dubai"
+            }
             className={[
               "relative z-10 font-sans font-black text-5xl md:text-6xl leading-[0.85] text-stone-900 uppercase tracking-tighter",
               lang === "ar" ? "text-right" : "text-left",
@@ -323,7 +389,12 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
             <span className="text-stone-300">{t.headerTitleBottom}</span>
           </h2>
 
-          <div className={["mt-8 md:mt-0", lang === "ar" ? "text-right" : "text-left md:text-right"].join(" ")}>
+          <div
+            className={[
+              "hidden md:block mt-8 md:mt-0",
+              lang === "ar" ? "text-right" : "text-left md:text-right",
+            ].join(" ")}
+          >
             <p className="font-serif italic text-2xl text-stone-500">{t.headerSub1}</p>
             <p className="text-xs uppercase tracking-widest text-stone-400 mt-2">{t.headerSub2}</p>
           </div>
@@ -335,83 +406,127 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
             : "Discover curated artists offering bespoke sculptures, paintings and art installations in Dubai and across the UAE through Studio Austinn."}
         </p>
 
-        {/* Optional loader (keeps layout clean) */}
+        {/* Carousel */}
         {loading ? (
           <div className="py-20 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest">
             <Loader2 className="animate-spin mr-3" size={16} />
             Loading artists...
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-            {artistsData.map((artist, index) => (
+          <div className="relative">
+            {/* Prev Arrow */}
+            <button
+              onClick={() => { stopAutoPlay(); prev(); startAutoPlay(); }}
+              className={[
+                "absolute top-[40%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all duration-300",
+                lang === "ar"
+                  ? "-right-3 md:-right-5"
+                  : "-left-3 md:-left-5",
+              ].join(" ")}
+              aria-label="Previous"
+            >
+              {lang === "ar" ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+
+            {/* Next Arrow */}
+            <button
+              onClick={() => { stopAutoPlay(); next(); startAutoPlay(); }}
+              className={[
+                "absolute top-[40%] -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-stone-900 hover:text-white transition-all duration-300",
+                lang === "ar"
+                  ? "-left-3 md:-left-5"
+                  : "-right-3 md:-right-5",
+              ].join(" ")}
+              aria-label="Next"
+            >
+              {lang === "ar" ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+            </button>
+
+            {/* Track */}
+            <div className="overflow-hidden" ref={carouselRef}>
               <div
-                key={artist.id}
-                className={`group relative cursor-pointer ${
-                  index % 2 === 0 ? "md:mt-0" : "md:mt-12"
-                } transition-all duration-700`}
-                onClick={() => setActiveArtwork(artist)}
+                className="flex gap-4 md:gap-12 transition-transform duration-700 ease-in-out"
+                style={{
+                  transform:
+                    lang === "ar"
+                      ? `translateX(calc(${currentSlide} * (100% / ${VISIBLE} + (${VISIBLE - 1} / ${VISIBLE}) * ${GAP})))`
+                      : `translateX(calc(-${currentSlide} * (100% / ${VISIBLE} + (${VISIBLE - 1} / ${VISIBLE}) * ${GAP})))`,
+                }}
               >
-                <div className="aspect-[9/10] rounded-[6px] overflow-hidden rounded-sm relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
-                  <img
-                    src={artist.imageUrl}
-                    alt={`${artist.artistName} — ${artist.collection} | Studio Austinn Dubai`}
-                    className="
-                      w-full h-full object-cover
-                      will-change-transform
-                      transition-all duration-[1.3s] ease-out
-                      scale-[1.05]
-                      saturate-80 contrast-90 brightness-92
-                      group-hover:scale-110
-                      group-hover:saturate-115
-                      group-hover:contrast-105
-                      group-hover:brightness-105
-                    "
-                  />
-
+                {artistsData.map((artist) => (
                   <div
-                    className="
-                      absolute inset-0
-                      bg-stone-200/30
-                      opacity-100
-                      group-hover:opacity-0
-                      transition-opacity duration-500
-                    "
-                  />
-
-                  <div
-                    className="
-                      absolute inset-0
-                      bg-gradient-to-b
-                      from-black/0 via-black/0 to-black/10
-                      opacity-70
-                      group-hover:opacity-40
-                      transition-opacity duration-500
-                    "
-                  />
-
-                  <div
-                    className={[
-                      "absolute bottom-6 rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
-                      lang === "ar" ? "right-6" : "left-6",
-                    ].join(" ")}
+                    key={artist.id}
+                    className="group relative cursor-pointer flex-shrink-0 transition-all duration-700"
+                    style={{
+                      width: `calc((100% - ${VISIBLE - 1} * ${GAP}) / ${VISIBLE})`,
+                    }}
+                    onClick={() => setActiveArtwork(artist)}
+                    onMouseEnter={stopAutoPlay}
+                    onMouseLeave={startAutoPlay}
                   >
-                    <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-white">
-                      {artist.artistName}
-                    </p>
-                  </div>
-                </div>
+                    <div className="aspect-[3/4] md:aspect-[9/10] rounded-[6px] overflow-hidden relative shadow-md group-hover:shadow-2xl transition-shadow duration-500">
+                      <img
+                        src={artist.imageUrl}
+                        alt={`${artist.artistName} — ${artist.collection} | Studio Austinn Dubai`}
+                        className="
+                          w-full h-full object-cover
+                          will-change-transform
+                          transition-all duration-[1.3s] ease-out
+                          scale-[1.05]
+                          saturate-80 contrast-90 brightness-92
+                          group-hover:scale-110
+                          group-hover:saturate-115
+                          group-hover:contrast-105
+                          group-hover:brightness-105
+                        "
+                      />
 
-                <div className="mt-6 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
-                  <h3 className="font-serif italic text-2xl text-stone-900">{artist.collection}</h3>
-                  <p className="text-xs uppercase tracking-widest text-stone-400 mt-1">{artist.location}</p>
-                </div>
+                      <div className="absolute inset-0 bg-stone-200/30 opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/10 opacity-70 group-hover:opacity-40 transition-opacity duration-500" />
+
+                      <div
+                        className={[
+                          "absolute bottom-6 rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100",
+                          lang === "ar" ? "right-6" : "left-6",
+                        ].join(" ")}
+                      >
+                        <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-white">
+                          {artist.artistName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+                      <h3 className="font-serif italic text-2xl text-stone-900">{artist.collection}</h3>
+                      <p className="text-xs uppercase tracking-widest text-stone-400 mt-1">{artist.location}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Dot indicators */}
+            {totalSlides > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { stopAutoPlay(); goTo(i); startAutoPlay(); }}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === currentSlide
+                        ? "w-6 h-1.5 bg-stone-900"
+                        : "w-1.5 h-1.5 bg-stone-300 hover:bg-stone-500"
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Modal */}
+      {/* ── Modal ───────────────────────────────────────────────────────────── */}
       {activeArtwork && (
         <div className="fixed inset-0 z-[100] bg-stone-100/95 backdrop-blur-xl animate-fade-in-up">
           <div className="absolute inset-0 cursor-zoom-out" onClick={() => setActiveArtwork(null)} />
@@ -430,7 +545,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 <X size={24} />
               </button>
 
-              {/* Gallery */}
+              {/* Gallery panel */}
               <div className="w-full md:w-1/2 bg-stone-100 relative overflow-hidden flex flex-col shrink-0">
                 <div className="relative w-full h-[24vh] md:h-auto md:flex-1 overflow-hidden">
                   <img
@@ -480,7 +595,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                           key={`${src}-${i}`}
                           onClick={() => setGalleryIndex(i)}
                           className={`relative aspect-square overflow-hidden rounded-sm border transition ${
-                            i === galleryIndex ? "border-stone-900 shadow" : "border-stone-200 hover:border-stone-400"
+                            i === galleryIndex
+                              ? "border-stone-900 shadow"
+                              : "border-stone-200 hover:border-stone-400"
                           }`}
                           aria-label={`Select image ${i + 1}`}
                         >
@@ -497,7 +614,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                 )}
               </div>
 
-              {/* Details */}
+              {/* Details panel */}
               <div className="w-full md:w-1/2 p-8 md:p-16 md:overflow-y-auto flex flex-col justify-start md:justify-center bg-white/80 backdrop-blur-3xl">
                 {!isInquiring ? (
                   <>
@@ -548,7 +665,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                         <span className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-stone-400 block mb-2">
                           {t.labelAbout}
                         </span>
-                        <p className="text-stone-800 text-base md:text-lg leading-relaxed">{activeArtwork.description}</p>
+                        <p className="text-stone-800 text-base md:text-lg leading-relaxed">
+                          {activeArtwork.description}
+                        </p>
                       </div>
                     </div>
 
@@ -615,7 +734,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                             <div className="relative">
                               <label
                                 className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                  activeField === "name" || formData.name ? "-top-6 text-sky-500" : "top-2 text-stone-400"
+                                  activeField === "name" || formData.name
+                                    ? "-top-6 text-sky-500"
+                                    : "top-2 text-stone-400"
                                 }`}
                               >
                                 {t.formName}
@@ -627,7 +748,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                                 onFocus={() => setActiveField("name")}
                                 onBlur={() => setActiveField(null)}
                                 className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent ${
-                                  errors.name ? "border-red-400" : "border-stone-200 focus:border-stone-900"
+                                  errors.name
+                                    ? "border-red-400"
+                                    : "border-stone-200 focus:border-stone-900"
                                 }`}
                               />
                               {errors.name && (
@@ -642,7 +765,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                             <div className="relative">
                               <label
                                 className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                  activeField === "email" || formData.email ? "-top-6 text-sky-500" : "top-2 text-stone-400"
+                                  activeField === "email" || formData.email
+                                    ? "-top-6 text-sky-500"
+                                    : "top-2 text-stone-400"
                                 }`}
                               >
                                 {t.formEmail}
@@ -654,7 +779,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                                 onFocus={() => setActiveField("email")}
                                 onBlur={() => setActiveField(null)}
                                 className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent ${
-                                  errors.email ? "border-red-400" : "border-stone-200 focus:border-stone-900"
+                                  errors.email
+                                    ? "border-red-400"
+                                    : "border-stone-200 focus:border-stone-900"
                                 }`}
                               />
                               {errors.email && (
@@ -670,7 +797,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                           <div className="relative">
                             <label
                               className={`absolute ${lang === "ar" ? "right-0" : "left-0"} transition-all duration-300 text-[9px] uppercase tracking-widest ${
-                                activeField === "message" || formData.message ? "-top-6 text-sky-500" : "top-2 text-stone-400"
+                                activeField === "message" || formData.message
+                                  ? "-top-6 text-sky-500"
+                                  : "top-2 text-stone-400"
                               }`}
                             >
                               {t.formMessage}
@@ -682,7 +811,9 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                               onFocus={() => setActiveField("message")}
                               onBlur={() => setActiveField(null)}
                               className={`w-full bg-transparent border-b pb-2 pt-2 focus:outline-none transition-all text-stone-900 placeholder-transparent resize-none ${
-                                errors.message ? "border-red-400" : "border-stone-200 focus:border-stone-900"
+                                errors.message
+                                  ? "border-red-400"
+                                  : "border-stone-200 focus:border-stone-900"
                               }`}
                             />
                             {errors.message && (
