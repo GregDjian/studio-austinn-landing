@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Language } from "../types";
 import { getArtworks } from "../lib/sanityQueries";
-import { urlFor } from "../lib/sanityImage";
+import { imgUrl } from "../lib/sanityImage";
 
 interface Artwork {
   id: string;
@@ -70,7 +70,7 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
             description: a.description ?? "",
             createdAt: a._createdAt ?? "",
             coverImage: a.coverImage?.asset
-              ? urlFor(a.coverImage).width(1200).url()
+              ? imgUrl.card(a.coverImage)
               : "",
           }));
 

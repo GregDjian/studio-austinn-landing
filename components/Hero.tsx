@@ -33,6 +33,10 @@ const Hero: React.FC<{ lang: Language }> = ({ lang }) => {
         <img
           src={heroImg}
           alt="Studio Austinn — Bespoke art installations and sculptures for luxury spaces in Dubai, UAE"
+          fetchPriority="high"
+          decoding="sync"
+          width={1920}
+          height={1080}
           draggable={false}
           className="w-full h-full object-cover object-[25%] md:object-center pointer-events-none select-none"
         />

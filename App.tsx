@@ -36,6 +36,7 @@ function App() {
       <Environments lang={lang} />
       <Contact lang={lang} />
       <ChatWidget lang={lang} />
+      
     </main>
   );
 }

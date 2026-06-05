@@ -98,6 +98,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
                   alt={`${t.founderName} - ${t.founderRole}`}
                   className="absolute inset-0 w-full h-full object-cover object-top"
                   loading="lazy"
+                  decoding="async"
                 />
                 {/* subtle gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent" />
@@ -156,6 +157,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
             alt={`${t.founderName} - ${t.founderRole}`}
             className="absolute inset-0 w-full h-full object-cover object-top"
             loading="lazy"
+            decoding="async"
           />
           {/* subtle gradient at bottom to blend into right panel on mobile */}
           <div className="absolute inset-0 bg-gradient-to-t from-stone-50/60 via-transparent to-transparent lg:hidden" />

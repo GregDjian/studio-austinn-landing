@@ -9,11 +9,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  X,
   MessageCircle,
 } from "lucide-react";
 import { FaWhatsapp, FaInstagram, FaPinterestP } from "react-icons/fa";
 import { processLeadInquiry } from "../services/geminiService";
 import { Language } from "../types";
+import PrivacyPolicy from "./PrivacyPolicy";
 
 type SubmitStatus = "idle" | "success" | "error";
 
@@ -191,6 +193,9 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
 
   const instagramUrl = "https://www.instagram.com/studio_austinn/";
   const pinterestUrl = "https://fr.pinterest.com/marinebordiercros/";
+
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
 
   return (
     <footer
@@ -562,6 +567,33 @@ const Contact: React.FC<{ lang: Language }> = ({ lang }) => {
               </span>
             </div>
           </div>
+
+           {/* Privacy Policy Modal */}
+          {/* Privacy Policy Modal */}
+          {showPrivacy && (
+            <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center">
+              <div className="absolute inset-0" onClick={() => setShowPrivacy(false)} />
+              <div className="relative z-10 w-full md:max-w-3xl md:mx-4 bg-stone-50 md:rounded-sm shadow-2xl max-h-[60dvh] overflow-y-auto">
+                <button
+                  onClick={() => setShowPrivacy(false)}
+                  className="sticky top-4 float-right mr-4 z-20 p-2 bg-white hover:bg-stone-900 hover:text-white rounded-full shadow transition-all duration-300"
+                >
+                  <X size={18} />
+                </button>
+                <PrivacyPolicy lang={lang} />
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <button
+              onClick={() => setShowPrivacy(true)}
+              className="text-[9px] text-stone-300 uppercase tracking-[0.3em] hover:text-white transition-colors underline underline-offset-4"
+            >
+              {lang === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
+            </button>
+          </div>
+
           <div className="flex flex-col items-center md:items-start gap-4">
             <span className="text-[9px] text-stone-400 uppercase tracking-[0.3em]">
               &copy; {new Date().getFullYear()} Atelier Austinn Trading LLC

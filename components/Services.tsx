@@ -13,7 +13,7 @@ import {
 import { Language } from "../types";
 import { processLeadInquiry } from "../services/geminiService";
 import { getArtworks } from "../lib/sanityQueries";
-import { urlFor } from "../lib/sanityImage";
+import { imgUrl } from "../lib/sanityImage";
 import bespokeCover from "../public/cover/bespoke2-cover.jpeg";
 import paintingCover from "../public/cover/painting2-cover.jpeg";
 import sculptureCover from "../public/cover/sculpture-cover.jpeg";
@@ -126,6 +126,8 @@ const CATEGORY_META: Array<{
   { id: "05", type: "bespoke",       titleEn: "Bespoke",        titleAr: "حسب الطلب",  descEn: "Commissioned",      descAr: "تكليف خاص",     coverImage: bespokeCover },
 ];
 
+const BATCH_SIZE = 12;
+
 interface ServicesProps {
   lang: Language;
 }
@@ -143,6 +145,8 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
 
   const [artworksData, setArtworksData] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [totalLoaded, setTotalLoaded] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -151,7 +155,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
         const data = await getArtworks();
         const mapped: Artwork[] = (data || [])
           .map((a: any) => {
-            const cover = a.coverImage ? urlFor(a.coverImage).width(1600).url() : "";
+            const cover = a.coverImage ? imgUrl.card(a.coverImage) : "";
             return { id: a._id, title: a.title ?? "", description: a.description ?? "", image: cover, type: a.type as ArtworkType };
           })
           .filter((x: Artwork) => Boolean(x.id && x.type && x.image));
@@ -199,6 +203,19 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
     }
     return () => { document.body.style.overflow = "unset"; };
   }, [activeCategory, active3DModel]);
+
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+    setTotalLoaded(0);
+  }, [activeCategory?.id]);
+
+  useEffect(() => {
+    if (!activeCategory) return;
+    const total = activeCategory.gallery.length;
+    if (totalLoaded >= visibleCount && visibleCount < total) {
+      setVisibleCount(v => Math.min(v + BATCH_SIZE, total));
+    }
+  }, [totalLoaded, visibleCount, activeCategory]);
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,6 +267,8 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
           <img
             src={item.image}
             alt={`${item.title} — Studio Austinn`}
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
 
@@ -349,10 +368,18 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-                      {activeCategory.gallery.map((art, i) => (
+                      {activeCategory.gallery.slice(0, visibleCount).map((art, i) => (
                         <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
                           <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4">
-                            <img src={art.image} alt={`${art.title} — ${activeCategory.title} | Studio Austinn`} className="w-full h-full object-cover" />
+                            <img
+                              src={art.image}
+                              alt={`${art.title} — ${activeCategory.title} | Studio Austinn`}
+                              loading="lazy"
+                              decoding="async"
+                              onLoad={() => setTotalLoaded(c => c + 1)}
+                              onError={() => setTotalLoaded(c => c + 1)}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                           <div className="flex flex-col gap-1">
                             <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>

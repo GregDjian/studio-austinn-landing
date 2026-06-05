@@ -14,7 +14,7 @@ import {
 import { processLeadInquiry } from "../services/geminiService";
 import { Language } from "../types";
 import { getArtists } from "../lib/sanityQueries";
-import { urlFor } from "../lib/sanityImage";
+import { imgUrl } from "../lib/sanityImage";
 
 interface ArtistWork {
   id: string;
@@ -150,10 +150,10 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
         const data = await getArtists();
 
         const mapped: ArtistWork[] = (data || []).map((a: any) => {
-          const cover = a.coverImage ? urlFor(a.coverImage).width(1200).url() : "";
+          const cover = a.coverImage ? imgUrl.card(a.coverImage) : "";
 
           const galleryUrls: string[] = (a.galleryImages ?? [])
-            .map((img: any) => (img?.asset ? urlFor(img).width(1600).url() : ""))
+            .map((img: any) => (img?.asset ? imgUrl.full(img) : ""))
             .filter(Boolean)
             .slice(0, 3);
 
@@ -468,6 +468,8 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
                       <img
                         src={artist.imageUrl}
                         alt={`${artist.artistName} — ${artist.collection} | Studio Austinn Dubai`}
+                        loading="lazy"
+                        decoding="async"
                         className="
                           w-full h-full object-cover
                           will-change-transform
