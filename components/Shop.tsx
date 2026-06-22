@@ -115,6 +115,8 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
       currency:     product.currency,
       image:        product.images?.[0] ? imgUrl.thumb(product.images[0]) : "",
       availability: product.availability,
+      weightKg:     product.weightKg,
+      size:         product.size,
     });
   };
 

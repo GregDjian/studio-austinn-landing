@@ -18,7 +18,7 @@ const getNavItems = (lang: Language): NavItem[] => {
       { label: "الكتالوج", href: "/#services" },
       { label: "مختارات", href: "/#artists" },
       { label: "المساحات والمشاريع", href: "/#spaces-projects" },
-      // { label: "المتجر", href: "/shop" },
+      { label: "المتجر", href: "/shop" },
     ];
   }
   return [
@@ -26,7 +26,7 @@ const getNavItems = (lang: Language): NavItem[] => {
     { label: "Catalogue", href: "/#services" },
     { label: "Featured", href: "/#artists" },
     { label: "Spaces & Projects", href: "/#spaces-projects" },
-    // { label: "Shop", href: "/shop" },
+    { label: "Shop", href: "/shop" },
   ];
 };
 
@@ -179,7 +179,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
               </button>
             </div>
 
-            {/* Cart icon 
+            {/* Cart icon*/} 
             <button
               type="button"
               onClick={onCartOpen}
@@ -195,7 +195,7 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
                   {itemCount > 9 ? "9+" : itemCount}
                 </span>
               )}
-            </button>*/}
+            </button>
 
             {/* Contact button */}
             <a

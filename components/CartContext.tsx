@@ -12,6 +12,8 @@ export interface CartItem {
   image: string;
   availability: Availability;
   quantity: number;
+  weightKg?: number;
+  size?: 'small' | 'medium' | 'large';
 }
 
 // ─── Loose-link cart item ─────────────────────────────────────────────────────
@@ -30,6 +32,8 @@ export interface LooseLinkCartItem {
   pricePerLink: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
+  weightKg?: number;
+  size?: 'small' | 'medium' | 'large';
 }
 
 export type AnyCartItem = CartItem | LooseLinkCartItem;

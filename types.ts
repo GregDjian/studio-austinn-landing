@@ -47,6 +47,8 @@ export interface ChainConfig {
   colorSummary: ColorSummaryEntry[];
 }
 
+export type ProductSize = 'small' | 'medium' | 'large';
+
 export interface Product {
   _id: string;
   productType: ProductType;
@@ -62,4 +64,6 @@ export interface Product {
   featured: boolean;
   collection?: string;
   colorOptions?: ColorOption[];
+  weightKg?: number;
+  size?: ProductSize;
 }

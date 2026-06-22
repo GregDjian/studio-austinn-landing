@@ -75,6 +75,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang }) => {
       currency:     product.currency,
       image:        product.images?.[0] ? imgUrl.thumb(product.images[0]) : "",
       availability: product.availability,
+      weightKg:     product.weightKg,
+      size:         product.size,
     });
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);
@@ -192,6 +194,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang }) => {
                   pricePerLink:  product.pricePerLink ?? 0,
                   lineTotal:     config.lineTotal,
                   colorSummary:  config.colorSummary,
+                  weightKg:      product.weightKg,
+                  size:          product.size,
                 });
                 setJustAdded(true);
                 setTimeout(() => setJustAdded(false), 2000);

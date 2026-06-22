@@ -75,7 +75,9 @@ export async function getProducts() {
       availability,
       sku,
       featured,
-      collection
+      collection,
+      weightKg,
+      size
     }
   `);
 }
@@ -95,6 +97,8 @@ export async function getProductBySlug(slug: string) {
       availability,
       sku,
       featured,
+      weightKg,
+      size,
       "colorOptions": colorOptions[]->{
         _id,
         name,
@@ -111,11 +115,23 @@ export async function getProductBySlug(slug: string) {
    DELIVERY ZONES
 ========================= */
 
+export interface WeightTier {
+  minKg: number;
+  maxKg?: number;
+  rate: number;
+}
+
+export interface SizeTier {
+  size: 'small' | 'medium' | 'large';
+  rate: number;
+}
+
 export interface DeliveryZone {
   _id: string;
   zoneKey: "uae" | "gcc";
   zoneName: { en: string; ar: string };
-  rate: number;
+  weightTiers: WeightTier[];
+  sizeTiers: SizeTier[];
   currency: string;
   installationFee?: number;
 }
@@ -126,7 +142,8 @@ export async function getDeliveryZones(): Promise<DeliveryZone[]> {
       _id,
       zoneKey,
       zoneName,
-      rate,
+      weightTiers,
+      sizeTiers,
       currency,
       installationFee
     }

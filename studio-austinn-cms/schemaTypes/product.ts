@@ -99,6 +99,31 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
 
+    // ── Shipping ──────────────────────────────────────────────────────────────
+
+    defineField({
+      name: 'weightKg',
+      title: 'Weight (kg)',
+      type: 'number',
+      description: 'Estimated shipping weight per unit (kg). For loose-link products: weight per individual link — checkout multiplies by totalLinks.',
+      validation: (Rule) => Rule.min(0),
+    }),
+
+    defineField({
+      name: 'size',
+      title: 'Shipping Size',
+      type: 'string',
+      description: "Based on the product's longest dimension (or packaged dimension if larger): Small = up to 40cm, Medium = 40–100cm, Large = 100cm and above (e.g. partitions, anything requiring oversized/freight handling). For loose-link products, use Small regardless of quantity — quantity-based cost is already handled via weight (weightKg × totalLinks), not size.",
+      options: {
+        list: [
+          { title: 'Small',  value: 'small'  },
+          { title: 'Medium', value: 'medium' },
+          { title: 'Large',  value: 'large'  },
+        ],
+        layout: 'radio',
+      },
+    }),
+
     // ── Loose-link specific ────────────────────────────────────────────────────
 
     defineField({
