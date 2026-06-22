@@ -49,10 +49,10 @@ function AppInner() {
 
       <Routes>
         <Route path="/"               element={<HomePage      lang={lang} />} />
-        <Route path="/shop"           element={<Shop          lang={lang} />} />
-        <Route path="/shop/:slug"     element={<ProductDetail lang={lang} />} />
-        <Route path="/shop/success"   element={<ShopSuccess   lang={lang} />} />
-        <Route path="/shop/cancel"    element={<ShopCancel    lang={lang} />} />
+        {/* <Route path="/shop"           element={<Shop          lang={lang} />} /> */}
+        {/* <Route path="/shop/:slug"     element={<ProductDetail lang={lang} />} /> */}
+        {/* <Route path="/shop/success"   element={<ShopSuccess   lang={lang} />} /> */}
+        {/* <Route path="/shop/cancel"    element={<ShopCancel    lang={lang} />} /> */}
       </Routes>
 
       <ChatWidget lang={lang} />

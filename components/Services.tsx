@@ -65,6 +65,7 @@ const getUI = (lang: Language) => {
       browse: "تصفّح",
       curatedNote: "كل قطعة في مجموعتنا مُختارة بعناية لتلبي أعلى معايير التعبير الفني.",
       inquire: "استفسر عن التوفّر",
+      inquireWa: "استفسر",
       close: "إغلاق",
       view3d: "عرض ثلاثي الأبعاد",
       viewerTitle: "عرض ثلاثي الأبعاد",
@@ -89,6 +90,7 @@ const getUI = (lang: Language) => {
     browse: "Browse",
     curatedNote: "Every piece in our collection is meticulously curated to meet the highest standards of artistic expression.",
     inquire: "Inquire for availability",
+    inquireWa: "Inquire",
     close: "Close",
     view3d: "3D View",
     viewerTitle: "3D View",
@@ -369,7 +371,7 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
                       {activeCategory.gallery.slice(0, visibleCount).map((art, i) => (
-                        <div key={art.id} style={{ animationDelay: `${i * 50}ms` }}>
+                        <div key={art.id} style={{ animationDelay: `${i * 50}ms` }} className="group">
                           <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 mb-4">
                             <img
                               src={art.image}
@@ -378,8 +380,24 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
                               decoding="async"
                               onLoad={() => setTotalLoaded(c => c + 1)}
                               onError={() => setTotalLoaded(c => c + 1)}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-500" />
+                            <a
+                              href={`https://wa.me/971581558866?text=${encodeURIComponent(
+                                lang === "ar"
+                                  ? `مرحباً، اطّلعت على كتالوج ستوديو أوستن وأنا مهتم بالعمل الفني التالي:\n\n🖼 ${art.title}\n📂 ${activeCategory.title}\n\nهل يمكنك مشاركة مزيد من التفاصيل حول التوفر والسعر؟\n🌐 www.studioaustinn.com`
+                                  : `https://studioaustinn.com/ \nHello, I came across Studio Austinn's catalogue and I'm interested in the following artwork:\n\n- ${art.title}\n- ${activeCategory.title}\n\nCould you share more details on availability and pricing?`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                            >
+                              <span className="bg-stone-900/85 text-white text-[10px] font-bold uppercase tracking-[0.25em] px-5 py-2.5 backdrop-blur-sm scale-90 translate-y-2 group-hover:scale-100 group-hover:translate-y-0 transition-all duration-300">
+                                {t.inquireWa}
+                              </span>
+                            </a>
                           </div>
                           <div className="flex flex-col gap-1">
                             <h4 className="font-serif text-lg text-stone-900 leading-tight">{art.title}</h4>

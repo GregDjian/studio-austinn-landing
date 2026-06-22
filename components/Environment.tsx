@@ -5,7 +5,6 @@ import yachts from "../public/environment/yachts.jpeg";
 import publicSpace from "../public/environment/publicSpace.jpeg";
 import designPartner from "../public/environment/designPartner.jpeg";
 import hospitality from "../public/environment/hospitality.jpeg";
-import luxuryRetail from "../public/environment/luxuryRetail.jpeg";
 import { getProjects } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
 import SectorModal, { Sector } from "./SectorModal";
@@ -36,15 +35,19 @@ const getImgSrc = (img: ImgLike): string => {
 
 const getSectors = (lang: Language, projectsBySector: ProjectsBySector): Sector[] => {
   const base = [
-    { title: "Private Villas",  category: lang === "ar" ? "سكني"                : "Residential",          image: privateVilla,  description: lang === "ar" ? "تركيبات فنية مخصّصة صُمّمت لأرقى المساكن الخاصة في دولة الإمارات."                                             : "Bespoke art installations tailored for the most exclusive residences in the UAE." },
-    { title: "Hospitality",     category: lang === "ar" ? "فنادق ومنتجعات"       : "Hotels & Gastronomy",  image: hospitality,   description: lang === "ar" ? "إعادة ابتكار تجربة الضيوف من خلال منحوتات مميّزة ومعارض فنية منسّقة."                                         : "Transforming guest experiences with statement sculptures and curated galleries." },
-    { title: "Yachts & Jets",   category: lang === "ar" ? "التنقّل الفاخر"       : "Ultra Luxury Mobility", image: yachts,       description: lang === "ar" ? "أعمال فنية وعناصر نحتية حصرية مصمّمة لليخوت الفاخرة ومقصورات الطائرات الخاصة."                             : "Exclusive artworks and sculptural elements designed for yachts and private aviation interiors." },
-    { title: "Design Partners", category: lang === "ar" ? "معماريون"             : "Architects",           image: designPartner, description: lang === "ar" ? "التعاون مع معماريين عالميين لدمج الفن منذ المراحل الأولى للتصميم."                                           : "Collaborating with world-class architects to integrate art from the blueprint phase." },
-    { title: "Luxury Retail",   category: lang === "ar" ? "مراكز تسوق وبوتيكات" : "Malls & Boutiques",   image: luxuryRetail,  description: lang === "ar" ? "ابتكار تجارب علامة تجارية غامرة من خلال التقاء الفن والتجارة."                                               : "Creating immersive brand experiences through artistic commerce." },
-    { title: "Public Spaces",   category: lang === "ar" ? "مدنية ومؤسسية"       : "Civic & Corporate",    image: publicSpace,   description: lang === "ar" ? "تركيبات واسعة النطاق تعيد تعريف المشهد الحضري وبيئات العمل."                                                 : "Large-scale installations that redefine public landscapes and workspaces." },
+    { title: "Private Villas",  category: lang === "ar" ? "سكني"                 : "Residential",           image: privateVilla,  description: lang === "ar" ? "تركيبات فنية مخصّصة صُمّمت لأرقى المساكن الخاصة في دولة الإمارات."                                             : "Bespoke art installations tailored for the most exclusive residences in the UAE." },
+    { title: "Hospitality",     category: lang === "ar" ? "فنادق ومنتجعات"       : "Hotels & Gastronomy",   image: hospitality,   description: lang === "ar" ? "إعادة ابتكار تجربة الضيوف من خلال منحوتات مميّزة ومعارض فنية منسّقة."                                         : "Transforming guest experiences with statement sculptures and curated galleries." },
+    { title: "Yachts & Jets",   category: lang === "ar" ? "التنقّل الفاخر"       : "Ultra Luxury Mobility", image: yachts,        description: lang === "ar" ? "أعمال فنية وعناصر نحتية حصرية مصمّمة لليخوت الفاخرة ومقصورات الطائرات الخاصة."                             : "Exclusive artworks and sculptural elements designed for yachts and private aviation interiors." },
+    { title: "Design Partners", category: lang === "ar" ? "معماريون"             : "Architects",            image: designPartner, description: lang === "ar" ? "التعاون مع معماريين عالميين لدمج الفن منذ المراحل الأولى للتصميم."                                           : "Collaborating with world-class architects to integrate art from the blueprint phase." },
+    { title: "Public Spaces",   category: lang === "ar" ? "مدنية ومؤسسية"       : "Civic & Corporate",     image: publicSpace,   description: lang === "ar" ? "تركيبات واسعة النطاق تعيد تعريف المشهد الحضري وبيئات العمل."                                                 : "Large-scale installations that redefine public landscapes and workspaces." },
   ];
 
-  return base.map((s) => ({ ...s, projects: projectsBySector[s.title] ?? [] }));
+  return base.map((s) => ({
+    ...s,
+    projects: s.title === "Hospitality"
+      ? [...(projectsBySector["Hospitality"] ?? []), ...(projectsBySector["Luxury Retail"] ?? [])]
+      : projectsBySector[s.title] ?? [],
+  }));
 };
 
 const getContent = (lang: Language) => {
@@ -220,7 +223,7 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
         </div>
 
         {/* Grid — full width, outside container */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-0">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-1 md:gap-0">
           {sectors.map((sector, index) => {
             const src = getImgSrc(sector.image);
             const projectCount = (projectsBySector[sector.title] ?? []).length;
@@ -229,7 +232,12 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
               <div
                 key={index}
                 ref={(el) => { itemRefs.current[index] = el; }}
-                className="relative aspect-square md:aspect-[4/3] rounded-none md:rounded-[0px] group overflow-hidden bg-stone-200 cursor-pointer"
+                className={[
+                  "relative rounded-none group overflow-hidden bg-stone-200 cursor-pointer",
+                  index === 0
+                    ? "col-span-2 aspect-[2/1] lg:col-span-1 lg:row-span-2 lg:aspect-auto"
+                    : "col-span-1 aspect-square lg:aspect-[4/3]",
+                ].join(" ")}
                 onMouseEnter={() => handleMouseEnter(index)}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => {
