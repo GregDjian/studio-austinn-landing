@@ -617,7 +617,7 @@ const FeaturedArtist: React.FC<{ lang: Language }> = ({ lang }) => {
               </div>
 
               {/* Details panel */}
-              <div className="w-full md:w-1/2 p-8 md:p-16 md:overflow-y-auto flex flex-col justify-start md:justify-center bg-white/80 backdrop-blur-3xl">
+              <div className="w-full md:w-1/2 p-8 md:p-16 md:overflow-y-auto flex flex-col justify-start bg-white/80 backdrop-blur-3xl">
                 {!isInquiring ? (
                   <>
                     <div className="mb-2">

@@ -5,6 +5,12 @@
     },
     "api/gemini.ts": {
       "maxDuration": 30
+    },
+    "api/create-checkout-session.ts": {
+      "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }
