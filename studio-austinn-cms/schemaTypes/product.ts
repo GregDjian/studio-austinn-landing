@@ -148,6 +148,42 @@ export default defineType({
     }),
 
     defineField({
+      name: 'subtitle',
+      title: 'Subtitle',
+      type: 'object',
+      description: 'Short descriptor shown beneath the product title (e.g. material or style summary). Bundle products only.',
+      fields: [
+        defineField({ name: 'en', title: 'English', type: 'string' }),
+        defineField({ name: 'ar', title: 'Arabic',  type: 'string' }),
+      ],
+      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+    }),
+
+    defineField({
+      name: 'dimensions',
+      title: 'Dimensions',
+      type: 'object',
+      description: 'Product dimensions displayed in the Dimensions & Materials tab. Bundle products only.',
+      fields: [
+        defineField({ name: 'en', title: 'English', type: 'string' }),
+        defineField({ name: 'ar', title: 'Arabic',  type: 'string' }),
+      ],
+      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+    }),
+
+    defineField({
+      name: 'materials',
+      title: 'Materials',
+      type: 'object',
+      description: 'Materials used, displayed in the Dimensions & Materials tab. Bundle products only.',
+      fields: [
+        defineField({ name: 'en', title: 'English', type: 'string' }),
+        defineField({ name: 'ar', title: 'Arabic',  type: 'string' }),
+      ],
+      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+    }),
+
+    defineField({
       name: 'availability',
       title: 'Availability',
       type: 'string',

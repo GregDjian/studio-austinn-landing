@@ -106,7 +106,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
 
               {/* Founder badge under image */}
               <div className="mt-4 w-full">
-                <div className="w-full rounded-[8px] border border-stone-200 bg-white/70 backdrop-blur-md px-5 py-3 flex items-center justify-between gap-4 shadow-lg">
+                <div className="w-full px-5 py-3 flex items-center justify-between gap-4">
                   <p className="text-stone-900 font-semibold tracking-tight text-sm">
                     {t.founderName}
                   </p>
@@ -166,7 +166,7 @@ const Philosophy: React.FC<{ lang: Language }> = ({ lang }) => {
 
           {/* Founder badge — pinned to bottom left */}
           <div className={`absolute bottom-8 ${isAr ? "right-8" : "left-8"} z-10`}>
-            <div className="rounded-[8px] border border-white/40 bg-white/20 backdrop-blur-md px-5 py-3 flex items-center gap-4 shadow-lg">
+            <div className="px-5 py-3 flex items-center gap-4">
               <div>
                 <p className="text-white font-semibold tracking-tight text-sm">{t.founderName}</p>
               </div>

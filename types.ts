@@ -59,6 +59,9 @@ export interface Product {
   pricePerLink?: number;
   currency: string;
   description: LocalizedString;
+  subtitle?: LocalizedString;
+  dimensions?: LocalizedString;
+  materials?: LocalizedString;
   availability: Availability;
   sku?: string;
   featured: boolean;

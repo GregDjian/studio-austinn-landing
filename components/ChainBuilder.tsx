@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus, X, ShoppingBag } from "lucide-react";
 import { Language, ColorOption } from "../types";
 import { imgUrl } from "../lib/sanityImage";
@@ -18,6 +19,8 @@ const CEILING_LINE  = "rgba(0,0,0,0.07)"; // subtle wall-meets-ceiling join
 const CEILING_H     = 36;  // ceiling strip height in px
 const MOUNT_IMG = "/chain-mount.png";
 const MOUNT_W = 36; // px — adjust if the physical stud needs to be bigger/smaller
+const POPOVER_WIDTH_ESTIMATE = 172; // fallback width used before the popover has mounted/measured
+const POPOVER_VIEWPORT_MARGIN = 8;  // min gap kept between popover and viewport edge
 // ─────────────────────────────────────────────────────────────────────────────
 
 const uid = () => crypto.randomUUID();
@@ -78,6 +81,9 @@ const getContent = (lang: Language) => {
       preview: "معاينة",
       wallColor: "لون الجدار",
       cancel: "إلغاء",
+      reset: "البدء من جديد",
+      resetConfirm: "إعادة تعيين التصميم؟",
+      resetConfirmYes: "نعم، إعادة التعيين",
     };
   }
   return {
@@ -98,6 +104,9 @@ const getContent = (lang: Language) => {
     preview: "Preview",
     wallColor: "Wall colour",
     cancel: "Cancel",
+    reset: "Start Over",
+    resetConfirm: "Reset your build?",
+    resetConfirmYes: "Yes, reset",
   };
 };
 
@@ -115,19 +124,68 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
 
   const [columns, setColumns] = useState<ColumnState[]>([{ id: uid(), links: [] }]);
   const [addPickerColId, setAddPickerColId] = useState<string | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
+  const [confirmingReset, setConfirmingReset] = useState(false);
   // Wall color: visualisation-only — intentionally NOT in cart/order data.
   const [wallColor, setWallColor] = useState(WALL_COLOR_INITIAL);
   const builderRef = useRef<HTMLDivElement>(null);
+  // Popover is portaled to document.body (so it can escape the scrollable
+  // preview canvas — see FIX 1), so it needs its own anchor/position tracking
+  // instead of being positioned via normal CSS flow relative to its column.
+  const anchorElRef = useRef<HTMLButtonElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  const closePicker = () => {
+    setAddPickerColId(null);
+    setPopoverPos(null);
+    anchorElRef.current = null;
+  };
+
+  const computePopoverPosition = (anchor: HTMLElement, popoverWidth: number) => {
+    const rect = anchor.getBoundingClientRect();
+    const rawLeft = rect.left + rect.width / 2 - popoverWidth / 2;
+    const left = Math.min(
+      Math.max(rawLeft, POPOVER_VIEWPORT_MARGIN),
+      window.innerWidth - popoverWidth - POPOVER_VIEWPORT_MARGIN
+    );
+    return { top: rect.bottom + 8, left };
+  };
 
   useEffect(() => {
+    // Portaled popover lives outside builderRef in the DOM, so it must be
+    // treated as "inside" here too, or clicking a swatch would register as
+    // an outside click (via mousedown, before the swatch's onClick fires)
+    // and close the picker before the selection registers.
     const handler = (e: MouseEvent) => {
-      if (builderRef.current && !builderRef.current.contains(e.target as Node)) {
-        setAddPickerColId(null);
+      const target = e.target as Node;
+      const insideBuilder = builderRef.current?.contains(target);
+      const insidePopover = popoverRef.current?.contains(target);
+      if (!insideBuilder && !insidePopover) {
+        closePicker();
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Keep the popover pinned to its trigger while open — refines the position
+  // once the popover has mounted and measured its real width, and re-tracks
+  // on scroll (including the horizontal-scrolling preview canvas) or resize.
+  useLayoutEffect(() => {
+    if (!addPickerColId || !anchorElRef.current) return;
+    const anchor = anchorElRef.current;
+    const update = () => {
+      const width = popoverRef.current?.offsetWidth ?? POPOVER_WIDTH_ESTIMATE;
+      setPopoverPos(computePopoverPosition(anchor, width));
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [addPickerColId]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const totalLinks = columns.reduce((sum, col) => sum + col.links.length, 0);
@@ -139,9 +197,15 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
     setAddPickerColId(null);
   };
 
+  const resetBuild = () => {
+    setColumns([{ id: uid(), links: [] }]);
+    closePicker();
+    setConfirmingReset(false);
+  };
+
   const removeColumn = (colId: string) => {
     setColumns((prev) => prev.filter((c) => c.id !== colId));
-    setAddPickerColId((prev) => (prev === colId ? null : prev));
+    if (addPickerColId === colId) closePicker();
   };
 
   const removeLink = (colId: string, linkId: string) =>
@@ -151,8 +215,16 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
       )
     );
 
-  const openAddPicker = (colId: string) =>
-    setAddPickerColId((prev) => (prev === colId ? null : colId));
+  const openAddPicker = (colId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    const willOpen = addPickerColId !== colId;
+    if (willOpen) {
+      anchorElRef.current = e.currentTarget;
+      setPopoverPos(computePopoverPosition(e.currentTarget, popoverRef.current?.offsetWidth ?? POPOVER_WIDTH_ESTIMATE));
+      setAddPickerColId(colId);
+    } else {
+      closePicker();
+    }
+  };
 
   const commitLink = (colId: string, colorOptionId: string) => {
     setColumns((prev) =>
@@ -162,7 +234,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
           : c
       )
     );
-    setAddPickerColId(null);
+    closePicker();
   };
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -212,9 +284,11 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         <button
           onClick={(e) => { e.stopPropagation(); removeColumn(col.id); }}
           aria-label={`${t.removeColumn} ${colIdx + 1}`}
-          className="absolute -top-1 -right-2 z-10 w-5 h-5 rounded-full bg-white/90 border border-stone-200 flex items-center justify-center text-stone-300 hover:text-red-400 hover:border-red-200 transition-colors"
+          className="group absolute -top-4 -right-5 z-10 w-11 h-11 flex items-center justify-center"
         >
-          <X size={9} />
+          <span className="w-5 h-5 rounded-full bg-white/90 border border-stone-200 flex items-center justify-center text-stone-300 group-hover:text-red-400 group-hover:border-red-200 transition-colors">
+            <X size={9} />
+          </span>
         </button>
       )}
 
@@ -237,7 +311,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         /* Empty column placeholder — overlaps mount by LINK_OVERLAP_PX,
            identical treatment to the first real link in a column */
         <button
-          onClick={() => openAddPicker(col.id)}
+          onClick={(e) => openAddPicker(col.id, e)}
           aria-label={t.addFirstLink}
           style={{ marginTop: -PLACEHOLDER_OVERLAP_PX }}
           className={`w-[72px] h-[88px] bg-white border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
@@ -272,6 +346,11 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
                     <img
                       src={imgUrl.thumb(opt.image)}
                       alt={colorName(opt)}
+                      width={72}
+                      height={72}
+                      className="w-full h-auto object-cover"
+                      aria-label={colorName(opt)}
+                      title={colorName(opt)}
                       loading="lazy"
                       decoding="async"
                       draggable={false}
@@ -295,10 +374,12 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
                   <button
                     onClick={(e) => { e.stopPropagation(); removeLink(col.id, link.id); }}
                     aria-label={t.removeLink}
-                    className="absolute top-1 right-1 w-[18px] h-[18px] rounded-full bg-white/90 border border-stone-200 flex items-center justify-center text-stone-400 hover:text-red-400 hover:border-red-200 transition-colors"
+                    className="group absolute top-0 right-0 w-11 h-11 flex items-center justify-center"
                     style={{ zIndex: linkIdx + 10 }}
                   >
-                    <X size={9} />
+                    <span className="w-[18px] h-[18px] rounded-full bg-white/90 border border-stone-200 flex items-center justify-center text-stone-400 group-hover:text-red-400 group-hover:border-red-200 transition-colors">
+                      <X size={9} />
+                    </span>
                   </button>
                 </div>
               );
@@ -307,7 +388,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
 
           {/* Add-more zone — below the link stack, normal flow */}
           <button
-            onClick={() => openAddPicker(col.id)}
+            onClick={(e) => openAddPicker(col.id, e)}
             aria-label={t.addLink}
             className={`w-[72px] bg-white border-2 border-dashed flex flex-col items-center justify-center gap-1.5 mt-1.5 py-2.5 transition-colors ${
               addPickerColId === col.id
@@ -321,43 +402,6 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
             </span>
           </button>
         </>
-      )}
-
-      {/* Floating color picker — anchored below this column */}
-      {addPickerColId === col.id && (
-        <div
-          className="absolute z-40 bg-white border border-stone-200 shadow-xl p-3"
-          style={{ top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", minWidth: 156 }}
-        >
-          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2.5">
-            {t.chooseColor}
-          </p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {colorOptions.map((option) => {
-              const optName = colorName(option);
-              return (
-                <button
-                  key={option._id}
-                  onClick={() => commitLink(col.id, option._id)}
-                  aria-label={optName}
-                  title={optName}
-                  className="w-8 h-8 border border-stone-200 overflow-hidden hover:border-stone-700 hover:scale-110 transition-all active:scale-95"
-                  style={{ background: !option.image && option.hexSwatch ? option.hexSwatch : undefined }}
-                >
-                  {option.image && (
-                    <img src={imgUrl.thumb(option.image)} alt={optName} className="w-full h-full object-cover" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          <button
-            onClick={() => setAddPickerColId(null)}
-            className="mt-2.5 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-300 hover:text-stone-600 transition-colors"
-          >
-            {t.cancel}
-          </button>
-        </div>
       )}
     </div>
   );
@@ -406,6 +450,34 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
           {justAdded ? t.added : t.addToCart}
         </button>
 
+        {/* Reset / start over — inline confirm, no browser alert() */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] font-bold uppercase tracking-[0.2em]">
+          {confirmingReset ? (
+            <>
+              <span className="text-stone-500">{t.resetConfirm}</span>
+              <button
+                onClick={resetBuild}
+                className="text-red-500 hover:text-red-600 transition-colors py-1"
+              >
+                {t.resetConfirmYes}
+              </button>
+              <button
+                onClick={() => setConfirmingReset(false)}
+                className="text-stone-300 hover:text-stone-600 transition-colors py-1"
+              >
+                {t.cancel}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setConfirmingReset(true)}
+              className="text-stone-400 hover:text-stone-700 transition-colors py-1"
+            >
+              {t.reset}
+            </button>
+          )}
+        </div>
+
       </div>
 
       {/* ── RIGHT — preview canvas + wall colour picker ────────────────────── */}
@@ -451,8 +523,8 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               </div>
             ) : (
               <>
-                <div className="flex justify-center">
-                  <div className="flex gap-8 items-start">
+                <div className="overflow-x-auto">
+                  <div className="flex gap-8 items-start w-fit mx-auto p-2">
                     {columns.map((col, colIdx) => renderPreviewColumn(col, colIdx))}
 
                     {/* "New Column" ghost — same structure as real columns so the
@@ -523,6 +595,47 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         </div>
 
       </div>
+
+      {/* Floating color picker — portaled to <body> so it can escape the
+          scrollable preview canvas (FIX 1) and be positioned/clamped in
+          viewport coordinates for edge-collision avoidance (FIX 3). */}
+      {addPickerColId && popoverPos && createPortal(
+        <div
+          ref={popoverRef}
+          className="fixed z-40 bg-white border border-stone-200 shadow-xl p-3"
+          style={{ top: popoverPos.top, left: popoverPos.left, minWidth: 156 }}
+        >
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-2.5">
+            {t.chooseColor}
+          </p>
+          <div className="grid grid-cols-4 gap-1.5">
+            {colorOptions.map((option) => {
+              const optName = colorName(option);
+              return (
+                <button
+                  key={option._id}
+                  onClick={() => commitLink(addPickerColId, option._id)}
+                  aria-label={optName}
+                  title={optName}
+                  className="w-8 h-8 border border-stone-200 overflow-hidden hover:border-stone-700 hover:scale-110 transition-all active:scale-95"
+                  style={{ background: !option.image && option.hexSwatch ? option.hexSwatch : undefined }}
+                >
+                  {option.image && (
+                    <img src={imgUrl.thumb(option.image)} alt={optName} className="w-full h-full object-cover" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={closePicker}
+            className="mt-2.5 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-300 hover:text-stone-600 transition-colors"
+          >
+            {t.cancel}
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -126,7 +126,7 @@
       html, body {
         cursor: auto;
         scroll-behavior: smooth;
-        overflow-x: hidden;
+        overflow-x: clip; /* clip (not hidden) — prevents horizontal scroll without creating a scroll container, so position:sticky works correctly */
       }
       ::-webkit-scrollbar {
         width: 0px;
