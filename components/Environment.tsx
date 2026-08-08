@@ -259,11 +259,11 @@ const Environments: React.FC<{ lang: Language }> = ({ lang }) => {
 
                 <div className={["absolute inset-0 transition-colors duration-500", "md:bg-stone-900/40 md:group-hover:bg-stone-900/10", activeSector === index ? "bg-stone-900/15" : "bg-stone-900/40"].join(" ")} />
 
-                <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] mb-2 opacity-80 transition-all duration-500">
+                <div className="absolute inset-0 p-4 md:p-8 flex flex-col justify-end text-white">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.3em] mb-2 opacity-80 transition-all duration-500">
                     {sector.category}
                   </span>
-                  <h3 className="font-sans font-black text-2xl md:text-3xl uppercase tracking-tighter md:group-hover:-translate-y-2 transition-transform duration-500">
+                  <h3 className="font-sans font-black text-base sm:text-2xl md:text-3xl uppercase tracking-tighter leading-tight md:group-hover:-translate-y-2 transition-transform duration-500">
                     {sector.title}
                   </h3>
                   <div className={["overflow-hidden transition-all duration-500", "md:h-0 md:opacity-0 md:group-hover:h-auto md:group-hover:opacity-100", activeSector === index ? "h-auto opacity-100 mt-4" : "h-0 opacity-0 mt-0"].join(" ")}>

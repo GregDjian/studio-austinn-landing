@@ -6,21 +6,15 @@ import { imgUrl } from "../lib/sanityImage";
 
 // ─── Visual tuning ────────────────────────────────────────────────────────────
 const LINK_OVERLAP_PX = 36;        // mount → first real link, and link → link
-const PLACEHOLDER_OVERLAP_PX = 16; // mount → dashed placeholder boxes (empty column / new-column ghost)
+const PLACEHOLDER_OVERLAP_PX = 16; // mount → placeholder boxes (empty column / new-column ghost)
 const PLACEHOLDER_MOUNT_OFFSET_PX = 0;    // vertical nudge for the mount image inside the "New Column" ghost (positive = down)
 const REAL_COLUMN_MOUNT_OFFSET_PX = 22;   // vertical nudge for the mount image above a real column's first link (positive = down)
-const WALL_COLOR_INITIAL = "#f9f8f6";
-const WALL_VIGNETTE = 0.10; // edge/corner darkening on wall zone            (0 = off, 0.20 = noticeable)
-const WALL_LIGHT   = 0.07; // directional light from upper-left on wall zone (0 = off, 0.15 = bright)
-const WALL_SHADOW  = 0.12; // ambient shadow beneath the full chain group     (0 = off, 0.22 = noticeable)
-// Room zone strips — fixed colors, unaffected by the wallColor picker
-const CEILING_COLOR = "#e8e6e2"; // painted ceiling — light neutral warm white
-const CEILING_LINE  = "rgba(0,0,0,0.07)"; // subtle wall-meets-ceiling join
-const CEILING_H     = 36;  // ceiling strip height in px
+const WALL_COLOR_INITIAL = "#F5F0E8"; // default preview backdrop — warm linen/cream, distinct from the page's stone-50; overridden by the wall colour picker
 const MOUNT_IMG = "/chain-mount.png";
 const MOUNT_W = 36; // px — adjust if the physical stud needs to be bigger/smaller
 const POPOVER_WIDTH_ESTIMATE = 172; // fallback width used before the popover has mounted/measured
 const POPOVER_VIEWPORT_MARGIN = 8;  // min gap kept between popover and viewport edge
+const PLACEHOLDER_GLOW = "180, 137, 84"; // warm brass-toned rgb triplet used for the placeholder hover/active glow ring
 // ─────────────────────────────────────────────────────────────────────────────
 
 const uid = () => crypto.randomUUID();
@@ -275,6 +269,20 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
     });
   };
 
+  // ── Placeholder styling ────────────────────────────────────────────────────
+  // Shared look for the three "click here" targets (empty-column placeholder,
+  // add-more zone, new-column ghost): flat white face, no border — depth and
+  // interactivity come from a soft ambient shadow and, on hover/active, a
+  // warm brass-toned glow ring instead of the old dashed outline. Plays a
+  // one-shot scale pulse on mount (see tailwind.config's `pulse-once`) to cue
+  // first-time visitors without looping indefinitely.
+  const placeholderClasses = (active: boolean) =>
+    `bg-white flex flex-col items-center justify-center transition-shadow duration-300 animate-pulse-once ${
+      active
+        ? `text-stone-700 shadow-[0_0_0_4px_rgba(${PLACEHOLDER_GLOW},0.28),0_6px_14px_-4px_rgba(28,25,23,0.14)]`
+        : `text-stone-400 shadow-[0_1px_3px_rgba(28,25,23,0.10)] hover:text-stone-700 hover:shadow-[0_0_0_4px_rgba(${PLACEHOLDER_GLOW},0.20),0_6px_14px_-4px_rgba(28,25,23,0.12)]`
+    }`;
+
   // ── Preview column ─────────────────────────────────────────────────────────
   const renderPreviewColumn = (col: ColumnState, colIdx: number) => (
     <div key={col.id} className="relative flex flex-col items-center flex-shrink-0">
@@ -294,34 +302,39 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
 
       {/* Column number — sits ABOVE the mount so it doesn't create a gap
           between the mount and the first link */}
-      <span className="font-bold uppercase tracking-widest text-stone-400 mb-1" style={{ fontSize: 8 }}>
+      <span className="font-bold uppercase tracking-widest text-stone-500 mb-1" style={{ fontSize: 8 }}>
         {colIdx + 1}
       </span>
 
-      {/* Brass mount/stud — no bottom margin; first link overlaps it below */}
+      {/* Brass mount/stud — no bottom margin; first link overlaps it below.
+          Soft drop-shadow ties it visually to the placeholder/link below now
+          that there's no room backdrop doing that grounding work. */}
       <img
         src={MOUNT_IMG}
         alt=""
         aria-hidden="true"
         draggable={false}
-        style={{ width: MOUNT_W, height: "auto", display: "block", position: "relative", top: REAL_COLUMN_MOUNT_OFFSET_PX }}
+        style={{
+          width: MOUNT_W,
+          height: "auto",
+          display: "block",
+          position: "relative",
+          top: REAL_COLUMN_MOUNT_OFFSET_PX,
+          filter: "drop-shadow(0 4px 5px rgba(28,25,23,0.14))",
+        }}
       />
 
       {col.links.length === 0 ? (
-        /* Empty column placeholder — overlaps mount by LINK_OVERLAP_PX,
+        /* Empty column placeholder — overlaps mount by PLACEHOLDER_OVERLAP_PX,
            identical treatment to the first real link in a column */
         <button
           onClick={(e) => openAddPicker(col.id, e)}
           aria-label={t.addFirstLink}
           style={{ marginTop: -PLACEHOLDER_OVERLAP_PX }}
-          className={`w-[72px] h-[88px] bg-white border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
-            addPickerColId === col.id
-              ? "border-stone-600 text-stone-600"
-              : "border-stone-400 text-stone-500 hover:border-stone-700 hover:text-stone-700"
-          }`}
+          className={`w-[72px] h-[88px] gap-2 ${placeholderClasses(addPickerColId === col.id)}`}
         >
-          <Plus size={14} strokeWidth={1.5} />
-          <span className="text-[8px] font-bold uppercase tracking-[0.12em] leading-none text-center px-1">
+          <Plus size={16} strokeWidth={1.75} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.14em] leading-none text-center px-1">
             {t.addFirstLink}
           </span>
         </button>
@@ -390,14 +403,10 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
           <button
             onClick={(e) => openAddPicker(col.id, e)}
             aria-label={t.addLink}
-            className={`w-[72px] bg-white border-2 border-dashed flex flex-col items-center justify-center gap-1.5 mt-1.5 py-2.5 transition-colors ${
-              addPickerColId === col.id
-                ? "border-stone-600 text-stone-600"
-                : "border-stone-400 text-stone-500 hover:border-stone-700 hover:text-stone-700"
-            }`}
+            className={`w-[72px] gap-1.5 mt-1.5 py-2.5 ${placeholderClasses(addPickerColId === col.id)}`}
           >
-            <Plus size={12} strokeWidth={1.5} />
-            <span className="text-[8px] font-bold uppercase tracking-[0.12em] leading-none">
+            <Plus size={14} strokeWidth={1.75} />
+            <span className="text-[9px] font-bold uppercase tracking-[0.14em] leading-none">
               {t.addLink}
             </span>
           </button>
@@ -487,91 +496,65 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
           {t.preview}
         </p>
 
-        {/* Room backdrop — three stacked zones: ceiling / wall / floor */}
-        <div className="flex flex-col" style={{ minHeight: 340 }}>
+        {/* Preview backdrop — a single flat tone (default: warm linen, or the
+            customer's chosen wallColor) framed by a soft ambient shadow and
+            hairline border so it reads as its own defined zone on the page. */}
+        <div
+          className="relative border border-stone-200/70"
+          style={{
+            minHeight: 340,
+            background: wallColor,
+            boxShadow: "0 1px 2px rgba(28,25,23,0.05), 0 14px 28px -14px rgba(28,25,23,0.14)",
+            padding: "24px 24px 28px",
+          }}
+        >
+          {columns.length === 0 ? (
+            <div className="absolute inset-0 flex items-center justify-center text-stone-400 text-[10px] uppercase tracking-widest">
+              {t.emptyPreview}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="flex gap-8 items-start w-fit mx-auto p-2">
+                {columns.map((col, colIdx) => renderPreviewColumn(col, colIdx))}
 
-          {/* Ceiling — fixed color, never changes with wallColor picker */}
-          <div
-            aria-hidden="true"
-            style={{
-              height: CEILING_H,
-              backgroundColor: CEILING_COLOR,
-              borderBottom: `1px solid ${CEILING_LINE}`,
-              flexShrink: 0,
-            }}
-          />
-
-          {/* Wall zone — chain hangs here; background tracks wallColor picker */}
-          <div
-            className="relative"
-            style={{
-              // isolation:isolate creates a stacking context so the z-index:-1 shadow
-              // renders above this background but behind the chain content
-              isolation: "isolate",
-              flex: 1,
-              background: [
-                `radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(0,0,0,${WALL_VIGNETTE}) 100%)`,
-                `radial-gradient(ellipse 130% 90% at -5% -5%, rgba(255,255,255,${WALL_LIGHT}) 0%, transparent 55%)`,
-                wallColor,
-              ].join(", "),
-              padding: "16px 24px 16px",
-            }}
-          >
-            {columns.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-stone-300 text-[10px] uppercase tracking-widest">
-                {t.emptyPreview}
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <div className="flex gap-8 items-start w-fit mx-auto p-2">
-                    {columns.map((col, colIdx) => renderPreviewColumn(col, colIdx))}
-
-                    {/* "New Column" ghost — same structure as real columns so the
-                        ghost mount aligns at the same height as real column mounts */}
-                    <div className="flex-shrink-0 flex flex-col items-center">
-                      <span className="font-bold uppercase tracking-widest text-stone-300 mb-1" style={{ fontSize: 8 }}>
-                        {columns.length + 1}
-                      </span>
-                      <img
-                        src={MOUNT_IMG}
-                        alt=""
-                        aria-hidden="true"
-                        draggable={false}
-                        className="opacity-40"
-                        style={{ width: MOUNT_W, height: "auto", display: "block", position: "relative", top: PLACEHOLDER_MOUNT_OFFSET_PX }}
-                      />
-                      {/* Dashed "New Column" button overlaps ghost mount by LINK_OVERLAP_PX */}
-                      <button
-                        onClick={addColumn}
-                        aria-label={t.addColumn}
-                        style={{ marginTop: -LINK_OVERLAP_PX }}
-                        className="w-[72px] h-[88px] bg-white border-2 border-dashed border-stone-400 flex flex-col items-center justify-center gap-2 text-stone-500 hover:border-stone-700 hover:text-stone-700 transition-colors"
-                      >
-                        <Plus size={14} strokeWidth={1.5} />
-                        <span className="text-[8px] font-bold uppercase tracking-[0.12em] leading-none text-center px-1">
-                          {t.addColumn}
-                        </span>
-                      </button>
-                    </div>
-
-                  </div>
+                {/* "New Column" ghost — same structure as real columns so the
+                    ghost mount aligns at the same height as real column mounts */}
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <span className="font-bold uppercase tracking-widest text-stone-400/70 mb-1" style={{ fontSize: 8 }}>
+                    {columns.length + 1}
+                  </span>
+                  <img
+                    src={MOUNT_IMG}
+                    alt=""
+                    aria-hidden="true"
+                    draggable={false}
+                    className="opacity-40"
+                    style={{
+                      width: MOUNT_W,
+                      height: "auto",
+                      display: "block",
+                      position: "relative",
+                      top: PLACEHOLDER_MOUNT_OFFSET_PX,
+                      filter: "drop-shadow(0 4px 5px rgba(28,25,23,0.14))",
+                    }}
+                  />
+                  {/* "New Column" button overlaps ghost mount by LINK_OVERLAP_PX */}
+                  <button
+                    onClick={addColumn}
+                    aria-label={t.addColumn}
+                    style={{ marginTop: -LINK_OVERLAP_PX }}
+                    className={`w-[72px] h-[88px] gap-2 ${placeholderClasses(false)}`}
+                  >
+                    <Plus size={16} strokeWidth={1.75} />
+                    <span className="text-[9px] font-bold uppercase tracking-[0.14em] leading-none text-center px-1">
+                      {t.addColumn}
+                    </span>
+                  </button>
                 </div>
 
-                {/* Grounding shadow — soft ellipse beneath the full chain group */}
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 pointer-events-none"
-                  style={{
-                    height: "50%",
-                    background: `radial-gradient(ellipse 70% 55% at 50% 100%, rgba(0,0,0,${WALL_SHADOW}) 0%, transparent 100%)`,
-                    zIndex: -1,
-                  }}
-                />
-              </>
-            )}
-          </div>
-
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Wall colour picker */}
