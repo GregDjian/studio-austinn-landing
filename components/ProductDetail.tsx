@@ -40,6 +40,9 @@ const getContent = (lang: Language) => {
       dimensionsLabel: "الأبعاد",
       materialsLabel:  "المواد",
       noDetails:       "لا تفاصيل متاحة.",
+      hookColor:       "لون الخطاف",
+      gold:            "ذهبي",
+      silver:          "فضي",
       tabs: {
         description: "الوصف",
         dimensions:  "الأبعاد والمواد",
@@ -72,6 +75,9 @@ const getContent = (lang: Language) => {
     dimensionsLabel: "Dimensions",
     materialsLabel:  "Materials",
     noDetails:       "No details available.",
+    hookColor:       "Hook colour",
+    gold:            "Gold",
+    silver:          "Silver",
     tabs: {
       description: "Description",
       dimensions:  "Dimensions & Materials",
@@ -92,6 +98,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
   const [fetching, setFetching]       = useState(true);
   const [justAdded, setJustAdded]     = useState(false);
   const [activeTab, setActiveTab]     = useState<"description" | "dimensions" | "delivery">("description");
+  // Bundle-branch hook colour — free choice, defaults to gold. Only used when isArtLinks.
+  const [hookColor, setHookColor]     = useState<"gold" | "silver">("gold");
   const { addItem, addLooseLinkItem } = useCart();
   const t = getContent(lang);
 
@@ -105,8 +113,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
   const handleAddToCart = () => {
     if (!product || product.availability === "sold") return;
+    const isArtLinks = (product.collection ?? "art-links") === "art-links";
     addItem({
-      id:           product._id,
+      productId:    product._id,
       slug:         product.slug.current,
       title:        product.title[lang] ?? product.title.en,
       price:        product.price ?? 0,
@@ -115,6 +124,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
       availability: product.availability,
       weightKg:     product.weightKg,
       size:         product.size,
+      hookColor:    isArtLinks ? hookColor : undefined,
     });
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);
@@ -122,8 +132,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
   const handleQuickBuy = () => {
     if (!product || product.availability === "sold") return;
+    const isArtLinks = (product.collection ?? "art-links") === "art-links";
     addItem({
-      id:           product._id,
+      productId:    product._id,
       slug:         product.slug.current,
       title:        product.title[lang] ?? product.title.en,
       price:        product.price ?? 0,
@@ -132,6 +143,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
       availability: product.availability,
       weightKg:     product.weightKg,
       size:         product.size,
+      hookColor:    isArtLinks ? hookColor : undefined,
     });
     onOpenCheckout?.();
   };
@@ -186,6 +198,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
   const canBuy = product.availability !== "sold";
 
+  // Hook colour choice only applies to the Art Links collection.
+  // Missing collection defaults to "art-links" (matches Shop.tsx's resolveCollection).
+  const isArtLinks = (product.collection ?? "art-links") === "art-links";
+
   // ── Loose-link: compact header + builder ─────────────────────────────────────
   if (product.productType === "loose-link") {
     return (
@@ -197,7 +213,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 transition-colors"
+            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 transition-colors mt-8"
           >
             <ArrowLeft size={14} />
             {t.back}
@@ -237,6 +253,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
               currency={product.currency}
               lang={lang}
               justAdded={justAdded}
+              showHookColor={isArtLinks}
               onAddToCart={(config: ChainConfig) => {
                 addLooseLinkItem({
                   productId:     product._id,
@@ -248,6 +265,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                   pricePerLink:  product.pricePerLink ?? 0,
                   lineTotal:     config.lineTotal,
                   colorSummary:  config.colorSummary,
+                  hookColor:     config.hookColor,
                   weightKg:      product.weightKg,
                   size:          product.size,
                 });
@@ -377,6 +395,33 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                   {availLabel}
                 </span>
               </div>
+
+              {/* Hook colour — free choice, defaults to gold. Art Links collection only. */}
+              {isArtLinks && (
+                <div className="flex flex-col gap-2 mt-6">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-500">
+                    {t.hookColor}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    {(["gold", "silver"] as const).map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setHookColor(option)}
+                        aria-label={option === "gold" ? t.gold : t.silver}
+                        aria-pressed={hookColor === option}
+                        title={option === "gold" ? t.gold : t.silver}
+                        className={`w-6 h-6 rounded-full border transition-all ${
+                          hookColor === option
+                            ? "border-stone-700 ring-2 ring-offset-2 ring-stone-400"
+                            : "border-stone-300 hover:border-stone-500"
+                        }`}
+                        style={{ backgroundColor: option === "gold" ? "#C9A24B" : "#B7BABD" }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* ── Add to Cart (label left · price right) + trust microcopy */}
               <div className="mt-20">

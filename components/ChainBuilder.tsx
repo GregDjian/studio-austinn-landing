@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, X, ShoppingBag } from "lucide-react";
+import { Plus, X, ShoppingBag, RotateCcw } from "lucide-react";
 import { Language, ColorOption } from "../types";
 import { imgUrl } from "../lib/sanityImage";
 
@@ -9,12 +9,16 @@ const LINK_OVERLAP_PX = 36;        // mount → first real link, and link → li
 const PLACEHOLDER_OVERLAP_PX = 16; // mount → placeholder boxes (empty column / new-column ghost)
 const PLACEHOLDER_MOUNT_OFFSET_PX = 0;    // vertical nudge for the mount image inside the "New Column" ghost (positive = down)
 const REAL_COLUMN_MOUNT_OFFSET_PX = 22;   // vertical nudge for the mount image above a real column's first link (positive = down)
-const WALL_COLOR_INITIAL = "#F5F0E8"; // default preview backdrop — warm linen/cream, distinct from the page's stone-50; overridden by the wall colour picker
+const WALL_COLOR_INITIAL = "#f5f3f0"; // default preview backdrop — warm linen/cream, distinct from the page's stone-50; overridden by the wall colour picker
 const MOUNT_IMG = "/chain-mount.png";
 const MOUNT_W = 36; // px — adjust if the physical stud needs to be bigger/smaller
 const POPOVER_WIDTH_ESTIMATE = 172; // fallback width used before the popover has mounted/measured
 const POPOVER_VIEWPORT_MARGIN = 8;  // min gap kept between popover and viewport edge
 const PLACEHOLDER_GLOW = "180, 137, 84"; // warm brass-toned rgb triplet used for the placeholder hover/active glow ring
+const HOOK_COLOR_SWATCHES: Record<"gold" | "silver", string> = {
+  gold:   "#C9A24B",
+  silver: "#B7BABD",
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
 const uid = () => crypto.randomUUID();
@@ -42,6 +46,7 @@ export interface ChainConfig {
   totalLinks: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
+  hookColor: "gold" | "silver";
 }
 
 interface ChainBuilderProps {
@@ -50,6 +55,8 @@ interface ChainBuilderProps {
   currency: string;
   lang: Language;
   justAdded?: boolean;
+  /** Hook colour choice only applies to the Art Links collection — hidden otherwise. */
+  showHookColor?: boolean;
   onAddToCart: (config: ChainConfig) => void;
 }
 
@@ -78,6 +85,9 @@ const getContent = (lang: Language) => {
       reset: "البدء من جديد",
       resetConfirm: "إعادة تعيين التصميم؟",
       resetConfirmYes: "نعم، إعادة التعيين",
+      hookColor: "لون الخطاف",
+      gold: "ذهبي",
+      silver: "فضي",
     };
   }
   return {
@@ -101,6 +111,9 @@ const getContent = (lang: Language) => {
     reset: "Start Over",
     resetConfirm: "Reset your build?",
     resetConfirmYes: "Yes, reset",
+    hookColor: "Hook colour",
+    gold: "Gold",
+    silver: "Silver",
   };
 };
 
@@ -112,6 +125,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   currency,
   lang,
   justAdded,
+  showHookColor = true,
   onAddToCart,
 }) => {
   const t = getContent(lang);
@@ -120,14 +134,23 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   const [addPickerColId, setAddPickerColId] = useState<string | null>(null);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  // Set right after a brand-new column is created so we can auto-open its
+  // add-link picker once the column's own button has actually mounted
+  // (it doesn't exist yet at the moment "New Column" is clicked).
+  const [pendingAutoOpenColId, setPendingAutoOpenColId] = useState<string | null>(null);
   // Wall color: visualisation-only — intentionally NOT in cart/order data.
   const [wallColor, setWallColor] = useState(WALL_COLOR_INITIAL);
+  // Hook color: part of the order — included in cart/checkout data. Free choice, defaults to gold.
+  const [hookColor, setHookColor] = useState<"gold" | "silver">("gold");
   const builderRef = useRef<HTMLDivElement>(null);
   // Popover is portaled to document.body (so it can escape the scrollable
   // preview canvas — see FIX 1), so it needs its own anchor/position tracking
   // instead of being positioned via normal CSS flow relative to its column.
   const anchorElRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  // Tracks each column's add-link button by column id, so a just-created
+  // column's button can be located as soon as it mounts.
+  const linkButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   const closePicker = () => {
     setAddPickerColId(null);
@@ -181,14 +204,30 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
     };
   }, [addPickerColId]);
 
+  // A new column's add-link button doesn't exist until it mounts, so opening
+  // its picker has to wait one render past the column being created — this
+  // picks up the button as soon as it's registered in linkButtonRefs and
+  // opens the picker exactly like a normal add-link click would.
+  useLayoutEffect(() => {
+    if (!pendingAutoOpenColId) return;
+    const anchor = linkButtonRefs.current.get(pendingAutoOpenColId);
+    if (anchor) {
+      anchorElRef.current = anchor;
+      setPopoverPos(computePopoverPosition(anchor, popoverRef.current?.offsetWidth ?? POPOVER_WIDTH_ESTIMATE));
+      setAddPickerColId(pendingAutoOpenColId);
+    }
+    setPendingAutoOpenColId(null);
+  }, [pendingAutoOpenColId]);
+
   // ── Derived ────────────────────────────────────────────────────────────────
   const totalLinks = columns.reduce((sum, col) => sum + col.links.length, 0);
   const lineTotal = totalLinks * pricePerLink;
 
   // ── Actions ────────────────────────────────────────────────────────────────
   const addColumn = () => {
-    setColumns((prev) => [...prev, { id: uid(), links: [] }]);
-    setAddPickerColId(null);
+    const newId = uid();
+    setColumns((prev) => [...prev, { id: newId, links: [] }]);
+    setPendingAutoOpenColId(newId);
   };
 
   const resetBuild = () => {
@@ -266,6 +305,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
       totalLinks,
       lineTotal,
       colorSummary: buildColorSummary(),
+      hookColor,
     });
   };
 
@@ -277,7 +317,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   // one-shot scale pulse on mount (see tailwind.config's `pulse-once`) to cue
   // first-time visitors without looping indefinitely.
   const placeholderClasses = (active: boolean) =>
-    `bg-white flex flex-col items-center justify-center transition-shadow duration-300 animate-pulse-once ${
+    `bg-white rounded-md flex flex-col items-center justify-center transition-shadow duration-300 animate-pulse-once ${
       active
         ? `text-stone-700 shadow-[0_0_0_4px_rgba(${PLACEHOLDER_GLOW},0.28),0_6px_14px_-4px_rgba(28,25,23,0.14)]`
         : `text-stone-400 shadow-[0_1px_3px_rgba(28,25,23,0.10)] hover:text-stone-700 hover:shadow-[0_0_0_4px_rgba(${PLACEHOLDER_GLOW},0.20),0_6px_14px_-4px_rgba(28,25,23,0.12)]`
@@ -328,6 +368,10 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         /* Empty column placeholder — overlaps mount by PLACEHOLDER_OVERLAP_PX,
            identical treatment to the first real link in a column */
         <button
+          ref={(el) => {
+            if (el) linkButtonRefs.current.set(col.id, el);
+            else linkButtonRefs.current.delete(col.id);
+          }}
           onClick={(e) => openAddPicker(col.id, e)}
           aria-label={t.addFirstLink}
           style={{ marginTop: -PLACEHOLDER_OVERLAP_PX }}
@@ -401,6 +445,10 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
 
           {/* Add-more zone — below the link stack, normal flow */}
           <button
+            ref={(el) => {
+              if (el) linkButtonRefs.current.set(col.id, el);
+              else linkButtonRefs.current.delete(col.id);
+            }}
             onClick={(e) => openAddPicker(col.id, e)}
             aria-label={t.addLink}
             className={`w-[72px] gap-1.5 mt-1.5 py-2.5 ${placeholderClasses(addPickerColId === col.id)}`}
@@ -429,6 +477,33 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">
           {t.buildNote}
         </p>
+
+        {/* Hook colour — free choice, defaults to gold. Art Links collection only. */}
+        {showHookColor && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-500">
+              {t.hookColor}
+            </span>
+            <div className="flex items-center gap-3">
+              {(Object.keys(HOOK_COLOR_SWATCHES) as Array<"gold" | "silver">).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setHookColor(option)}
+                  aria-label={option === "gold" ? t.gold : t.silver}
+                  aria-pressed={hookColor === option}
+                  title={option === "gold" ? t.gold : t.silver}
+                  className={`w-6 h-6 rounded-full border transition-all ${
+                    hookColor === option
+                      ? "border-stone-700 ring-2 ring-offset-2 ring-stone-400"
+                      : "border-stone-300 hover:border-stone-500"
+                  }`}
+                  style={{ backgroundColor: HOOK_COLOR_SWATCHES[option] }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Order summary */}
         <div className="bg-stone-100 px-4 py-4 flex flex-col gap-1.5">
@@ -459,42 +534,45 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
           {justAdded ? t.added : t.addToCart}
         </button>
 
-        {/* Reset / start over — inline confirm, no browser alert() */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] font-bold uppercase tracking-[0.2em]">
-          {confirmingReset ? (
-            <>
-              <span className="text-stone-500">{t.resetConfirm}</span>
-              <button
-                onClick={resetBuild}
-                className="text-red-500 hover:text-red-600 transition-colors py-1"
-              >
-                {t.resetConfirmYes}
-              </button>
-              <button
-                onClick={() => setConfirmingReset(false)}
-                className="text-stone-300 hover:text-stone-600 transition-colors py-1"
-              >
-                {t.cancel}
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setConfirmingReset(true)}
-              className="text-stone-400 hover:text-stone-700 transition-colors py-1"
-            >
-              {t.reset}
-            </button>
-          )}
-        </div>
-
       </div>
 
       {/* ── RIGHT — preview canvas + wall colour picker ────────────────────── */}
       <div className="flex-1 min-w-0 flex flex-col gap-3">
 
-        <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
-          {t.preview}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+            {t.preview}
+          </p>
+
+          {/* Reset / start over — inline confirm, no browser alert() */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] font-bold uppercase tracking-[0.2em]">
+            {confirmingReset ? (
+              <>
+                <span className="text-stone-500">{t.resetConfirm}</span>
+                <button
+                  onClick={resetBuild}
+                  className="text-red-500 hover:text-red-600 transition-colors py-1"
+                >
+                  {t.resetConfirmYes}
+                </button>
+                <button
+                  onClick={() => setConfirmingReset(false)}
+                  className="text-stone-300 hover:text-stone-600 transition-colors py-1"
+                >
+                  {t.cancel}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setConfirmingReset(true)}
+                className="flex items-center gap-1.5 text-stone-400 hover:text-stone-700 transition-colors py-1"
+              >
+                <RotateCcw size={12} />
+                {t.reset}
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Preview backdrop — a single flat tone (default: warm linen, or the
             customer's chosen wallColor) framed by a soft ambient shadow and

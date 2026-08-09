@@ -100,6 +100,7 @@ export async function getProductBySlug(slug: string) {
       availability,
       sku,
       featured,
+      collection,
       weightKg,
       size,
       "colorOptions": colorOptions[]->{

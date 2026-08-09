@@ -23,6 +23,9 @@ const getContent = (lang: Language) => {
       columns: "أعمدة",
       links: "حلقات",
       perLink: "/ حلقة",
+      gold: "ذهبي",
+      silver: "فضي",
+      hookSuffix: "خطاف",
     };
   }
   return {
@@ -36,6 +39,9 @@ const getContent = (lang: Language) => {
     columns: "columns",
     links: "links",
     perLink: "/ link",
+    gold: "Gold",
+    silver: "Silver",
+    hookSuffix: "hook",
   };
 };
 
@@ -94,6 +100,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                 const summaryText = item.colorSummary
                   .map((s) => `${s.count}× ${s.colorName}`)
                   .join(", ");
+                const hookLabel = item.hookColor === "gold" ? t.gold : t.silver;
 
                 return (
                   <div key={item.id} className="flex gap-4 items-start">
@@ -111,7 +118,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                         {item.totalLinks} {t.links} · {columnCount} {t.columns}
                       </p>
                       <p className="text-stone-400 text-[10px] mt-1 leading-snug break-words">
-                        {summaryText}
+                        {summaryText} · {hookLabel} {t.hookSuffix}
                       </p>
                       <p className="text-stone-500 text-[10px] mt-1">
                         {item.currency} {item.pricePerLink.toLocaleString()} {t.perLink}
@@ -150,6 +157,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                     <p className="text-stone-500 text-xs mt-1">
                       {item.currency} {item.price.toLocaleString()}
                     </p>
+                    {item.hookColor && (
+                      <p className="text-stone-400 text-[10px] mt-0.5">
+                        {item.hookColor === "gold" ? t.gold : t.silver} {t.hookSuffix}
+                      </p>
+                    )}
 
                     {/* Quantity controls */}
                     <div className="flex items-center gap-3 mt-3">

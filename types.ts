@@ -45,6 +45,7 @@ export interface ChainConfig {
   totalLinks: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
+  hookColor: "gold" | "silver";
 }
 
 export type ProductSize = 'small' | 'medium' | 'large';

@@ -40,13 +40,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiVersion: "2026-05-27.dahlia",
     });
 
-    const { items, origin, delivery, installation, selectedCountry, selectedEmirate } = req.body as {
+    const { items, origin, delivery, installation, selectedCountry, selectedEmirate, lang } = req.body as {
       items: CartLineItem[];
       origin: string;
       delivery: FlatLineItem;
       installation?: FlatLineItem | null;
       selectedCountry?: string;
       selectedEmirate?: string;
+      lang?: string;
     };
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -86,6 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       metadata: {
         selected_country: selectedCountry ?? "",
         selected_emirate: selectedEmirate ?? "",
+        lang: lang === "ar" ? "ar" : "en",
       },
       success_url: `${origin}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/shop/cancel`,

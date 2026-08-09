@@ -8,6 +8,9 @@
     },
     "api/create-checkout-session.ts": {
       "maxDuration": 30
+    },
+    "api/stripe-webhook.ts": {
+      "maxDuration": 30
     }
   },
   "rewrites": [

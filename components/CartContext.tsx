@@ -4,7 +4,10 @@ import { Availability, ColorSummaryEntry } from "../types";
 // ─── Bundle cart item (existing shape — unchanged) ────────────────────────────
 
 export interface CartItem {
+  /** Unique per cart line — assigned by the reducer via crypto.randomUUID().
+   *  Two lines can share the same productId (e.g. gold vs silver hook). */
   id: string;
+  productId: string;
   slug: string;
   title: string;
   price: number;
@@ -14,6 +17,8 @@ export interface CartItem {
   quantity: number;
   weightKg?: number;
   size?: 'small' | 'medium' | 'large';
+  /** Art Links collection only — absent for products outside that collection. */
+  hookColor?: "gold" | "silver";
 }
 
 // ─── Loose-link cart item ─────────────────────────────────────────────────────
@@ -32,6 +37,7 @@ export interface LooseLinkCartItem {
   pricePerLink: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
+  hookColor: "gold" | "silver";
   weightKg?: number;
   size?: 'small' | 'medium' | 'large';
 }
@@ -49,7 +55,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: "ADD_ITEM";       payload: Omit<CartItem, "quantity"> }
+  | { type: "ADD_ITEM";       payload: Omit<CartItem, "quantity" | "id"> }
   | { type: "ADD_LOOSE_LINK"; payload: Omit<LooseLinkCartItem, "id"> }
   | { type: "REMOVE_ITEM";    id: string }
   | { type: "UPDATE_QTY";     id: string; quantity: number }
@@ -58,20 +64,24 @@ type CartAction =
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
-      // Bundle items deduplicate by id — increment quantity if already present.
-      const existing = state.items.find(
-        (i) => !isLooseLinkItem(i) && i.id === action.payload.id
-      );
+      // Bundle items deduplicate by productId + hook colour — same product/
+      // colour increments quantity on its existing line; a different colour
+      // becomes its own line (own id) so colours never merge into one line.
+      const matches = (i: AnyCartItem) =>
+        !isLooseLinkItem(i) &&
+        i.productId === action.payload.productId &&
+        i.hookColor === action.payload.hookColor;
+      const existing = state.items.find(matches);
       if (existing) {
         return {
           items: state.items.map((i) =>
-            !isLooseLinkItem(i) && i.id === action.payload.id
-              ? { ...i, quantity: i.quantity + 1 }
-              : i
+            matches(i) ? { ...i, quantity: (i as CartItem).quantity + 1 } : i
           ),
         };
       }
-      return { items: [...state.items, { ...action.payload, quantity: 1 }] };
+      return {
+        items: [...state.items, { ...action.payload, id: crypto.randomUUID(), quantity: 1 }],
+      };
     }
 
     case "ADD_LOOSE_LINK":
@@ -110,7 +120,7 @@ interface CartContextValue {
   items: AnyCartItem[];
   itemCount: number;
   totalPrice: number;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity" | "id">) => void;
   addLooseLinkItem: (item: Omit<LooseLinkCartItem, "id">) => void;
   removeItem: (id: string) => void;
   /** Only meaningful for bundle items — no-op on loose-link items. */

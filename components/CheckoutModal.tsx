@@ -186,16 +186,18 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       if (isLooseLinkItem(i)) {
         const summaryText = i.colorSummary.map((s) => `${s.count}× ${s.colorName}`).join(", ");
         const colCount = i.configuration.columns.length;
+        const hookLabel = i.hookColor === "gold" ? "Gold" : "Silver";
         return {
-          title:    `Custom chain — ${colCount} col${colCount !== 1 ? "s" : ""}: ${summaryText}`,
+          title:    `Custom chain — ${colCount} col${colCount !== 1 ? "s" : ""}: ${summaryText} — ${hookLabel} hook`,
           price:    i.pricePerLink,
           currency: i.currency,
           quantity: i.totalLinks,
           image:    undefined as string | undefined,
         };
       }
+      const hookSuffix = i.hookColor ? ` — ${i.hookColor === "gold" ? "Gold" : "Silver"} hook` : "";
       return {
-        title:    i.title,
+        title:    `${i.title}${hookSuffix}`,
         price:    i.price,
         currency: i.currency,
         quantity: i.quantity,
@@ -225,6 +227,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
           installation:     installationPayload,
           selectedCountry:  country,
           selectedEmirate:  emirate,
+          lang,
         }),
       });
       const data = await res.json();

@@ -101,14 +101,19 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
     ? products
     : products.filter(p => resolveCollection(p) === activeCollection);
 
-  const getCartQty = (productId: string): number => {
-    const entry = items.find((i) => !isLooseLinkItem(i) && i.id === productId);
-    return entry && !isLooseLinkItem(entry) ? entry.quantity : 0;
-  };
+  // Quick-add from the grid always uses the default hook colour (gold) for
+  // Art Links products — picking silver requires going to the product page.
+  const defaultHookColor = (p: Product) =>
+    resolveCollection(p) === COLLECTION_KEY_ART_LINKS ? "gold" as const : undefined;
+
+  const getCartEntry = (product: Product) =>
+    items.find(
+      (i) => !isLooseLinkItem(i) && i.productId === product._id && i.hookColor === defaultHookColor(product)
+    );
 
   const handleAddToCart = (product: Product) => {
     addItem({
-      id:           product._id,
+      productId:    product._id,
       slug:         product.slug.current,
       title:        product.title[lang] ?? product.title.en,
       price:        product.price ?? 0,
@@ -117,6 +122,7 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
       availability: product.availability,
       weightKg:     product.weightKg,
       size:         product.size,
+      hookColor:    defaultHookColor(product),
     });
   };
 
@@ -257,7 +263,8 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
               : product.availability === "sold"   ? t.sold
               : t.madeToOrder;
 
-            const cartQty = getCartQty(product._id);
+            const cartEntry = getCartEntry(product);
+            const cartQty = cartEntry && !isLooseLinkItem(cartEntry) ? cartEntry.quantity : 0;
             const canBuy  = product.availability !== "sold";
 
             return (
@@ -364,7 +371,7 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
                   cartQty > 0 ? (
                     <div dir="ltr" className="mt-3 flex items-stretch border border-stone-900">
                       <button
-                        onClick={() => updateQuantity(product._id, cartQty - 1)}
+                        onClick={() => cartEntry && updateQuantity(cartEntry.id, cartQty - 1)}
                         aria-label={t.decreaseQty}
                         className="flex-none w-9 py-2 flex items-center justify-center text-stone-900 hover:bg-stone-100 transition-colors text-base leading-none"
                       >
@@ -374,7 +381,7 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
                         {cartQty}
                       </span>
                       <button
-                        onClick={() => updateQuantity(product._id, cartQty + 1)}
+                        onClick={() => cartEntry && updateQuantity(cartEntry.id, cartQty + 1)}
                         aria-label={t.increaseQty}
                         className="flex-none w-9 py-2 flex items-center justify-center text-stone-900 hover:bg-stone-100 transition-colors text-base leading-none"
                       >
