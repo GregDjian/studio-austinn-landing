@@ -21,6 +21,22 @@ const COUNTRIES = [
 const AVAILABLE_COUNTRIES = UAE_ONLY ? COUNTRIES.filter((c) => c.value === "AE") : COUNTRIES;
 const DEFAULT_COUNTRY     = UAE_ONLY ? "AE" : "";
 
+// Phone prefix shown next to the number field, per delivery country.
+const COUNTRY_DIAL: Record<string, string> = {
+  AE: "+971", SA: "+966", OM: "+968", BH: "+973", KW: "+965", QA: "+974",
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Local number typed after the prefix → international format (+9715…). A number the
+// customer already typed in full (+… or 00…) is kept as given.
+function buildPhone(prefix: string, raw: string): string {
+  const cleaned = raw.trim().replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("+"))  return "+" + cleaned.slice(1).replace(/\D/g, "");
+  if (cleaned.startsWith("00")) return "+" + cleaned.slice(2);
+  return prefix + cleaned.replace(/^0+/, "");
+}
+
 const UAE_EMIRATES = [
   { value: "dubai",          en: "Dubai",          ar: "دبي"        },
   { value: "abu-dhabi",      en: "Abu Dhabi",      ar: "أبوظبي"     },
@@ -57,7 +73,12 @@ const getContent = (lang: Language) => {
       installTitle:    "التركيب الاحترافي",
       installDesc:     "تركيب الأعمال الفنية وتثبيتها (دبي فقط)",
       installation:    "التركيب",
-      addressNote:     "سيتم إدخال عنوان الشحن الكامل في صفحة الدفع — يجب أن يكون داخل الدولة المحددة.",
+      fullName:        "الاسم الكامل",
+      email:           "البريد الإلكتروني",
+      phone:           "رقم الهاتف",
+      street:          "الشارع / المبنى / رقم الشقة أو الفيلا",
+      area:            "المنطقة / الحي (اختياري)",
+      addressCheckNote: "يرجى التأكد من صحة عنوانك — سيُستخدم للتوصيل.",
       noRefundTitle:   "جميع المبيعات نهائية",
       noRefundText:    "منتجاتنا مصنوعة حسب الطلب. بمجرد بدء الإنتاج، لا يمكن إلغاء الطلبات أو إرجاعها أو استرداد قيمتها.",
       zonesError:      "تعذّر تحميل رسوم التوصيل. يرجى المحاولة مجدداً.",
@@ -86,7 +107,12 @@ const getContent = (lang: Language) => {
     installTitle:    "Professional Installation",
     installDesc:     "Artwork mounting & fitting (Dubai only)",
     installation:    "Installation",
-    addressNote:     "Your full shipping address is collected on the payment page — it must be within the selected country.",
+    fullName:        "Full Name",
+    email:           "Email",
+    phone:           "Phone Number",
+    street:          "Street Address / Building / Apt or Villa No.",
+    area:            "Area / District (optional)",
+    addressCheckNote: "Please double-check your address — it will be used for delivery.",
     noRefundTitle:   "All Sales Are Final",
     noRefundText:    "Our products are custom-made to order. Once production begins, orders cannot be cancelled, returned, or refunded.",
     zonesError:      "Could not load delivery rates. Please try again.",
@@ -121,6 +147,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
 
   const [country,         setCountry]         = useState(DEFAULT_COUNTRY);
   const [emirate,         setEmirate]         = useState("");
+  const [fullName,        setFullName]        = useState("");
+  const [email,           setEmail]           = useState("");
+  const [phoneLocal,      setPhoneLocal]      = useState("");
+  const [street,          setStreet]          = useState("");
+  const [area,            setArea]            = useState("");
   const [addInstallation, setAddInstallation] = useState(false);
   const [zones,           setZones]           = useState<DeliveryZone[]>([]);
   const [zonesLoading,    setZonesLoading]    = useState(false);
@@ -142,6 +173,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
     if (!open) {
       setCountry(DEFAULT_COUNTRY);
       setEmirate("");
+      setFullName("");
+      setEmail("");
+      setPhoneLocal("");
+      setStreet("");
+      setArea("");
       setAddInstallation(false);
       setError(null);
       setSubmitting(false);
@@ -179,7 +215,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
   const orderTotal       = subtotal
     + (selectedZone ? deliveryRate : 0)
     + (showInstallation && addInstallation ? installFee : 0);
-  const canProceed       = country !== "" && (!isUAE || emirate !== "") && !submitting && !zonesLoading;
+  const dialPrefix       = COUNTRY_DIAL[country] ?? "+";
+  const phoneFull        = buildPhone(dialPrefix, phoneLocal);
+  const contactValid     =
+    fullName.trim().length >= 2 &&
+    EMAIL_RE.test(email.trim()) &&
+    /^\+\d{8,15}$/.test(phoneFull) &&
+    street.trim().length >= 3;
+  const canProceed       = country !== "" && (!isUAE || emirate !== "") && contactValid && !submitting && !zonesLoading;
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -233,6 +276,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
           installation:     installationPayload,
           selectedCountry:  country,
           selectedEmirate:  emirate,
+          customer: {
+            name:   fullName.trim(),
+            email:  email.trim(),
+            phone:  phoneFull,
+            street: street.trim(),
+            area:   area.trim(),
+          },
           lang,
         }),
       });
@@ -254,6 +304,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
     "w-full border border-stone-300 text-stone-900 text-sm py-2.5 px-3 bg-white " +
     "appearance-none focus:outline-none focus:border-stone-900 transition-colors " +
     "disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const inputCls =
+    "w-full border border-stone-300 text-stone-900 text-sm py-2.5 px-3 bg-white " +
+    "focus:outline-none focus:border-stone-900 transition-colors";
+  const labelCls = "block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1.5";
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -405,12 +460,77 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                 </div>
               )}
 
-              {/* Address-match note — shown once a country is selected */}
-              {selectedCountry && (
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  {t.addressNote}
-                </p>
-              )}
+              {/* Customer contact + address — sent to Stripe so the payment page is pre-filled */}
+              <div>
+                <label htmlFor="co-name" className={labelCls}>{t.fullName}</label>
+                <input
+                  id="co-name"
+                  type="text"
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="co-email" className={labelCls}>{t.email}</label>
+                <input
+                  id="co-email"
+                  type="email"
+                  autoComplete="email"
+                  dir="ltr"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="co-phone" className={labelCls}>{t.phone}</label>
+                <div className="flex" dir="ltr">
+                  <span className="flex items-center px-3 border border-e-0 border-stone-300 bg-stone-50 text-sm text-stone-600 select-none">
+                    {dialPrefix}
+                  </span>
+                  <input
+                    id="co-phone"
+                    type="tel"
+                    autoComplete="tel-national"
+                    inputMode="tel"
+                    value={phoneLocal}
+                    onChange={(e) => setPhoneLocal(e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="co-street" className={labelCls}>{t.street}</label>
+                <input
+                  id="co-street"
+                  type="text"
+                  autoComplete="address-line1"
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="co-area" className={labelCls}>{t.area}</label>
+                <input
+                  id="co-area"
+                  type="text"
+                  autoComplete="address-line2"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+
+              <p className="text-[11px] text-stone-500 leading-relaxed">
+                {t.addressCheckNote}
+              </p>
 
               {/* Installation add-on — Dubai only */}
               {showInstallation && (

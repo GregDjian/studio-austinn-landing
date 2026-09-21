@@ -4,6 +4,27 @@ import Stripe from "stripe";
 // Keep in sync with UAE_ONLY in lib/shippingConfig.ts (serverless functions don't import from the app).
 const UAE_ONLY = true;
 
+interface CustomerDetails {
+  name: string;
+  email: string;
+  phone: string;   // international format, e.g. +971581558866
+  street: string;
+  area?: string;
+}
+
+// English names for the UAE emirate values sent by the checkout form.
+const EMIRATE_NAMES: Record<string, string> = {
+  "dubai": "Dubai",
+  "abu-dhabi": "Abu Dhabi",
+  "sharjah": "Sharjah",
+  "ajman": "Ajman",
+  "ras-al-khaimah": "Ras Al Khaimah",
+  "fujairah": "Fujairah",
+  "umm-al-quwain": "Umm Al Quwain",
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface CartLineItem {
   title: string;
   description?: string;
@@ -44,13 +65,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiVersion: "2026-05-27.dahlia",
     });
 
-    const { items, origin, delivery, installation, selectedCountry, selectedEmirate, lang } = req.body as {
+    const { items, origin, delivery, installation, selectedCountry, selectedEmirate, customer, lang } = req.body as {
       items: CartLineItem[];
       origin: string;
       delivery: FlatLineItem;
       installation?: FlatLineItem | null;
       selectedCountry?: string;
       selectedEmirate?: string;
+      customer?: CustomerDetails;
       lang?: string;
     };
 
@@ -61,6 +83,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!delivery?.label || typeof delivery.amount !== "number" || !delivery.currency) {
       return res.status(400).json({ error: "Delivery information is required" });
     }
+
+    // ── Customer details (collected in our own checkout form) ──────────────────
+    const allowedCountries = UAE_ONLY ? ["AE"] : ["AE", "BH", "KW", "OM", "QA", "SA"];
+    const name   = customer?.name?.trim() ?? "";
+    const email  = customer?.email?.trim() ?? "";
+    const phone  = customer?.phone?.trim() ?? "";
+    const street = customer?.street?.trim() ?? "";
+    const area   = customer?.area?.trim() ?? "";
+
+    if (name.length < 2 || !EMAIL_RE.test(email) || !/^\+\d{8,15}$/.test(phone) || street.length < 3) {
+      return res.status(400).json({ error: "Customer name, email, phone and street address are required" });
+    }
+    if (!selectedCountry || !allowedCountries.includes(selectedCountry)) {
+      return res.status(400).json({ error: "Delivery country is not supported" });
+    }
+
+    const emirateName = selectedCountry === "AE" ? EMIRATE_NAMES[selectedEmirate ?? ""] ?? "" : "";
+    const address = {
+      line1: street.slice(0, 200),
+      ...(area ? { line2: area.slice(0, 200) } : {}),
+      city: emirateName || area.slice(0, 100) || "-",
+      ...(emirateName ? { state: emirateName } : {}),
+      country: selectedCountry,
+    };
+
+    // A Customer carrying name / email / phone / shipping address is what Stripe Checkout
+    // reads to pre-fill its email, phone and shipping address fields. (`customer` cannot be
+    // combined with `customer_email` / `customer_creation`; a new Customer is created per
+    // checkout, which is the "always create" behaviour.)
+    const stripeCustomer = await stripe.customers.create({
+      name,
+      email,
+      phone,
+      address,
+      shipping: { name, phone, address },
+    });
 
     const lineItems = [
       // Cart contents
@@ -86,13 +144,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
+      customer: stripeCustomer.id,
+      phone_number_collection: { enabled: true },
       shipping_address_collection: {
-        allowed_countries: UAE_ONLY ? ["AE"] : ["AE", "BH", "KW", "OM", "QA", "SA"],
+        allowed_countries: allowedCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
       },
       metadata: {
         selected_country: selectedCountry ?? "",
         selected_emirate: selectedEmirate ?? "",
         lang: lang === "ar" ? "ar" : "en",
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        customer_address: [street, area, emirateName, selectedCountry].filter(Boolean).join(", ").slice(0, 500),
       },
       success_url: `${origin}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/shop/cancel`,
