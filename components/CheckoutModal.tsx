@@ -26,6 +26,9 @@ const COUNTRY_DIAL: Record<string, string> = {
   AE: "+971", SA: "+966", OM: "+968", BH: "+973", KW: "+965", QA: "+974",
 };
 
+// The phone field starts as "+971 " (or the delivery country's code) and stays fully editable.
+const DEFAULT_PHONE = `${COUNTRY_DIAL[DEFAULT_COUNTRY] ?? "+971"} `;
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Local number typed after the prefix → international format (+9715…). A number the
@@ -149,7 +152,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
   const [emirate,         setEmirate]         = useState("");
   const [fullName,        setFullName]        = useState("");
   const [email,           setEmail]           = useState("");
-  const [phoneLocal,      setPhoneLocal]      = useState("");
+  const [phone,           setPhone]           = useState(DEFAULT_PHONE);
   const [street,          setStreet]          = useState("");
   const [area,            setArea]            = useState("");
   const [addInstallation, setAddInstallation] = useState(false);
@@ -175,7 +178,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       setEmirate("");
       setFullName("");
       setEmail("");
-      setPhoneLocal("");
+      setPhone(DEFAULT_PHONE);
       setStreet("");
       setArea("");
       setAddInstallation(false);
@@ -216,7 +219,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
     + (selectedZone ? deliveryRate : 0)
     + (showInstallation && addInstallation ? installFee : 0);
   const dialPrefix       = COUNTRY_DIAL[country] ?? "+";
-  const phoneFull        = buildPhone(dialPrefix, phoneLocal);
+  const phoneFull        = buildPhone(dialPrefix, phone);
   const contactValid     =
     fullName.trim().length >= 2 &&
     EMAIL_RE.test(email.trim()) &&
@@ -408,7 +411,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                 <div className="relative">
                   <select
                     value={country}
-                    onChange={(e) => { setCountry(e.target.value); setEmirate(""); }}
+                    onChange={(e) => {
+                      setCountry(e.target.value);
+                      setEmirate("");
+                      // Keep the phone prefix in step with the country while no number has been typed yet.
+                      if (/^\+\d*\s*$/.test(phone)) setPhone(`${COUNTRY_DIAL[e.target.value] ?? "+"} `);
+                    }}
                     disabled={zonesLoading || UAE_ONLY}
                     className={selectCls}
                   >
@@ -488,20 +496,16 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
 
               <div>
                 <label htmlFor="co-phone" className={labelCls}>{t.phone}</label>
-                <div className="flex" dir="ltr">
-                  <span className="flex items-center px-3 border border-e-0 border-stone-300 bg-stone-50 text-sm text-stone-600 select-none">
-                    {dialPrefix}
-                  </span>
-                  <input
-                    id="co-phone"
-                    type="tel"
-                    autoComplete="tel-national"
-                    inputMode="tel"
-                    value={phoneLocal}
-                    onChange={(e) => setPhoneLocal(e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
+                <input
+                  id="co-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  dir="ltr"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={inputCls}
+                />
               </div>
 
               <div>
