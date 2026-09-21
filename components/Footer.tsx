@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { Mail, MapPin, Phone, X } from "lucide-react";
 import { FaInstagram, FaPinterestP, FaWhatsapp } from "react-icons/fa";
 import { Language } from "../types";
 import PrivacyPolicy from "./PrivacyPolicy";
+import { useDeliveryPolicy } from "./DeliveryReturnsModal";
+import { useTerms } from "./TermsModal";
 
 interface FooterProps {
   lang: Language;
@@ -17,6 +18,7 @@ const getContent = (lang: Language) => {
       digitalLabel:  "التواصل",
       legalLabel:    "قانوني",
       privacy:       "سياسة الخصوصية",
+      delivery:      "التوصيل والإرجاع",
       terms:         "شروط الخدمة",
       copyright:     `© ${new Date().getFullYear()} Atelier Austinn Trading LLC`,
       whatsappText:  "مرحباً Studio Austinn، أنا مهتم بخدماتكم الفنية.",
@@ -28,6 +30,7 @@ const getContent = (lang: Language) => {
     digitalLabel:  "Connect",
     legalLabel:    "Legal",
     privacy:       "Privacy Policy",
+    delivery:      "Delivery & Returns",
     terms:         "Terms of Service",
     copyright:     `© ${new Date().getFullYear()} Atelier Austinn Trading LLC`,
     whatsappText:  "Hello Studio Austinn, I'm interested in your art services.",
@@ -36,6 +39,8 @@ const getContent = (lang: Language) => {
 
 const Footer: React.FC<FooterProps> = ({ lang }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const openDeliveryPolicy = useDeliveryPolicy();
+  const openTerms = useTerms();
   const t = getContent(lang);
 
   const whatsappUrl = `https://wa.me/+971581558866?text=${encodeURIComponent(t.whatsappText)}`;
@@ -122,12 +127,18 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
             >
               {t.privacy}
             </button>
-            <Link
-              to="/terms-of-service"
+            <button
+              onClick={openDeliveryPolicy}
+              className="self-start text-[11px] text-stone-600 hover:text-stone-900 transition-colors underline underline-offset-4 font-sans"
+            >
+              {t.delivery}
+            </button>
+            <button
+              onClick={openTerms}
               className="self-start text-[11px] text-stone-600 hover:text-stone-900 transition-colors underline underline-offset-4 font-sans"
             >
               {t.terms}
-            </Link>
+            </button>
           </div>
 
         </div>

@@ -13,8 +13,9 @@ export default defineType({
       description: 'Must match the collection value on product documents. Do not rename once set.',
       options: {
         list: [
-          { title: 'Art Links',           value: 'art-links'           },
+          { title: 'Aura Link',           value: 'art-links'           },
           { title: 'Artistic Partitions', value: 'artistic-partitions' },
+          { title: 'Paintings',           value: 'paintings'           },
         ],
         layout: 'radio',
       },

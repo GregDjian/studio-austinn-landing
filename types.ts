@@ -29,7 +29,10 @@ export interface LocalizedString {
 export interface ColorOption {
   _id: string;
   name: LocalizedString;
+  /** Face view of the link — also the picker swatch. */
   image: any;
+  /** Side view — used for even positions in the builder preview; falls back to `image`. */
+  sideViewImage?: any;
   hexSwatch?: string;
   displayOrder: number;
 }
@@ -45,17 +48,37 @@ export interface ChainConfig {
   totalLinks: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
-  hookColor: "gold" | "silver";
+  previewImage?: string;
 }
 
 export type ProductSize = 'small' | 'medium' | 'large';
 
+/** Bundle products only — a colour variant with its own photo and stock status. */
+export interface ProductVariant {
+  _key: string;
+  name: LocalizedString;
+  image: any;
+  availability: Availability;
+  /** Optional per-variant materials; falls back to the product's own. */
+  materials?: LocalizedString;
+}
+
+/** Bundle products only — a size option (free-text label) with its own price. */
+export interface ProductSizeOption {
+  _key: string;
+  label: string;
+  price: number;
+}
+
 export interface Product {
   _id: string;
+  _createdAt?: string;
   productType: ProductType;
   title: LocalizedString;
   slug: { current: string };
   images: any[];
+  variants?: ProductVariant[];
+  sizes?: ProductSizeOption[];
   price?: number;
   pricePerLink?: number;
   currency: string;

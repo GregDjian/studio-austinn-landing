@@ -1,8 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import Stripe from "stripe";
 
+// Keep in sync with UAE_ONLY in lib/shippingConfig.ts (serverless functions don't import from the app).
+const UAE_ONLY = true;
+
 interface CartLineItem {
   title: string;
+  description?: string;
   price: number;
   currency: string;
   quantity: number;
@@ -65,6 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           currency: (item.currency ?? "AED").toLowerCase(),
           product_data: {
             name: item.title,
+            ...(item.description ? { description: item.description } : {}),
             ...(item.image ? { images: [item.image] } : {}),
           },
           unit_amount: Math.round(item.price * 100),
@@ -82,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       line_items: lineItems,
       mode: "payment",
       shipping_address_collection: {
-        allowed_countries: ["AE", "BH", "KW", "OM", "QA", "SA"],
+        allowed_countries: UAE_ONLY ? ["AE"] : ["AE", "BH", "KW", "OM", "QA", "SA"],
       },
       metadata: {
         selected_country: selectedCountry ?? "",

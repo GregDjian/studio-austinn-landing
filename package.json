@@ -17,6 +17,7 @@
     "@sanity/image-url": "^2.0.3",
     "@stripe/stripe-js": "^9.8.0",
     "@types/react-router-dom": "^5.3.3",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.555.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Language } from "../types";
+import AnnouncementBanner from "./AnnouncementBanner";
 import Hero from "./Hero";
 import Philosophy from "./Philosophy";
 import LatestPieces from "./LatestPieces";
@@ -23,6 +24,7 @@ const HomePage: React.FC<{ lang: Language }> = ({ lang }) => {
 
   return (
     <>
+      <AnnouncementBanner lang={lang} />
       <Hero lang={lang} />
       <Philosophy lang={lang} />
       <LatestPieces lang={lang} />

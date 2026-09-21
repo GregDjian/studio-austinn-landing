@@ -5,7 +5,7 @@ import { Availability, ColorSummaryEntry } from "../types";
 
 export interface CartItem {
   /** Unique per cart line — assigned by the reducer via crypto.randomUUID().
-   *  Two lines can share the same productId (e.g. gold vs silver hook). */
+   *  Two lines can share the same productId (e.g. gold vs silver variant). */
   id: string;
   productId: string;
   slug: string;
@@ -17,8 +17,13 @@ export interface CartItem {
   quantity: number;
   weightKg?: number;
   size?: 'small' | 'medium' | 'large';
-  /** Art Links collection only — absent for products outside that collection. */
-  hookColor?: "gold" | "silver";
+  /** Selected colour variant's display name (current language) — absent when the
+   *  product has no variants. `title` already includes it ("Paravent Rome — Gold");
+   *  this is kept separately so checkout can send it as the Stripe description. */
+  variantName?: string;
+  /** Selected size label (e.g. "120cm x 140cm") — absent when the product has no
+   *  size options. `title` includes it; `price` is that size's price. */
+  sizeLabel?: string;
 }
 
 // ─── Loose-link cart item ─────────────────────────────────────────────────────
@@ -37,7 +42,8 @@ export interface LooseLinkCartItem {
   pricePerLink: number;
   lineTotal: number;
   colorSummary: ColorSummaryEntry[];
-  hookColor: "gold" | "silver";
+  /** JPEG data URL of the finished design, shown in the cart. Absent if capture failed. */
+  previewImage?: string;
   weightKg?: number;
   size?: 'small' | 'medium' | 'large';
 }
@@ -64,13 +70,14 @@ type CartAction =
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
-      // Bundle items deduplicate by productId + hook colour — same product/
-      // colour increments quantity on its existing line; a different colour
-      // becomes its own line (own id) so colours never merge into one line.
+      // Bundle items deduplicate by productId + variant + size — the same combination
+      // increments quantity on its existing line; any different variant or size
+      // becomes its own line (own id) so they never merge into one line.
       const matches = (i: AnyCartItem) =>
         !isLooseLinkItem(i) &&
         i.productId === action.payload.productId &&
-        i.hookColor === action.payload.hookColor;
+        i.variantName === action.payload.variantName &&
+        i.sizeLabel === action.payload.sizeLabel;
       const existing = state.items.find(matches);
       if (existing) {
         return {

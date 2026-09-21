@@ -27,6 +27,15 @@ export default defineType({
     }),
 
     defineField({
+      name: 'sideViewImage',
+      title: 'Side View Photograph',
+      type: 'image',
+      options: { hotspot: true },
+      description:
+        'Transparent PNG of the same link photographed from the side. The builder preview alternates face view (Link Photograph) and side view: 1st, 3rd, 5th… link = face, 2nd, 4th, 6th… link = side. Optional — without it every link uses the face view.',
+    }),
+
+    defineField({
       name: 'hexSwatch',
       title: 'Hex Swatch',
       type: 'string',

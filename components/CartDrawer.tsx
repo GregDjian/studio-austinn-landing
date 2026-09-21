@@ -23,9 +23,6 @@ const getContent = (lang: Language) => {
       columns: "أعمدة",
       links: "حلقات",
       perLink: "/ حلقة",
-      gold: "ذهبي",
-      silver: "فضي",
-      hookSuffix: "خطاف",
     };
   }
   return {
@@ -39,9 +36,6 @@ const getContent = (lang: Language) => {
     columns: "columns",
     links: "links",
     perLink: "/ link",
-    gold: "Gold",
-    silver: "Silver",
-    hookSuffix: "hook",
   };
 };
 
@@ -100,14 +94,21 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                 const summaryText = item.colorSummary
                   .map((s) => `${s.count}× ${s.colorName}`)
                   .join(", ");
-                const hookLabel = item.hookColor === "gold" ? t.gold : t.silver;
 
                 return (
                   <div key={item.id} className="flex gap-4 items-start">
-                    {/* Chain icon placeholder */}
-                    <div className="w-14 h-14 flex-shrink-0 bg-stone-100 flex items-center justify-center">
-                      <span className="text-[18px]">⛓</span>
-                    </div>
+                    {/* Design preview image (falls back to a chain icon) */}
+                    {item.previewImage ? (
+                      <img
+                        src={item.previewImage}
+                        alt={t.customChain}
+                        className="w-20 h-20 object-cover flex-shrink-0 bg-stone-100"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 flex-shrink-0 bg-stone-100 flex items-center justify-center">
+                        <span className="text-[18px]">⛓</span>
+                      </div>
+                    )}
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
@@ -118,7 +119,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                         {item.totalLinks} {t.links} · {columnCount} {t.columns}
                       </p>
                       <p className="text-stone-400 text-[10px] mt-1 leading-snug break-words">
-                        {summaryText} · {hookLabel} {t.hookSuffix}
+                        {summaryText}
                       </p>
                       <p className="text-stone-500 text-[10px] mt-1">
                         {item.currency} {item.pricePerLink.toLocaleString()} {t.perLink}
@@ -157,11 +158,6 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
                     <p className="text-stone-500 text-xs mt-1">
                       {item.currency} {item.price.toLocaleString()}
                     </p>
-                    {item.hookColor && (
-                      <p className="text-stone-400 text-[10px] mt-0.5">
-                        {item.hookColor === "gold" ? t.gold : t.silver} {t.hookSuffix}
-                      </p>
-                    )}
 
                     {/* Quantity controls */}
                     <div className="flex items-center gap-3 mt-3">

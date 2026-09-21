@@ -7,6 +7,8 @@ import Shop from './components/Shop';
 import ProductDetail from './components/ProductDetail';
 import ShopSuccess from './components/ShopSuccess';
 import ShopCancel from './components/ShopCancel';
+import { DeliveryPolicyProvider } from './components/DeliveryReturnsModal';
+import { TermsProvider } from './components/TermsModal';
 import ChatWidget from './components/ChatWidget';
 import Preloader from './components/Preloader';
 import CartDrawer from './components/CartDrawer';
@@ -39,6 +41,8 @@ function AppInner() {
   };
 
   return (
+    <DeliveryPolicyProvider lang={lang}>
+    <TermsProvider lang={lang}>
     <main className={`w-full relative ${lang === 'ar' ? 'font-sans' : ''}`}>
       <div className="bg-noise"></div>
 
@@ -52,7 +56,7 @@ function AppInner() {
         <Route path="/shop"           element={<Shop          lang={lang} />} /> 
         <Route path="/shop/:slug"     element={<ProductDetail lang={lang} onOpenCheckout={handleOpenCheckout} />} />
         <Route path="/shop/success"   element={<ShopSuccess   lang={lang} />} /> 
-        <Route path="/shop/cancel"    element={<ShopCancel    lang={lang} />} /> 
+        <Route path="/shop/cancel"    element={<ShopCancel    lang={lang} />} />
       </Routes>
 
       <ChatWidget lang={lang} />
@@ -70,6 +74,8 @@ function AppInner() {
         lang={lang}
       />
     </main>
+    </TermsProvider>
+    </DeliveryPolicyProvider>
   );
 }
 

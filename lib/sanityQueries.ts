@@ -64,11 +64,14 @@ export async function getProducts() {
   return sanityClient.fetch(`
     *[_type == "product"] | order(featured desc, _createdAt desc) {
       _id,
+      _createdAt,
       "productType": coalesce(productType, "bundle"),
       title,
       slug,
       images,
-      price,
+      variants[]{ _key, name, image, availability },
+      // Grid shows the base price; falls back to the first size's price when none is set.
+      "price": coalesce(price, sizes[0].price),
       pricePerLink,
       currency,
       description,
@@ -90,6 +93,8 @@ export async function getProductBySlug(slug: string) {
       title,
       slug,
       images,
+      variants[]{ _key, name, image, availability, materials },
+      sizes[]{ _key, label, price },
       price,
       pricePerLink,
       currency,
@@ -107,6 +112,7 @@ export async function getProductBySlug(slug: string) {
         _id,
         name,
         image,
+        sideViewImage,
         hexSwatch,
         displayOrder
       }

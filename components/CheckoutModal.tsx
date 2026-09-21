@@ -6,6 +6,8 @@ import { getDeliveryZones, DeliveryZone, WeightTier, SizeTier } from "../lib/san
 
 // ── Static geo data ───────────────────────────────────────────────────────────
 
+import { UAE_ONLY } from "../lib/shippingConfig";
+
 const COUNTRIES = [
   { value: "AE", en: "United Arab Emirates", ar: "الإمارات العربية المتحدة", zoneKey: "uae" as const },
   { value: "SA", en: "Saudi Arabia",         ar: "المملكة العربية السعودية", zoneKey: "gcc" as const },
@@ -14,6 +16,10 @@ const COUNTRIES = [
   { value: "KW", en: "Kuwait",               ar: "الكويت",                   zoneKey: "gcc" as const },
   { value: "QA", en: "Qatar",                ar: "قطر",                      zoneKey: "gcc" as const },
 ];
+
+// UAE-only mode (lib/shippingConfig.ts): only the UAE is offered and it is preselected.
+const AVAILABLE_COUNTRIES = UAE_ONLY ? COUNTRIES.filter((c) => c.value === "AE") : COUNTRIES;
+const DEFAULT_COUNTRY     = UAE_ONLY ? "AE" : "";
 
 const UAE_EMIRATES = [
   { value: "dubai",          en: "Dubai",          ar: "دبي"        },
@@ -113,7 +119,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
   const { items, totalPrice } = useCart();
   const t = getContent(lang);
 
-  const [country,         setCountry]         = useState("");
+  const [country,         setCountry]         = useState(DEFAULT_COUNTRY);
   const [emirate,         setEmirate]         = useState("");
   const [addInstallation, setAddInstallation] = useState(false);
   const [zones,           setZones]           = useState<DeliveryZone[]>([]);
@@ -134,7 +140,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
   // Reset form state when modal closes
   useEffect(() => {
     if (!open) {
-      setCountry("");
+      setCountry(DEFAULT_COUNTRY);
       setEmirate("");
       setAddInstallation(false);
       setError(null);
@@ -186,22 +192,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       if (isLooseLinkItem(i)) {
         const summaryText = i.colorSummary.map((s) => `${s.count}× ${s.colorName}`).join(", ");
         const colCount = i.configuration.columns.length;
-        const hookLabel = i.hookColor === "gold" ? "Gold" : "Silver";
         return {
-          title:    `Custom chain — ${colCount} col${colCount !== 1 ? "s" : ""}: ${summaryText} — ${hookLabel} hook`,
+          title:    `Custom chain — ${colCount} col${colCount !== 1 ? "s" : ""}: ${summaryText}`,
           price:    i.pricePerLink,
           currency: i.currency,
           quantity: i.totalLinks,
           image:    undefined as string | undefined,
         };
       }
-      const hookSuffix = i.hookColor ? ` — ${i.hookColor === "gold" ? "Gold" : "Silver"} hook` : "";
       return {
-        title:    `${i.title}${hookSuffix}`,
-        price:    i.price,
-        currency: i.currency,
-        quantity: i.quantity,
-        image:    i.image || undefined,
+        title:       i.title,
+        // Stripe line item description: colour and size, when present.
+        description: [i.variantName, i.sizeLabel].filter(Boolean).join(" · ") || undefined,
+        price:       i.price,
+        currency:    i.currency,
+        quantity:    i.quantity,
+        image:       i.image || undefined,
       };
     });
 
@@ -348,22 +354,24 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                   <select
                     value={country}
                     onChange={(e) => { setCountry(e.target.value); setEmirate(""); }}
-                    disabled={zonesLoading}
+                    disabled={zonesLoading || UAE_ONLY}
                     className={selectCls}
                   >
                     <option value="" disabled>
                       {zonesLoading ? "…" : t.selectCountry}
                     </option>
-                    {COUNTRIES.map((c) => (
+                    {AVAILABLE_COUNTRIES.map((c) => (
                       <option key={c.value} value={c.value}>
                         {lang === "ar" ? c.ar : c.en}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none rtl:right-auto rtl:left-3"
-                  />
+                  {!UAE_ONLY && (
+                    <ChevronDown
+                      size={14}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none rtl:right-auto rtl:left-3"
+                    />
+                  )}
                 </div>
               </div>
 

@@ -105,9 +105,11 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
       <header
         dir={lang === "ar" ? "rtl" : "ltr"}
         aria-label={lang === "ar" ? "التنقل الرئيسي" : "Main navigation"}
+        // top follows the homepage announcement bar (--sa-banner-h, 0 elsewhere)
+        style={{ top: "var(--sa-banner-h, 0px)" }}
         className={[
-          "fixed top-0 left-0 w-full z-50",
-          "transition-[padding,color] duration-500 ease-out",
+          "fixed left-0 w-full z-50",
+          "transition-[padding,color,top] duration-500 ease-out",
           isSolid ? "py-4 mix-blend-normal" : "py-8",
         ].join(" ")}
       >
