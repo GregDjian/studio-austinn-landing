@@ -43,6 +43,7 @@ const getContent = (lang: Language) => {
       materialsLabel:  "المواد",
       noDetails:       "لا تفاصيل متاحة.",
       variantLabel:    "الخيارات",
+      inclVat:         "شامل الضريبة",
       sizeLabel:       "المقاس",
       tabs: {
         description: "الوصف",
@@ -50,7 +51,7 @@ const getContent = (lang: Language) => {
         delivery:    "التسليم والإرجاع",
       },
       deliveryInStock:     "هذه القطعة جاهزة للشحن. تُسلَّم خلال 24–72 ساعة في أنحاء الإمارات.",
-      deliveryMadeToOrder: "هذه القطعة تُصنع بالطلب. مدة التنفيذ المعتادة من أسبوعين إلى أربعة أسابيع داخل الإمارات، بحسب ضغط الإنتاج الحالي.",
+      deliveryMadeToOrder: "هذه القطعة تُصنع بالطلب. مدة التنفيذ المعتادة من أسبوع إلى أربعة أسابيع داخل الإمارات، بحسب ضغط الإنتاج الحالي.",
       deliverySold:        "هذه القطعة غير متوفرة حالياً. تواصل معنا لطلب خاص.",
       deliveryPolicyLink:  "عرض سياسة التوصيل والإرجاع كاملة ←",
     };
@@ -75,6 +76,7 @@ const getContent = (lang: Language) => {
     materialsLabel:  "Materials",
     noDetails:       "No details available.",
     variantLabel:    "Variants",
+    inclVat:         "incl. VAT",
     sizeLabel:       "Size",
     tabs: {
       description: "Description",
@@ -82,7 +84,7 @@ const getContent = (lang: Language) => {
       delivery:    "Delivery & Returns",
     },
     deliveryInStock:     "This piece is ready to ship. Delivered within 24–72 hours across the UAE.",
-    deliveryMadeToOrder: "This piece is crafted to order. Standard lead time is 2–4 weeks within the UAE, depending on current production load.",
+    deliveryMadeToOrder: "This piece is crafted to order. Standard lead time is 1–4 weeks within the UAE, depending on current production load.",
     deliverySold:        "This piece is currently unavailable. Contact us for a custom commission.",
     deliveryPolicyLink:  "View our full Delivery & Returns policy →",
   };
@@ -557,7 +559,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                         : t.addToCart}
                     </span>
                     <span className="opacity-75 font-bold">
-                      {product.currency} {displayPrice?.toLocaleString()}
+                      {product.currency} {displayPrice?.toLocaleString()}<span className="ms-2 text-[8px] tracking-widest font-normal opacity-70">{t.inclVat}</span>
                     </span>
                   </button>
                 ) : (
@@ -567,7 +569,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                   >
                     <span>{t.notAvailable}</span>
                     <span className="opacity-60">
-                      {product.currency} {displayPrice?.toLocaleString()}
+                      {product.currency} {displayPrice?.toLocaleString()}<span className="ms-2 text-[8px] tracking-widest font-normal opacity-70">{t.inclVat}</span>
                     </span>
                   </button>
                 )}

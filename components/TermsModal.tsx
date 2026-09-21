@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
     heading: "Delivery & Storage",
     paragraphs: [
       "Delivery charges vary by destination and are stated at checkout. Delivery times vary by product and availability — please refer to each product's page for estimated timelines.",
-      "In-stock items are dispatched within 24–72 hours of order approval. Made-to-order pieces carry a standard lead time of 2–4 weeks, subject to current production load. We will keep you informed of any delays.",
+      "In-stock items are dispatched within 24–72 hours of order approval. Made-to-order pieces carry a standard lead time of 1–4 weeks, subject to current production load. We will keep you informed of any delays.",
       "Atelier Austinn Trading LLC reserves the right to deliver items from the same order separately.",
       "Any closure, blockage, or disruption affecting maritime routes, ports, or shipping corridors due to geopolitical events, conflict, security incidents, or circumstances beyond our reasonable control may result in unforeseeable delays. In such circumstances, Atelier Austinn Trading LLC shall not be liable for resulting delays and delivery timelines shall be extended accordingly.",
       {

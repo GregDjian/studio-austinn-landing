@@ -4,6 +4,7 @@ import { Loader2, LayoutGrid, ChevronDown, Check } from "lucide-react";
 import { Availability, Language, Product } from "../types";
 import { getProducts, getCollections, CollectionMeta } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
+import { SHOW_ARTISTIC_PARTITIONS } from "../lib/shopConfig";
 import Button from "./Button";
 import Footer from "./Footer";
 
@@ -133,7 +134,7 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
   // Each tile merges i18n label (authoritative) with Sanity image (optional until uploaded).
   const collectionTiles = [
     { key: COLLECTION_KEY_ART_LINKS,  label: t.artLinks },
-    { key: COLLECTION_KEY_PARTITIONS, label: t.artisticPartitions },
+    ...(SHOW_ARTISTIC_PARTITIONS ? [{ key: COLLECTION_KEY_PARTITIONS, label: t.artisticPartitions }] : []),
     { key: COLLECTION_KEY_PAINTINGS,  label: t.paintings },
   ].map(({ key, label }) => {
     const meta = rawCollections.find(c => c.key === key);

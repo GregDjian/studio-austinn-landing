@@ -1,4 +1,5 @@
 import React from "react";
+import { vatPortion, formatFixed } from "../lib/vat";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Language } from "../types";
 import { useCart, isLooseLinkItem } from "./CartContext";
@@ -16,6 +17,7 @@ const getContent = (lang: Language) => {
       title: "سلة التسوق",
       empty: "سلتك فارغة.",
       subtotal: "المجموع",
+      includesVat: "تشمل ضريبة القيمة المضافة (5٪)",
       checkout: "إتمام الشراء",
       remove: "إزالة",
       close: "إغلاق",
@@ -29,6 +31,7 @@ const getContent = (lang: Language) => {
     title: "Cart",
     empty: "Your cart is empty.",
     subtotal: "Subtotal",
+    includesVat: "Includes VAT (5%)",
     checkout: "Checkout",
     remove: "Remove",
     close: "Close",
@@ -207,6 +210,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
               <span className="font-sans font-black text-lg text-stone-900">
                 {currency} {totalPrice.toLocaleString()}
               </span>
+            </div>
+            <div className="flex justify-between items-center -mt-2 text-[11px] text-stone-500">
+              <span>{t.includesVat}</span>
+              <span>{currency} {formatFixed(vatPortion(totalPrice))}</span>
             </div>
             <button
               onClick={onCheckout}

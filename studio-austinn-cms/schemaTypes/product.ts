@@ -124,7 +124,7 @@ export default defineType({
       name: 'price',
       title: 'Price',
       type: 'number',
-      description: 'Flat price for bundle products. Not used for loose-link products. Optional when Size Options are set (each size has its own price).',
+      description: 'VAT-INCLUSIVE price (5% UAE VAT included) - the customer sees exactly this amount. Use a round number (multiple of 10). Flat price for bundle products; not used for loose-link products. Optional when Size Options are set.',
       hidden: ({ document }) => (document?.productType as string) === 'loose-link',
       validation: (Rule) =>
         Rule.custom((value, context) => {
@@ -135,6 +135,9 @@ export default defineType({
           }
           if (value !== undefined && value !== null && (value as number) <= 0) {
             return 'Price must be a positive number'
+          }
+          if (value !== undefined && value !== null && (value as number) % 10 !== 0) {
+            return { message: 'Tip: use a multiple of 10 (VAT-inclusive) so order totals stay round.', level: 'warning' as const }
           }
           return true
         }),
@@ -162,9 +165,17 @@ export default defineType({
             }),
             defineField({
               name: 'price',
-              title: 'Price',
+              title: 'Price (incl. VAT)',
               type: 'number',
-              validation: (Rule) => Rule.required().positive(),
+              description: 'VAT-inclusive; use a multiple of 10.',
+              validation: (Rule) =>
+                Rule.required()
+                  .positive()
+                  .custom((value) =>
+                    value !== undefined && value !== null && (value as number) % 10 !== 0
+                      ? { message: 'Tip: use a multiple of 10 (VAT-inclusive) so order totals stay round.', level: 'warning' as const }
+                      : true
+                  ),
             }),
           ],
           preview: {
@@ -181,7 +192,7 @@ export default defineType({
       name: 'pricePerLink',
       title: 'Price Per Link',
       type: 'number',
-      description: 'Price charged per individual chain link. Used for loose-link products only.',
+      description: 'VAT-INCLUSIVE price per individual chain link (5% UAE VAT included) - use a multiple of 10. Used for loose-link products only.',
       hidden: ({ document }) => (document?.productType as string) !== 'loose-link',
       validation: (Rule) =>
         Rule.custom((value, context) => {
@@ -191,6 +202,9 @@ export default defineType({
           }
           if (value !== undefined && value !== null && (value as number) <= 0) {
             return 'Price per link must be a positive number'
+          }
+          if (value !== undefined && value !== null && (value as number) % 10 !== 0) {
+            return { message: 'Tip: use a multiple of 10 (VAT-inclusive) so order totals stay round.', level: 'warning' as const }
           }
           return true
         }),

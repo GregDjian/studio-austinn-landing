@@ -7,6 +7,7 @@ import { getDeliveryZones, DeliveryZone, WeightTier, SizeTier } from "../lib/san
 // ── Static geo data ───────────────────────────────────────────────────────────
 
 import { UAE_ONLY } from "../lib/shippingConfig";
+import { vatPortion, excludingVat, formatFixed } from "../lib/vat";
 
 const COUNTRIES = [
   { value: "AE", en: "United Arab Emirates", ar: "الإمارات العربية المتحدة", zoneKey: "uae" as const },
@@ -65,7 +66,9 @@ const getContent = (lang: Language) => {
       selectEmirate:   "اختر الإمارة",
       delivery:        "رسوم التوصيل",
       subtotal:        "المجموع الفرعي",
-      total:           "الإجمالي",
+      total:           "الإجمالي (شامل الضريبة)",
+      excludingVat:    "الإجمالي بدون الضريبة",
+      vat:             "ضريبة القيمة المضافة (5٪)",
       proceed:         "المتابعة إلى الدفع",
       processing:      "جاري المعالجة…",
       deliveryPending: "اختر الوجهة لعرض رسوم التوصيل",
@@ -99,7 +102,9 @@ const getContent = (lang: Language) => {
     selectEmirate:   "Select an emirate",
     delivery:        "Delivery",
     subtotal:        "Subtotal",
-    total:           "Total",
+    total:           "Total (incl. VAT)",
+    excludingVat:    "Total excl. VAT",
+    vat:             "VAT (5%)",
     proceed:         "Proceed to Payment",
     processing:      "Processing…",
     deliveryPending: "Select a destination to see delivery rate",
@@ -611,6 +616,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                 {selectedZone ? `${currency} ${orderTotal.toLocaleString()}` : "—"}
               </span>
             </div>
+
+            {selectedZone && (
+              <>
+                <div className="flex justify-between items-center -mt-1 text-[11px] text-stone-500">
+                  <span>{t.excludingVat}</span>
+                  <span>{currency} {formatFixed(excludingVat(orderTotal))}</span>
+                </div>
+                <div className="flex justify-between items-center -mt-1.5 text-[11px] text-stone-500">
+                  <span>{t.vat}</span>
+                  <span>{currency} {formatFixed(vatPortion(orderTotal))}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Non-refundable disclosure */}

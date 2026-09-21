@@ -79,6 +79,7 @@ const getContent = (lang: Language) => {
       total: "الإجمالي",
       perLink: "/ حلقة",
       addToCart: "أضف إلى السلة",
+      inclVat: "شامل الضريبة",
       trustPrefix: "بإتمام طلبك، أنت توافق على",
       termsLink: "سياسة التوصيل والإرجاع",
       added: "تمت الإضافة ✓",
@@ -103,6 +104,7 @@ const getContent = (lang: Language) => {
     total: "Total",
     perLink: "/ link",
     addToCart: "Add to Cart",
+    inclVat: "incl. VAT",
     trustPrefix: "By placing your order you agree to the",
     termsLink: "delivery & returns policy",
     added: "Added ✓",
@@ -556,7 +558,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
             {currency} {lineTotal.toLocaleString()}
           </span>
           <span className="text-xs text-stone-400 mt-0.5">
-            {totalLinks} {t.links} × {currency} {pricePerLink.toLocaleString()} {t.perLink}
+            {totalLinks} {t.links} × {currency} {pricePerLink.toLocaleString()} {t.perLink} · {t.inclVat}
           </span>
         </div>
 

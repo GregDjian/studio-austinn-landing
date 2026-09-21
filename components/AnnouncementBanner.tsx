@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { Language } from "../types";
+import { SHOW_ARTISTIC_PARTITIONS } from "../lib/shopConfig";
 
 // Session-scoped: stays closed while the visitor browses around, reappears on a
 // fresh visit / new tab.
@@ -14,7 +15,9 @@ const BAR_HEIGHT = "2.25rem"; // 36px — keep in sync with the h-9 below
 const getContent = (lang: Language) => {
   if (lang === "ar") {
     return {
-      message:      "متجرنا مفتوح الآن — اكتشف أورا لينك وفواصلنا الفنية",
+      message:      SHOW_ARTISTIC_PARTITIONS
+        ? "متجرنا مفتوح الآن — اكتشف أورا لينك وفواصلنا الفنية"
+        : "متجرنا مفتوح الآن — اكتشف أورا لينك",
       messageShort: "متجرنا مفتوح الآن",
       cta:          "تسوّق الآن",
       dismiss:      "إغلاق الإعلان",
@@ -22,7 +25,9 @@ const getContent = (lang: Language) => {
     };
   }
   return {
-    message:      "Our Shop is now open — discover our Aura Links and Artistic Partitions",
+    message:      SHOW_ARTISTIC_PARTITIONS
+      ? "Our Shop is now open — discover our Aura Links and Artistic Partitions"
+      : "Our Shop is now open — discover our Aura Links",
     messageShort: "Our Shop is now open",
     cta:          "Shop Now",
     dismiss:      "Dismiss announcement",

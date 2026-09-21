@@ -107,6 +107,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const shipping = session.collected_information?.shipping_details ?? null;
     const shippingLines = addressLines(shipping?.address);
     const total = formatMoney(session.amount_total, session.currency);
+    // VAT (5%) contained in the total, worked out at checkout and stored in the session metadata.
+    const vatAmount = session.metadata?.vat_amount
+      ? formatMoney(Math.round(parseFloat(session.metadata.vat_amount) * 100), session.currency)
+      : null;
     const lang = session.metadata?.lang === "ar" ? "ar" : "en";
     const dashboardUrl = `https://dashboard.stripe.com/${event.livemode ? "" : "test/"}checkout/sessions/${session.id}`;
 
@@ -145,7 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `Delivery address:\n${shippingLines.length ? shippingLines.join("\n") : "-"}\n\n` +
           `Country: ${session.metadata?.selected_country ?? "-"}   Emirate: ${session.metadata?.selected_emirate ?? "-"}\n\n` +
           `Items:\n${itemsText}\n\n` +
-          `Total: ${total}\n\n` +
+          `Total: ${total}${vatAmount ? `\nIncludes VAT (5%): ${vatAmount}` : ""}\n\n` +
           `View in Stripe: ${dashboardUrl}\n`,
         html: `
           <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.5; color:#111;">
@@ -166,6 +170,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               <tbody>${itemsHtml}</tbody>
             </table>
             <p style="margin-top:12px;"><b>Total: ${escapeHtml(total)}</b></p>
+            ${vatAmount ? `<p style="margin:2px 0; color:#555;">Includes VAT (5%): ${escapeHtml(vatAmount)}</p>` : ""}
             <p style="margin-top:16px;"><a href="${dashboardUrl}">View in Stripe Dashboard</a></p>
           </div>
         `,
@@ -180,10 +185,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         from,
         subject: isAr ? "تأكيد طلبك — Studio Austinn" : "Your Order Confirmation — Studio Austinn",
         text: isAr
-          ? `شكراً لطلبك من Studio Austinn.\n\nملخص الطلب:\n${itemsText}\n\nالإجمالي: ${total}\n\nعنوان التسليم:\n${
+          ? `شكراً لطلبك من Studio Austinn.\n\nملخص الطلب:\n${itemsText}\n\nالإجمالي: ${total}${vatAmount ? `\nتشمل ضريبة القيمة المضافة (5٪): ${vatAmount}` : ""}\n\nعنوان التسليم:\n${
               shippingLines.length ? shippingLines.join("\n") : "-"
             }\n\nستتلقى تحديثات عبر البريد الإلكتروني عند شحن طلبك.\n`
-          : `Thank you for your order from Studio Austinn.\n\nOrder summary:\n${itemsText}\n\nTotal: ${total}\n\nDelivery address:\n${
+          : `Thank you for your order from Studio Austinn.\n\nOrder summary:\n${itemsText}\n\nTotal: ${total}${vatAmount ? `\nIncludes VAT (5%): ${vatAmount}` : ""}\n\nDelivery address:\n${
               shippingLines.length ? shippingLines.join("\n") : "-"
             }\n\nYou'll receive an update by email once your order ships.\n`,
         html: `
@@ -198,6 +203,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               <tbody>${itemsHtml}</tbody>
             </table>
             <p style="margin-top:12px;"><b>${isAr ? "الإجمالي" : "Total"}: ${escapeHtml(total)}</b></p>
+            ${vatAmount ? `<p style="margin:2px 0; color:#555;">${isAr ? "تشمل ضريبة القيمة المضافة (5٪)" : "Includes VAT (5%)"}: ${escapeHtml(vatAmount)}</p>` : ""}
             <p style="margin-top:16px; color:#555;">${isAr ? "عنوان التسليم" : "Delivery address"}<br/>${
               shippingLines.length ? shippingLines.map(escapeHtml).join("<br/>") : "-"
             }</p>

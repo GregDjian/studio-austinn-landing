@@ -1,4 +1,5 @@
 import { sanityClient } from "./sanityClient";
+import { SHOW_ARTISTIC_PARTITIONS } from "./shopConfig";
 
 /* =========================
    ARTISTS
@@ -60,9 +61,12 @@ export async function getProjects() {
    Entirely separate from artwork/artist data.
 ========================= */
 
+// Hides the Artistic Partitions collection while SHOW_ARTISTIC_PARTITIONS is false.
+const PARTITIONS_FILTER = SHOW_ARTISTIC_PARTITIONS ? "" : ' && collection != "artistic-partitions"';
+
 export async function getProducts() {
   return sanityClient.fetch(`
-    *[_type == "product"] | order(featured desc, _createdAt desc) {
+    *[_type == "product"${PARTITIONS_FILTER}] | order(featured desc, _createdAt desc) {
       _id,
       _createdAt,
       "productType": coalesce(productType, "bundle"),
@@ -87,7 +91,7 @@ export async function getProducts() {
 
 export async function getProductBySlug(slug: string) {
   return sanityClient.fetch(
-    `*[_type == "product" && slug.current == $slug][0] {
+    `*[_type == "product" && slug.current == $slug${PARTITIONS_FILTER}][0] {
       _id,
       "productType": coalesce(productType, "bundle"),
       title,

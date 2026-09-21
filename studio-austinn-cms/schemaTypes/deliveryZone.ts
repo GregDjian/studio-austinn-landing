@@ -55,7 +55,7 @@ export default defineType({
             }),
             defineField({
               name: 'rate',
-              title: 'Rate (AED)',
+              title: 'Rate (AED, incl. VAT)',
               type: 'number',
               validation: (Rule) => Rule.required().min(0),
             }),
@@ -103,7 +103,7 @@ export default defineType({
             }),
             defineField({
               name: 'rate',
-              title: 'Rate (AED)',
+              title: 'Rate (AED, incl. VAT)',
               type: 'number',
               validation: (Rule) => Rule.required().min(0),
             }),
@@ -136,7 +136,7 @@ export default defineType({
       name: 'installationFee',
       title: 'Installation Fee (Dubai only)',
       type: 'number',
-      description: 'Optional flat fee for professional installation. Shown only when customer selects Dubai. Leave blank or 0 if not offered.',
+      description: 'Optional flat fee (AED, VAT-INCLUSIVE) for professional installation. Shown only when customer selects Dubai. Leave blank or 0 if not offered.',
     }),
   ],
 

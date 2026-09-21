@@ -140,6 +140,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(installation ? [toStripeLineItem(installation)] : []),
     ];
 
+    // Every amount is VAT-inclusive (5%), so the VAT is worked out backwards from the total.
+    const grossMinor = lineItems.reduce((sum, li) => sum + li.price_data.unit_amount * li.quantity, 0);
+    const vatMinor = Math.round((grossMinor * 5) / 105);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -153,6 +157,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         selected_country: selectedCountry ?? "",
         selected_emirate: selectedEmirate ?? "",
         lang: lang === "ar" ? "ar" : "en",
+        vat_rate: "5%",
+        vat_amount: (vatMinor / 100).toFixed(2),
+        total_excl_vat: ((grossMinor - vatMinor) / 100).toFixed(2),
         customer_name: name,
         customer_email: email,
         customer_phone: phone,

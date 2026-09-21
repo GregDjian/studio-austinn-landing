@@ -40,7 +40,7 @@ const getContent = (lang: Language) => {
         "جاهزة للشحن. بعد التحقق من طلبك والموافقة عليه، يستغرق التوصيل المعتاد داخل الإمارات من 24 إلى 72 ساعة. وفي بعض الحالات، قد يكون التوصيل في اليوم نفسه ممكناً في دبي.",
       madeToOrderHeading: "يُصنع بالطلب",
       madeToOrder:
-        "تُصنع خصيصاً لك. مدة التنفيذ المعتادة من أسبوعين إلى أربعة أسابيع داخل الإمارات، بحسب ضغط الإنتاج الحالي. سنُبقيك على اطلاع طوال الوقت.",
+        "تُصنع خصيصاً لك. مدة التنفيذ المعتادة من أسبوع إلى أربعة أسابيع داخل الإمارات، بحسب ضغط الإنتاج الحالي. سنُبقيك على اطلاع طوال الوقت.",
       gccHeading: "التوصيل إلى دول الخليج",
       gcc: "يمكننا التوصيل إلى دول مجلس التعاون الخليجي. تُحتسب تكاليف الشحن عند إتمام الطلب بحسب موقعك وحجم طلبك.",
       customHeading: "الطلبات الخاصة والدولية",
@@ -80,7 +80,7 @@ const getContent = (lang: Language) => {
       "Ready to ship. Once your order has been verified and approved, standard delivery within the UAE is 24–72 hours. In some cases, same-day delivery in Dubai may be possible.",
     madeToOrderHeading: "Made to Order",
     madeToOrder:
-      "Crafted specifically for you. Standard lead time is 2–4 weeks within the UAE, depending on current production load. We will keep you updated along the way.",
+      "Crafted specifically for you. Standard lead time is 1–4 weeks within the UAE, depending on current production load. We will keep you updated along the way.",
     gccHeading: "GCC Delivery",
     gcc: "We can deliver across the GCC. Shipping costs are calculated at checkout based on your location and order size.",
     customHeading: "Custom & International Orders",
