@@ -85,8 +85,6 @@ const getContent = (lang: Language) => {
       street:          "الشارع / المبنى / رقم الشقة أو الفيلا",
       area:            "المنطقة / الحي (اختياري)",
       addressCheckNote: "يرجى التأكد من صحة عنوانك — سيُستخدم للتوصيل.",
-      noRefundTitle:   "جميع المبيعات نهائية",
-      noRefundText:    "منتجاتنا مصنوعة حسب الطلب. بمجرد بدء الإنتاج، لا يمكن إلغاء الطلبات أو إرجاعها أو استرداد قيمتها.",
       zonesError:      "تعذّر تحميل رسوم التوصيل. يرجى المحاولة مجدداً.",
       checkoutError:   "حدث خطأ. يرجى المحاولة مجدداً.",
     };
@@ -121,8 +119,6 @@ const getContent = (lang: Language) => {
     street:          "Street Address / Building / Apt or Villa No.",
     area:            "Area / District (optional)",
     addressCheckNote: "Please double-check your address — it will be used for delivery.",
-    noRefundTitle:   "All Sales Are Final",
-    noRefundText:    "Our products are custom-made to order. Once production begins, orders cannot be cancelled, returned, or refunded.",
     zonesError:      "Could not load delivery rates. Please try again.",
     checkoutError:   "Something went wrong. Please try again.",
   };
@@ -629,16 +625,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                 </div>
               </>
             )}
-          </div>
-
-          {/* Non-refundable disclosure */}
-          <div className="bg-stone-50 border border-stone-200 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-stone-900 mb-1">
-              {t.noRefundTitle}
-            </p>
-            <p className="text-[11px] text-stone-600 leading-relaxed">
-              {t.noRefundText}
-            </p>
           </div>
 
           {/* CTA */}
