@@ -170,11 +170,11 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
 
       {/* Chat Window */}
       {isChatOpen && (
-        <div className="mb-6 w-80 md:w-96 bg-white/70 backdrop-blur-2xl shadow-2xl rounded-sm overflow-hidden border border-white/50 animate-fade-in-up transition-all duration-300">
-          <div className="bg-stone-900/90 p-5 flex justify-between items-center text-white backdrop-blur-md">
+        <div className="mb-6 w-80 md:w-96 bg-white/80 backdrop-blur-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] rounded-2xl overflow-hidden border border-amber-100/60 animate-fade-in-up transition-all duration-300">
+          <div className="bg-gradient-to-r from-slate-800 to-blue-900 p-5 flex justify-between items-center text-white">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white/10 rounded-full">
-                <Sparkles size={14} className="text-white" />
+              <div className="p-2 bg-blue-400/15 ring-1 ring-blue-300/40 rounded-full">
+                <Sparkles size={14} className="text-blue-200" />
               </div>
               <div>
                 <h3 className="font-bold text-[10px] uppercase tracking-widest">
@@ -216,11 +216,11 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
                 <div
                   className={`max-w-[85%] p-4 text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-stone-900 text-white rounded-lg rounded-br-none"
-                      : "bg-white/50 border border-white text-stone-900 rounded-lg rounded-bl-none shadow-sm"
+                      ? "bg-gradient-to-br from-stone-900 to-stone-700 text-white rounded-2xl rounded-br-md shadow-md"
+                      : "bg-amber-50/70 border border-amber-100 text-stone-900 rounded-2xl rounded-bl-md shadow-sm"
                   } ${msg.isError ? "border-red-300 text-red-800 bg-red-50/50" : ""}`}
                 >
-                  <p className={`font-serif italic ${lang === "ar" ? "text-right" : ""}`}>
+                  <p className={`font-serif ${lang === "ar" ? "text-right" : ""}`}>
                     {msg.text}
                   </p>
                 </div>
@@ -229,11 +229,11 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white/50 border border-white px-4 py-3 rounded-lg rounded-bl-none shadow-sm">
+                <div className="bg-amber-50/70 border border-amber-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
                   <div className="flex gap-1.5">
-                    <span className="w-1 h-1 bg-stone-900 rounded-full animate-pulse" />
-                    <span className="w-1 h-1 bg-stone-900 rounded-full animate-pulse delay-100" />
-                    <span className="w-1 h-1 bg-stone-900 rounded-full animate-pulse delay-200" />
+                    <span className="w-1 h-1 bg-amber-500 rounded-full animate-pulse" />
+                    <span className="w-1 h-1 bg-amber-500 rounded-full animate-pulse delay-100" />
+                    <span className="w-1 h-1 bg-amber-500 rounded-full animate-pulse delay-200" />
                   </div>
                 </div>
               </div>
@@ -242,25 +242,25 @@ const ChatWidget: React.FC<{ lang: Language }> = ({ lang }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t border-stone-200/50 bg-white/40">
-            <div className="flex items-center gap-2">
+          <div className="p-4 border-t border-amber-100/60 bg-white/50">
+            <div className="flex items-center gap-2 bg-white rounded-full border border-stone-200/70 pl-4 pr-1.5 py-1.5 shadow-sm">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder={t.placeholder}
-                className={`flex-1 bg-transparent text-sm text-stone-900 focus:outline-none placeholder-stone-500 font-serif italic ${
+                className={`flex-1 bg-transparent text-sm text-stone-900 focus:outline-none placeholder-stone-500 font-serif ${
                   lang === "ar" ? "text-right" : ""
                 }`}
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !input.trim()}
-                className="text-stone-900 hover:scale-110 transition-transform disabled:opacity-30"
+                className="w-8 h-8 flex items-center justify-center bg-amber-500 text-white rounded-full hover:bg-amber-600 hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 disabled:bg-stone-300"
                 aria-label="Send"
               >
-                <Send size={16} />
+                <Send size={14} />
               </button>
             </div>
           </div>
