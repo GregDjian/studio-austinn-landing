@@ -1,5 +1,17 @@
 import { defineField, defineType } from 'sanity'
 
+// Real-world size of the painting in the "View on your wall" AR preview (cm).
+// Paintings only; the AR button appears when both width and height are set.
+const arDimensionField = (name: 'arWidthCm' | 'arHeightCm') =>
+  defineField({
+    name,
+    title: name === 'arWidthCm' ? 'AR Width (cm)' : 'AR Height (cm)',
+    type: 'number',
+    description: 'Used for the "View on your wall" AR preview. Set both width and height to enable it.',
+    hidden: ({ document }) => (document?.collection as string) !== 'paintings',
+    validation: (Rule) => Rule.min(5).max(500),
+  })
+
 export default defineType({
   name: 'product',
   title: 'Shop Product',
@@ -177,6 +189,8 @@ export default defineType({
                       : true
                   ),
             }),
+            arDimensionField('arWidthCm'),
+            arDimensionField('arHeightCm'),
           ],
           preview: {
             select: { title: 'label', price: 'price' },
@@ -286,6 +300,10 @@ export default defineType({
       ],
       hidden: ({ document }) => (document?.productType as string) === 'loose-link',
     }),
+
+    // Fallback AR size when the painting has no size options (or a size has none set).
+    arDimensionField('arWidthCm'),
+    arDimensionField('arHeightCm'),
 
     defineField({
       name: 'materials',

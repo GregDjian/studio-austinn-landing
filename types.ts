@@ -68,6 +68,9 @@ export interface ProductSizeOption {
   _key: string;
   label: string;
   price: number;
+  /** Paintings only — real size for the AR wall preview (cm). */
+  arWidthCm?: number;
+  arHeightCm?: number;
 }
 
 export interface Product {
@@ -85,6 +88,9 @@ export interface Product {
   description: LocalizedString;
   subtitle?: LocalizedString;
   dimensions?: LocalizedString;
+  /** Paintings only — fallback AR wall-preview size (cm) when no size option sets one. */
+  arWidthCm?: number;
+  arHeightCm?: number;
   materials?: LocalizedString;
   availability: Availability;
   sku?: string;

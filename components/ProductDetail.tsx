@@ -8,6 +8,7 @@ import { imgUrl } from "../lib/sanityImage";
 import { useCart } from "./CartContext";
 import ChainBuilder from "./ChainBuilder";
 import ProductImageCarousel from "./ProductImageCarousel";
+import ArWallButton from "./ArWallButton";
 import { useDeliveryPolicy } from "./DeliveryReturnsModal";
 import Footer from "./Footer";
 
@@ -333,6 +334,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
   // Selected variant's materials, falling back to the product's own when empty.
   const materials  = selectedVariant?.materials?.en?.trim() || product.materials?.en || "";
 
+  // AR wall preview (paintings only): the selected size's AR dimensions, falling
+  // back to the product-level ones. Hidden unless both width and height are set.
+  const arDims =
+    selectedSize?.arWidthCm && selectedSize?.arHeightCm ? selectedSize
+    : product.arWidthCm && product.arHeightCm ? product
+    : null;
+  const arImage = product.collection === "paintings" && arDims && product.images?.[0]
+    ? imgUrl.ar(product.images[0])
+    : null;
+
   // Content of one tab / accordion section.
   const renderPanel = (tab: "description" | "dimensions" | "delivery") => (
     <>
@@ -539,6 +550,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                     })}
                   </div>
                 </div>
+              )}
+
+              {/* AR wall preview at the selected size — AR-capable phones only. */}
+              {arImage && arDims && (
+                <ArWallButton
+                  lang={lang}
+                  imageUrl={arImage}
+                  widthCm={arDims.arWidthCm!}
+                  heightCm={arDims.arHeightCm!}
+                  className="mt-6"
+                />
               )}
 
               {/* ── Add to Cart (label left · price right) + trust microcopy */}
