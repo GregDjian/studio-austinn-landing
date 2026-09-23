@@ -447,9 +447,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
             <div className="flex flex-col lg:my-auto lg:py-8">
 
-              {/* ── Title row: title/subtitle left · availability badge right ── */}
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-2 flex-1 min-w-0">
+              {/* ── Title row: title/subtitle left · availability badge right.
+                  Mobile: badge stacks above the title so long names can't collide. ── */}
+              <div className="flex flex-col-reverse items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+                <div className="flex flex-col gap-2 w-full md:w-auto md:flex-1 min-w-0">
                   <h1 className="font-sans font-black text-4xl md:text-5xl uppercase tracking-tighter text-stone-900 leading-none">
                     {displayTitle}
                   </h1>

@@ -199,8 +199,9 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
       : `${product.currency} ${product.price?.toLocaleString()}`;
 
   // Slide-up hover strip — price + availability. No tint, no cover.
+  // Hidden on touch devices (no hover); the card shows price under the name instead.
   const hoverStrip = (product: Product) => (
-    <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-2 px-3 py-2">
+    <div className="[@media(hover:none)]:hidden absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-2 px-3 py-2">
       <span className="font-sans font-bold text-[9px] md:text-[10px] uppercase tracking-tight text-stone-900">
         {formatPrice(product)}
       </span>
@@ -274,7 +275,8 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
 
   // ── Regular grid card ──────────────────────────────────────────────────────
   // Dense 4-up catalogue tile: full-bleed image (no mat, no border, no radius)
-  // with the name below it; price appears only in the slide-up hover strip.
+  // with the name below it; price appears in the slide-up hover strip, or under
+  // the name on touch devices.
   const renderCard = (product: Product) => {
     if (product.productType === "loose-link") return renderFeaturedCard(product);
     const title    = product.title?.en ?? "";
@@ -345,6 +347,10 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
           <h2 className="font-sans font-bold text-[10px] uppercase tracking-tight text-stone-900 leading-snug line-clamp-2">
             {title}
           </h2>
+          {/* Touch devices can't hover, so show price + availability inline. */}
+          <p className="hidden [@media(hover:none)]:block mt-1 font-sans font-medium text-[9px] uppercase tracking-tight text-stone-500">
+            {formatPrice(product)} · {availabilityLabel(product.availability)}
+          </p>
         </div>
       </Link>
     );

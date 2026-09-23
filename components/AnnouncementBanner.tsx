@@ -10,7 +10,10 @@ const STORAGE_KEY = "sa_announcement_dismissed";
 
 // Fixed bar height. The header reads this via the --sa-banner-h CSS variable and
 // sits directly beneath the bar; when the bar closes the header slides back up.
-const BAR_HEIGHT = "2.25rem"; // 36px — keep in sync with the h-9 below
+// Taller on small screens for an easier tap target.
+const BAR_HEIGHT        = "2.25rem"; // 36px — keep in sync with sm:h-9 below
+const BAR_HEIGHT_MOBILE = "3.5rem";  // 56px — keep in sync with h-14 below
+const DESKTOP_QUERY     = "(min-width: 640px)"; // Tailwind `sm`
 
 const getContent = (lang: Language) => {
   if (lang === "ar") {
@@ -55,11 +58,20 @@ const AnnouncementBanner: React.FC<{ lang: Language }> = ({ lang }) => {
 
   // Drive the header offset. Kept at BAR_HEIGHT only while the bar is actually
   // on screen; reset to 0 on dismiss and on unmount (route change).
+  // Follows the sm breakpoint so the offset matches the bar's responsive height.
   useLayoutEffect(() => {
     const root = document.documentElement;
     const onScreen = !dismissed && !leaving;
-    root.style.setProperty("--sa-banner-h", onScreen ? BAR_HEIGHT : "0px");
+    const mq = window.matchMedia(DESKTOP_QUERY);
+    const apply = () =>
+      root.style.setProperty(
+        "--sa-banner-h",
+        onScreen ? (mq.matches ? BAR_HEIGHT : BAR_HEIGHT_MOBILE) : "0px",
+      );
+    apply();
+    mq.addEventListener("change", apply);
     return () => {
+      mq.removeEventListener("change", apply);
       root.style.setProperty("--sa-banner-h", "0px");
     };
   }, [dismissed, leaving]);
@@ -82,14 +94,14 @@ const AnnouncementBanner: React.FC<{ lang: Language }> = ({ lang }) => {
       role="region"
       aria-label={t.region}
       className={[
-        "fixed top-0 inset-x-0 z-40 w-full h-9 flex items-center overflow-hidden",
+        "fixed top-0 inset-x-0 z-40 w-full h-14 sm:h-9 flex items-center overflow-hidden",
         "bg-stone-100/95 backdrop-blur-sm border-b border-stone-200/70",
         "transition-opacity duration-300 ease-out",
         leaving ? "opacity-0" : "opacity-100",
       ].join(" ")}
     >
       <div className="relative w-full flex items-center justify-center px-9">
-        <p className="text-center text-[9px] md:text-[10px] font-bold uppercase tracking-tight text-stone-700 leading-none">
+        <p className="text-center text-[11px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-tight text-stone-700 leading-none">
           <span className="sm:hidden">{t.messageShort}</span>
           <span className="hidden sm:inline">{t.message}</span>{" "}
           <Link
