@@ -137,6 +137,18 @@
       ::-webkit-scrollbar {
         width: 0px;
       }
+      /* Mobile menu open (Header sets data-mobile-menu): hide the announcement bar and
+         let the header slide back to the top. Small screens only (menu is md:hidden). */
+      @media (max-width: 767px) {
+        html[data-mobile-menu="open"] {
+          --sa-banner-h: 0px !important;
+        }
+        html[data-mobile-menu="open"] [data-announcement-banner] {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+      }
       .text-outline {
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
         color: transparent;

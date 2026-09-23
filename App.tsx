@@ -71,6 +71,7 @@ function AppInner() {
       <CheckoutModal
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
+        onBack={() => { setCheckoutOpen(false); setCartOpen(true); }}
         lang={lang}
       />
     </main>

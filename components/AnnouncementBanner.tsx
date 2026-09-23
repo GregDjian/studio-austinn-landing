@@ -2,7 +2,6 @@ import React, { useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { Language } from "../types";
-import { SHOW_ARTISTIC_PARTITIONS } from "../lib/shopConfig";
 
 // Session-scoped: stays closed while the visitor browses around, reappears on a
 // fresh visit / new tab.
@@ -18,9 +17,7 @@ const DESKTOP_QUERY     = "(min-width: 640px)"; // Tailwind `sm`
 const getContent = (lang: Language) => {
   if (lang === "ar") {
     return {
-      message:      SHOW_ARTISTIC_PARTITIONS
-        ? "متجرنا مفتوح الآن — اكتشف أورا لينك وفواصلنا الفنية"
-        : "متجرنا مفتوح الآن — اكتشف أورا لينك",
+      message:      "متجرنا مفتوح الآن — اكتشف قطعتك القادمة",
       messageShort: "متجرنا مفتوح الآن",
       cta:          "تسوّق الآن",
       dismiss:      "إغلاق الإعلان",
@@ -28,9 +25,7 @@ const getContent = (lang: Language) => {
     };
   }
   return {
-    message:      SHOW_ARTISTIC_PARTITIONS
-      ? "Our Shop is now open — discover our Aura Links and Artistic Partitions"
-      : "Our Shop is now open — discover our Aura Links",
+    message:      "Our Shop is now open — Discover your next piece",
     messageShort: "Our Shop is now open",
     cta:          "Shop Now",
     dismiss:      "Dismiss announcement",
@@ -93,20 +88,21 @@ const AnnouncementBanner: React.FC<{ lang: Language }> = ({ lang }) => {
       dir={lang === "ar" ? "rtl" : "ltr"}
       role="region"
       aria-label={t.region}
+      data-announcement-banner
       className={[
         "fixed top-0 inset-x-0 z-40 w-full h-14 sm:h-9 flex items-center overflow-hidden",
-        "bg-stone-100/95 backdrop-blur-sm border-b border-stone-200/70",
+        "bg-[#510A1A]/95 backdrop-blur-sm border-b border-[#3D0713]/70",
         "transition-opacity duration-300 ease-out",
         leaving ? "opacity-0" : "opacity-100",
       ].join(" ")}
     >
       <div className="relative w-full flex items-center justify-center px-9">
-        <p className="text-center text-[11px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-tight text-stone-700 leading-none">
+        <p className="text-center text-[11px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-tight text-white/90 leading-none">
           <span className="sm:hidden">{t.messageShort}</span>
           <span className="hidden sm:inline">{t.message}</span>{" "}
           <Link
             to="/shop"
-            className="inline-flex items-center gap-1 text-stone-900 underline decoration-stone-400 underline-offset-2 hover:decoration-stone-900 transition-colors"
+            className="inline-flex items-center gap-1 text-white underline decoration-white/50 underline-offset-2 hover:decoration-white transition-colors"
           >
             {t.cta}
             <span aria-hidden="true" className="inline-block rtl:rotate-180">→</span>
@@ -117,7 +113,7 @@ const AnnouncementBanner: React.FC<{ lang: Language }> = ({ lang }) => {
           type="button"
           onClick={close}
           aria-label={t.dismiss}
-          className="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 -translate-y-1/2 p-1 text-stone-500 hover:text-stone-900 transition-colors"
+          className="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors"
         >
           <X size={14} strokeWidth={2} />
         </button>

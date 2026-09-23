@@ -265,7 +265,7 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
           <p className="font-serif italic text-stone-600 text-sm md:text-base leading-relaxed max-w-md">
             {t.chainBlurb}
           </p>
-          <span className="mt-2 inline-flex items-center self-start h-[48px] px-8 bg-stone-900 text-white font-sans font-bold text-[11px] uppercase tracking-[0.25em] transition-colors group-hover:bg-stone-700">
+          <span className="mt-2 inline-flex items-center self-start h-[48px] px-8 rounded-md bg-stone-900 text-white font-sans font-bold text-[11px] uppercase tracking-[0.25em] transition-colors group-hover:bg-stone-700">
             {t.chainCta}
           </span>
         </div>

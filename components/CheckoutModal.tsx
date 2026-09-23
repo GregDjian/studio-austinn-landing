@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { X, ChevronDown, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X, ChevronDown, Loader2, ArrowLeft } from "lucide-react";
 import { Language } from "../types";
 import { useCart, isLooseLinkItem } from "./CartContext";
 import { getDeliveryZones, DeliveryZone, WeightTier, SizeTier } from "../lib/sanityQueries";
@@ -58,7 +58,9 @@ const getContent = (lang: Language) => {
     return {
       title:           "إتمام طلبك",
       close:           "إغلاق",
-      orderSummary:    "ملخص الطلب",
+      backToCart:      "العودة إلى السلة",
+      showSummary:     "عرض ملخص الطلب",
+      hideSummary:     "إخفاء ملخص الطلب",
       deliveryDetails: "تفاصيل التوصيل",
       country:         "الدولة",
       emirate:         "الإمارة",
@@ -92,7 +94,9 @@ const getContent = (lang: Language) => {
   return {
     title:           "Complete Your Order",
     close:           "Close",
-    orderSummary:    "Order Summary",
+    backToCart:      "Back to cart",
+    showSummary:     "See order summary",
+    hideSummary:     "Hide order summary",
     deliveryDetails: "Delivery Details",
     country:         "Country",
     emirate:         "Emirate",
@@ -142,10 +146,12 @@ function lookupSizeTier(tiers: SizeTier[], size: "small" | "medium" | "large"): 
 interface CheckoutModalProps {
   open: boolean;
   onClose: () => void;
+  /** Back arrow: return to the cart, keeping the details typed so far. */
+  onBack: () => void;
   lang: Language;
 }
 
-const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) => {
+const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, lang }) => {
   const { items, totalPrice } = useCart();
   const t = getContent(lang);
 
@@ -161,6 +167,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
   const [zonesLoading,    setZonesLoading]    = useState(false);
   const [submitting,      setSubmitting]      = useState(false);
   const [error,           setError]           = useState<string | null>(null);
+  const [summaryOpen,     setSummaryOpen]     = useState(false);
 
   // Fetch delivery zones once when modal first opens
   useEffect(() => {
@@ -172,9 +179,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       .finally(() => setZonesLoading(false));
   }, [open]);
 
-  // Reset form state when modal closes
+  // Set by the back arrow so the typed details survive a trip back to the cart.
+  const keepFormRef = useRef(false);
+
+  // Reset form state when modal closes (✕ / backdrop) — not when going back to the cart.
   useEffect(() => {
     if (!open) {
+      setError(null);
+      setSubmitting(false);
+      setSummaryOpen(false);
+      if (keepFormRef.current) {
+        keepFormRef.current = false;
+        return;
+      }
       setCountry(DEFAULT_COUNTRY);
       setEmirate("");
       setFullName("");
@@ -183,10 +200,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       setStreet("");
       setArea("");
       setAddInstallation(false);
-      setError(null);
-      setSubmitting(false);
     }
   }, [open]);
+
+  const handleBack = () => {
+    keepFormRef.current = true;
+    onBack();
+  };
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
@@ -338,9 +358,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200 flex-shrink-0">
-          <h2 className="font-sans font-black text-sm uppercase tracking-[0.2em] text-stone-900">
-            {t.title}
-          </h2>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label={t.backToCart}
+              className="text-stone-500 hover:text-stone-900 transition-colors"
+            >
+              <ArrowLeft size={20} className="rtl:rotate-180" />
+            </button>
+            <h2 className="font-sans font-black text-sm uppercase tracking-[0.2em] text-stone-900">
+              {t.title}
+            </h2>
+          </div>
           <button
             onClick={onClose}
             aria-label={t.close}
@@ -352,50 +382,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-8">
-
-          {/* ── Order summary ─────────────────────────────────────────── */}
-          <section>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 mb-4">
-              {t.orderSummary}
-            </h3>
-            <div className="flex flex-col gap-3">
-              {items.map((item) => {
-                if (isLooseLinkItem(item)) {
-                  const colCount = item.configuration.columns.length;
-                  return (
-                    <div key={item.id} className="flex justify-between items-start gap-4">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold uppercase tracking-tight text-stone-900">
-                          {t.customChain}
-                        </p>
-                        <p className="text-[11px] text-stone-400 mt-0.5">
-                          {item.totalLinks} {t.links} · {colCount} {t.columns}
-                        </p>
-                      </div>
-                      <p className="text-xs font-bold text-stone-900 flex-shrink-0">
-                        {item.currency} {item.lineTotal.toLocaleString()}
-                      </p>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={item.id} className="flex justify-between items-start gap-4">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-tight text-stone-900 leading-snug">
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] text-stone-400 mt-0.5">
-                        {t.qty} {item.quantity}
-                      </p>
-                    </div>
-                    <p className="text-xs font-bold text-stone-900 flex-shrink-0">
-                      {item.currency} {(item.price * item.quantity).toLocaleString()}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
 
           {/* ── Delivery details ──────────────────────────────────────── */}
           <section>
@@ -567,44 +553,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
         {/* Footer — cost breakdown + CTA */}
         <div className="border-t border-stone-200 px-6 py-6 flex flex-col gap-4 flex-shrink-0">
 
-          {/* Cost breakdown */}
+          {/* Cost breakdown — total + VAT always visible; the order summary (items,
+              subtotal, delivery, installation) collapses behind a toggle under them. */}
           <div className="flex flex-col gap-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-                {t.subtotal}
-              </span>
-              <span className="text-sm text-stone-700">
-                {currency} {subtotal.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-                {t.delivery}
-              </span>
-              {selectedZone ? (
-                <span className="text-sm text-stone-700">
-                  {currency} {deliveryRate.toLocaleString()}
-                </span>
-              ) : (
-                <span className="text-[10px] italic text-stone-400">
-                  {t.deliveryPending}
-                </span>
-              )}
-            </div>
-
-            {showInstallation && addInstallation && (
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-                  {t.installation}
-                </span>
-                <span className="text-sm text-stone-700">
-                  {currency} {installFee.toLocaleString()}
-                </span>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center pt-3 border-t border-stone-200">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900">
                 {t.total}
               </span>
@@ -624,6 +576,115 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, lang }) =>
                   <span>{currency} {formatFixed(vatPortion(orderTotal))}</span>
                 </div>
               </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setSummaryOpen((v) => !v)}
+              aria-expanded={summaryOpen}
+              className="flex items-center justify-between pt-3 border-t border-stone-200 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 transition-colors"
+            >
+              <span>{summaryOpen ? t.hideSummary : t.showSummary}</span>
+              <ChevronDown size={14} className={`transition-transform duration-300 ${summaryOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {summaryOpen && (
+              <div className="flex flex-col gap-2.5 max-h-[40vh] overflow-y-auto">
+                <div className="flex flex-col gap-3 pb-3 border-b border-stone-200">
+                  {items.map((item) => {
+                    if (isLooseLinkItem(item)) {
+                      const colCount = item.configuration.columns.length;
+                      return (
+                        <div key={item.id} className="flex items-start gap-4">
+                          {/* Same thumbnail as the cart drawer (falls back to a chain icon) */}
+                          {item.previewImage ? (
+                            <img
+                              src={item.previewImage}
+                              alt={t.customChain}
+                              className="w-20 h-20 object-cover flex-shrink-0 bg-stone-100"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 flex-shrink-0 bg-stone-100 flex items-center justify-center">
+                              <span className="text-[18px]">⛓</span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold uppercase tracking-tight text-stone-900">
+                              {t.customChain}
+                            </p>
+                            <p className="text-[11px] text-stone-400 mt-0.5">
+                              {item.totalLinks} {t.links} × {item.currency} {item.pricePerLink.toLocaleString()}
+                            </p>
+                            <p className="text-[11px] text-stone-400">
+                              {colCount} {t.columns}
+                            </p>
+                          </div>
+                          <p className="text-xs font-bold text-stone-900 flex-shrink-0">
+                            {item.currency} {item.lineTotal.toLocaleString()}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={item.id} className="flex items-start gap-4">
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-20 h-20 object-cover flex-shrink-0 bg-stone-100"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold uppercase tracking-tight text-stone-900 leading-snug">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-stone-400 mt-0.5">
+                            {t.qty} {item.quantity} × {item.currency} {item.price.toLocaleString()}
+                          </p>
+                        </div>
+                        <p className="text-xs font-bold text-stone-900 flex-shrink-0">
+                          {item.currency} {(item.price * item.quantity).toLocaleString()}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                    {t.subtotal}
+                  </span>
+                  <span className="text-sm text-stone-700">
+                    {currency} {subtotal.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                    {t.delivery}
+                  </span>
+                  {selectedZone ? (
+                    <span className="text-sm text-stone-700">
+                      {currency} {deliveryRate.toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] italic text-stone-400">
+                      {t.deliveryPending}
+                    </span>
+                  )}
+                </div>
+
+                {showInstallation && addInstallation && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                      {t.installation}
+                    </span>
+                    <span className="text-sm text-stone-700">
+                      {currency} {installFee.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

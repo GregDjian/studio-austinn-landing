@@ -31,7 +31,6 @@ const getContent = (lang: Language) => {
       madeToOrder:     "يُصنع بالطلب",
       addToCart:       "أضف إلى السلة",
       notAvailable:    "غير متاح",
-      inquire:         "استفسر عن الطلب",
       sku:             "الرمز",
       loading:         "جارٍ التحميل…",
       notFound:        "المنتج غير موجود.",
@@ -64,7 +63,6 @@ const getContent = (lang: Language) => {
     madeToOrder:     "Made to Order",
     addToCart:       "Add to Cart",
     notAvailable:    "Not Available",
-    inquire:         "Inquire to Order",
     sku:             "SKU",
     loading:         "Loading…",
     notFound:        "Product not found.",
@@ -575,11 +573,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                     }`}
                   >
                     <span>
-                      {justAdded
-                        ? t.added
-                        : availability === "made_to_order"
-                        ? t.inquire
-                        : t.addToCart}
+                      {justAdded ? t.added : t.addToCart}
                     </span>
                     <span className="opacity-75 font-bold">
                       {product.currency} {displayPrice?.toLocaleString()}<span className="ms-2 text-[8px] tracking-widest font-normal opacity-70">{t.inclVat}</span>

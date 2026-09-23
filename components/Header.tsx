@@ -18,7 +18,7 @@ const getNavItems = (lang: Language): NavItem[] => {
       { label: "الكتالوج", href: "/#services" },
       { label: "مختارات", href: "/#artists" },
       { label: "المساحات والمشاريع", href: "/#spaces-projects" },
-      { label: "المتجر", href: "/shop" },
+      { label: "تواصل", href: "/#contact" },
     ];
   }
   return [
@@ -26,21 +26,21 @@ const getNavItems = (lang: Language): NavItem[] => {
     { label: "Catalogue", href: "/#services" },
     { label: "Featured", href: "/#artists" },
     { label: "Spaces & Projects", href: "/#spaces-projects" },
-    { label: "Shop", href: "/shop" },
+    { label: "Contact", href: "/#contact" },
   ];
 };
 
 const getContent = (lang: Language) => {
   if (lang === "ar") {
     return {
-      contact: "تواصل",
+      shop: "المتجر",
       openMenu: "فتح القائمة",
       closeMenu: "إغلاق القائمة",
       switchTo: "English",
     };
   }
   return {
-    contact: "Contact",
+    shop: "Shop",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     switchTo: "Arabic",
@@ -91,8 +91,11 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
     if (!mobileMenuOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Lets the announcement bar hide itself while the mobile menu is open (index.html CSS).
+    document.documentElement.setAttribute("data-mobile-menu", "open");
     return () => {
       document.body.style.overflow = prev;
+      document.documentElement.removeAttribute("data-mobile-menu");
     };
   }, [mobileMenuOpen]);
 
@@ -199,9 +202,9 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
               )}
             </button>
 
-            {/* Contact button */}
-            <a
-              href="#contact"
+            {/* Shop button */}
+            <Link
+              to="/shop"
               className={[
                 "px-6 py-2 border text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300",
                 isSolid
@@ -209,18 +212,35 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
                   : "border-white text-white hover:bg-white hover:text-stone-900 hover:border-white",
               ].join(" ")}
             >
-              {t.contact}
-            </a>
+              {t.shop}
+            </Link>
           </nav>
 
-          <button
-            className={["md:hidden z-50 transition-colors", isSolid ? "text-stone-600" : "text-white"].join(" ")}
-            onClick={() => setMobileMenuOpen((v) => !v)}
-            aria-label={mobileMenuOpen ? t.closeMenu : t.openMenu}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile: cart icon + menu toggle */}
+          <div className="md:hidden z-50 flex items-center gap-5">
+            <button
+              type="button"
+              onClick={() => { setMobileMenuOpen(false); onCartOpen(); }}
+              aria-label={lang === "ar" ? "السلة" : "Shopping cart"}
+              className={["relative transition-colors", isSolid ? "text-stone-600" : "text-white"].join(" ")}
+            >
+              <ShoppingBag size={22} />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-stone-900 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              className={["transition-colors", isSolid ? "text-stone-600" : "text-white"].join(" ")}
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label={mobileMenuOpen ? t.closeMenu : t.openMenu}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -255,22 +275,6 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
           )
         )}
 
-        {/* Mobile cart button */}
-        <button
-          type="button"
-          onClick={() => { setMobileMenuOpen(false); onCartOpen(); }}
-          className="flex items-center gap-2 text-[14px] font-bold uppercase tracking-widest text-stone-800 hover:text-stone-500 transition-colors"
-          aria-label={lang === "ar" ? "السلة" : "Shopping cart"}
-        >
-          <ShoppingBag size={20} />
-          {lang === "ar" ? "السلة" : "Cart"}
-          {itemCount > 0 && (
-            <span className="bg-stone-900 text-white text-[9px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              {itemCount > 9 ? "9+" : itemCount}
-            </span>
-          )}
-        </button>
-
         {/* Mobile language switch */}
         <button
           type="button"
@@ -284,8 +288,9 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
           {t.switchTo}
         </button>
 
-        <a
-          href="#contact"
+        <Link
+          to="/shop"
+          onClick={() => setMobileMenuOpen(false)}
           className={[
             "px-6 py-2 border text-[14px] font-bold uppercase tracking-[0.2em] transition-all duration-300",
             isSolid
@@ -293,8 +298,8 @@ const Header: React.FC<HeaderProps> = ({ lang, setLang, onCartOpen }) => {
               : "border-black text-black hover:bg-white hover:text-stone-900 hover:border-white",
           ].join(" ")}
         >
-          {t.contact}
-        </a>
+          {t.shop}
+        </Link>
       </div>
     </>
   );
