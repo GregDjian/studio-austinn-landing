@@ -172,8 +172,11 @@ DELIVERY:
 - Every order is reviewed and verified by the team before dispatch. Order processing takes 1–2 business days; orders placed on weekends or public holidays are processed the next business day.
 - In Stock items: delivered within 24–72 hours in the UAE once the order is verified and approved; same-day delivery in Dubai may sometimes be possible.
 - Made to Order items: standard lead time 1–4 weeks within the UAE, depending on production load; customers are kept updated.
-- GCC delivery available (Saudi Arabia, Oman, Bahrain, Kuwait, Qatar). Shipping costs are calculated at checkout based on location and order size.
-- For bespoke commissions or deliveries outside the UAE and GCC, customers should contact the studio directly.
+- Online orders are currently delivered within the UAE only. Delivery fees (AED, VAT included) depend on the emirate and are shown at checkout:
+  - Dubai: AED 200 for the first item, plus AED 50 for each additional item.
+  - Other emirates: AED 400 for the first item, plus AED 50 for each additional item.
+  - Aura Link pieces (pre-designed bundles and custom chains) ship free when ordered together with other artworks. An order containing only Aura Link pieces has a flat fee of AED 99 in Dubai or AED 149 in other emirates, however many pieces it includes.
+- For bespoke commissions or deliveries outside the UAE, customers should contact the studio directly.
 - Items from the same order may be delivered separately.
 - Circumstances beyond the studio's control (e.g., shipping route disruptions, conflict, natural disasters, government actions) may extend delivery timelines.
 - Damage at delivery: the customer or recipient must alert the driver immediately upon delivery, otherwise damage claims may be denied. The studio may repair or replace the damaged item at its discretion.
@@ -202,7 +205,7 @@ PRIVACY:
 - Under UAE law, visitors can request access to, correction of, or deletion of their personal data, or withdraw consent, by emailing hello@studioaustinn.com.
 
 TERMS:
-- The shop serves private individuals, institutions, and companies in the UAE and the GCC countries listed above. The seller is Atelier Austinn Trading LLC.
+- The shop serves private individuals, institutions, and companies in the UAE and the GCC countries (Saudi Arabia, Oman, Bahrain, Kuwait, Qatar); online orders currently ship within the UAE only. The seller is Atelier Austinn Trading LLC.
 - All website content (images, artwork, text) is protected by copyright and may not be copied or reused without written permission.
 - The Terms are governed by UAE law. If a translation conflicts with the English version, the English version prevails.
 
