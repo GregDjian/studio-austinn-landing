@@ -217,9 +217,20 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
   const variantName = selectedVariant ? selectedVariant.name.en : "";
   const displayTitle = variantName ? `${title} — ${variantName}` : title;
-  // With colour variants, only the selected variant's own photo is shown (never the product's
-  // general images). Without variants, the product's images.
-  const images = selectedVariant?.image ? [selectedVariant.image] : baseImages;
+  // With colour variants, the selected variant's photo comes first, followed by the product's
+  // general images, minus any that is another variant's photo (so a Gold selection never shows
+  // the Silver one). Without variants, the product's images.
+  const assetRef = (img: any): string | undefined => img?.asset?._ref;
+  const images = selectedVariant?.image
+    ? (() => {
+        const variantRefs = new Set(variants.map((v) => assetRef(v.image)).filter(Boolean));
+        const extras = baseImages.filter((img) => {
+          const ref = assetRef(img);
+          return ref && !variantRefs.has(ref);
+        });
+        return [selectedVariant.image, ...extras];
+      })()
+    : baseImages;
 
   const availLabel =
     availability === "in_stock"   ? t.inStock

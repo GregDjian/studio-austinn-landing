@@ -56,9 +56,9 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, tit
 
   const arrowClass =
     "absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center " +
-    "rounded-full bg-stone-50/85 text-stone-900 hover:bg-stone-50 shadow-sm " +
-    "transition-opacity duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 " +
-    "focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900";
+    "rounded-full bg-stone-50/90 text-stone-900 hover:bg-stone-50 shadow-md " +
+    "transition-colors duration-200 " +
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-stone-900";
 
   return (
     <div
@@ -109,7 +109,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, tit
 
           <span
             aria-live="polite"
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full bg-stone-50/85 text-stone-900 text-[10px] font-bold tracking-[0.2em] tabular-nums"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 px-3.5 py-1.5 rounded-full bg-stone-50/90 text-stone-900 shadow-sm text-[11px] font-bold tracking-[0.2em] tabular-nums"
           >
             {index + 1} / {count}
           </span>
