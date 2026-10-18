@@ -5,7 +5,6 @@ import { Availability, Language, Product } from "../types";
 import { getProducts, getCollections, CollectionMeta } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
 import { SHOW_ARTISTIC_PARTITIONS } from "../lib/shopConfig";
-import Button from "./Button";
 import Footer from "./Footer";
 
 interface ShopProps {
@@ -32,7 +31,6 @@ const getContent = (lang: Language) => {
       paintings:            "لوحات",
       products:             "منتج",
       shopLabel:            "متجر ستوديو أوستين",
-      loadMore:             "تحميل المزيد",
       statementLead:        "كل قطعة يبتكرها ستوديو أوستن أو بالشراكة مع ستوديو أوستن. فنّنا مصنوع يدوياً في قلب دبي، في أتيليه ستوديو أوستن. لأي طلب خاص،",
       contactUs:            "تواصل معنا",
       filter:               "المجموعة",
@@ -63,7 +61,6 @@ const getContent = (lang: Language) => {
     paintings:            "Paintings",
     products:             "Products",
     shopLabel:            "Studio Austinn Online Shop",
-    loadMore:             "Load More",
     statementLead:        "Every piece is created by Studio Austinn or in partnership with Studio Austinn. Our art is handcrafted in the heart of Dubai, at the Studio Austinn Atelier. For any custom request,",
     contactUs:            "contact us",
     filter:               "Collection",
@@ -86,7 +83,7 @@ const COLLECTION_KEY_ART_LINKS = "art-links";
 const COLLECTION_KEY_PARTITIONS = "artistic-partitions";
 const COLLECTION_KEY_PAINTINGS  = "paintings";
 
-// "Load More" batch size. The grid renders sortedProducts.slice(0, visibleCount).
+// Infinite-scroll batch size. The grid renders sortedProducts.slice(0, visibleCount).
 const PAGE_SIZE = 15;
 
 const Shop: React.FC<ShopProps> = ({ lang }) => {
@@ -102,9 +99,10 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
   // detail page as ?variant=<key> so it opens on the variant that was picked.
   const [cardVariant, setCardVariant]         = useState<Record<string, string>>({});
   const sortRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const t = getContent(lang);
 
-  // Reset the "Load More" window whenever the visible set changes underneath it.
+  // Reset the infinite-scroll window whenever the visible set changes underneath it.
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [activeCollection, sortMode]);
 
   // Close the Sort menu on outside click / touch and on Escape.
@@ -176,12 +174,28 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
     return withoutBuilder;
   }, [visibleProducts, sortMode]);
 
-  // Only the first `visibleCount` products render; "Load More" raises the count.
+  // Only the first `visibleCount` products render; scrolling near the end raises the count.
   const displayedProducts = useMemo(
     () => sortedProducts.slice(0, visibleCount),
     [sortedProducts, visibleCount],
   );
   const hasMore = visibleCount < sortedProducts.length;
+
+  // Infinite scroll: when the sentinel below the grid comes within 600px of the
+  // viewport, render the next batch. Re-subscribes after each batch so a still-
+  // visible sentinel (short pages, tall screens) keeps loading until it's off-screen.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setVisibleCount((c) => c + PAGE_SIZE);
+      },
+      { rootMargin: "0px 0px 600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, visibleCount]);
 
   const sortOptions: { value: Exclude<SortMode, "">; label: string }[] = [
     { value: "price-asc",  label: t.sortPriceAsc },
@@ -550,17 +564,8 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
             {displayedProducts.map(renderCard)}
           </div>
 
-          {/* Load More — appends the next batch; hidden once everything is shown */}
-          {hasMore && (
-            <div className="flex justify-center mt-12 md:mt-16">
-              <Button
-                variant="outline"
-                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              >
-                {t.loadMore}
-              </Button>
-            </div>
-          )}
+          {/* Infinite-scroll sentinel — triggers the next batch; gone once everything is shown */}
+          {hasMore && <div ref={sentinelRef} aria-hidden="true" className="h-px" />}
         </>
       )}
     </section>

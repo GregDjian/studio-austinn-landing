@@ -21,16 +21,19 @@ export async function getArtists() {
 }
 
 /* =========================
-   ARTWORKS
+   ARTWORKS (catalogue)
+   Products with "Show in Catalogue" on, plus legacy artwork documents until
+   they're migrated. Products are projected into the artwork shape
+   ({ title, type, description, coverImage }) so the catalogue components are unchanged.
 ========================= */
 export async function getArtworks() {
   return sanityClient.fetch(`
-    *[_type == "artwork"] | order(_createdAt desc) {
+    *[_type == "artwork" || (_type == "product" && showInCatalogue == true)] | order(_createdAt desc) {
       _id,
-      title,
-      type,
-      description,
-      coverImage
+      "title":       select(_type == "product" => title.en, title),
+      "type":        select(_type == "product" => catalogueType, type),
+      "description": select(_type == "product" => catalogueCaption, description),
+      "coverImage":  select(_type == "product" => images[0], coverImage)
     }
   `);
 }
@@ -58,15 +61,17 @@ export async function getProjects() {
 
 /* =========================
    SHOP PRODUCTS
-   Entirely separate from artwork/artist data.
+   Only products with "Show in Shop" on; a missing value counts as on, so
+   products created before the toggle existed stay in the shop.
 ========================= */
 
 // Hides the Artistic Partitions collection while SHOW_ARTISTIC_PARTITIONS is false.
 const PARTITIONS_FILTER = SHOW_ARTISTIC_PARTITIONS ? "" : ' && collection != "artistic-partitions"';
+const SHOP_FILTER = ` && showInShop != false${PARTITIONS_FILTER}`;
 
 export async function getProducts() {
   return sanityClient.fetch(`
-    *[_type == "product"${PARTITIONS_FILTER}] | order(featured desc, _createdAt desc) {
+    *[_type == "product"${SHOP_FILTER}] | order(featured desc, _createdAt desc) {
       _id,
       _createdAt,
       "productType": coalesce(productType, "bundle"),
@@ -91,7 +96,7 @@ export async function getProducts() {
 
 export async function getProductBySlug(slug: string) {
   return sanityClient.fetch(
-    `*[_type == "product" && slug.current == $slug${PARTITIONS_FILTER}][0] {
+    `*[_type == "product" && slug.current == $slug${SHOP_FILTER}][0] {
       _id,
       "productType": coalesce(productType, "bundle"),
       title,
