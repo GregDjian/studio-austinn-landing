@@ -156,7 +156,7 @@ Studio Austinn collaborates with selected contemporary artists presented in the 
 
 Studio Austinn is located in Al Quoz, Dubai. Most artworks are produced locally in Dubai, ensuring flexibility, quality control, and faster delivery. Typical production timelines: 6–10 days for paintings, approximately 3 weeks for sculptures, though timelines vary by project complexity.
 
-ONLINE SHOP — Studio Austinn now has an online shop at studioaustinn.com/shop with two collections:
+ONLINE SHOP — Studio Austinn now has an online shop at studioaustinn.com/shop with these collections: Paintings, Aura Link (art links), Wall Art and Sculptures. Highlights:
 
 1. ART LINKS — Colorful acrylic chain link art pieces available in two ways:
    - Pre-designed bundles: fixed pieces with set color combinations, available to purchase directly

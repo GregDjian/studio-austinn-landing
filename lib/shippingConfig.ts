@@ -7,10 +7,10 @@
 // functions don't import from the app) — change both together.
 export const UAE_ONLY = true;
 
-// UAE delivery rates (AED, VAT-inclusive). Every non-chain unit in the cart is an
-// item: the first costs `firstItem`, each additional one `additionalItem`. Custom
-// chains ship free alongside other items; a chains-only cart pays one flat `chains`
-// fee, however many chains there are.
+// UAE delivery rates (AED, VAT-inclusive). "Chains" are custom chains and Aura Link
+// (art-links) bundles. Every non-chain unit in the cart is an item: the first costs
+// `firstItem`, each additional one `additionalItem`. Chains ship free alongside other
+// items; a chains-only cart pays one flat `chains` fee, however many chains there are.
 export const UAE_DELIVERY = {
   dubai:          { firstItem: 200, chains: 99  },
   otherEmirates:  { firstItem: 400, chains: 149 },

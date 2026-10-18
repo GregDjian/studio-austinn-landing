@@ -445,6 +445,8 @@ export default defineType({
           { title: 'Aura Link',           value: 'art-links'           }, // stored value unchanged — display name only
           { title: 'Artistic Partitions', value: 'artistic-partitions' },
           { title: 'Paintings',           value: 'paintings'           },
+          { title: 'Wall Art',            value: 'wall-art'            },
+          { title: 'Sculptures',          value: 'sculptures'          },
         ],
         layout: 'radio',
       },
@@ -478,6 +480,7 @@ export default defineType({
       }
       const collLabels: Record<string, string> = {
         'art-links': 'Aura Link', 'artistic-partitions': 'Partitions', paintings: 'Paintings',
+        'wall-art': 'Wall Art', sculptures: 'Sculptures',
       }
       const collLabel = collLabels[collection] ?? 'Aura Link'
       return {

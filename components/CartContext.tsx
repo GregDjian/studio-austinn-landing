@@ -17,6 +17,9 @@ export interface CartItem {
   quantity: number;
   weightKg?: number;
   size?: 'small' | 'medium' | 'large';
+  /** Shop collection key (e.g. "art-links"). Checkout ships Aura Link bundles
+   *  like custom chains. */
+  collection?: string;
   /** Selected colour variant's display name (current language) — absent when the
    *  product has no variants. `title` already includes it ("Paravent Rome — Gold");
    *  this is kept separately so checkout can send it as the Stripe description. */

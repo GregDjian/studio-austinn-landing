@@ -29,6 +29,8 @@ const getContent = (lang: Language) => {
       artLinks:             "أورا لينك",
       artisticPartitions:   "فواصل فنية",
       paintings:            "لوحات",
+      wallArt:              "فن جداري",
+      sculptures:           "منحوتات",
       products:             "منتج",
       shopLabel:            "متجر ستوديو أوستين",
       statementLead:        "كل قطعة يبتكرها ستوديو أوستن أو بالشراكة مع ستوديو أوستن. فنّنا مصنوع يدوياً في قلب دبي، في أتيليه ستوديو أوستن. لأي طلب خاص،",
@@ -59,6 +61,8 @@ const getContent = (lang: Language) => {
     artLinks:             "Aura Link",
     artisticPartitions:   "Artistic Partitions",
     paintings:            "Paintings",
+    wallArt:              "Wall Art",
+    sculptures:           "Sculptures",
     products:             "Products",
     shopLabel:            "Studio Austinn Online Shop",
     statementLead:        "Every piece is created by Studio Austinn or in partnership with Studio Austinn. Our art is handcrafted in the heart of Dubai, at the Studio Austinn Atelier. For any custom request,",
@@ -82,6 +86,8 @@ const COLLECTION_KEY_ALL       = null;
 const COLLECTION_KEY_ART_LINKS = "art-links";
 const COLLECTION_KEY_PARTITIONS = "artistic-partitions";
 const COLLECTION_KEY_PAINTINGS  = "paintings";
+const COLLECTION_KEY_WALL_ART   = "wall-art";
+const COLLECTION_KEY_SCULPTURES = "sculptures";
 
 // Infinite-scroll batch size. The grid renders sortedProducts.slice(0, visibleCount).
 const PAGE_SIZE = 15;
@@ -129,18 +135,23 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
       .finally(() => setFetching(false));
   }, []);
 
-  // Each tile merges i18n label (authoritative) with Sanity image (optional until uploaded).
-  const collectionTiles = [
-    { key: COLLECTION_KEY_ART_LINKS,  label: t.artLinks },
-    ...(SHOW_ARTISTIC_PARTITIONS ? [{ key: COLLECTION_KEY_PARTITIONS, label: t.artisticPartitions }] : []),
-    { key: COLLECTION_KEY_PAINTINGS,  label: t.paintings },
-  ].map(({ key, label }) => {
-    const meta = rawCollections.find(c => c.key === key);
-    return { key, label, imageUrl: meta ? imgUrl.thumb(meta.image) : null };
-  });
-
   // Normalise missing collection → "art-links" so old documents fall under Aura Link.
   const resolveCollection = (p: Product) => p.collection ?? COLLECTION_KEY_ART_LINKS;
+
+  // Each tile merges i18n label (authoritative) with Sanity image (optional until uploaded).
+  // Tiles for collections with no products yet are hidden.
+  const collectionTiles = [
+    { key: COLLECTION_KEY_PAINTINGS,   label: t.paintings },
+    { key: COLLECTION_KEY_ART_LINKS,   label: t.artLinks },
+    ...(SHOW_ARTISTIC_PARTITIONS ? [{ key: COLLECTION_KEY_PARTITIONS, label: t.artisticPartitions }] : []),
+    { key: COLLECTION_KEY_WALL_ART,    label: t.wallArt },
+    { key: COLLECTION_KEY_SCULPTURES,  label: t.sculptures },
+  ]
+    .filter(({ key }) => products.some((p) => resolveCollection(p) === key))
+    .map(({ key, label }) => {
+      const meta = rawCollections.find(c => c.key === key);
+      return { key, label, imageUrl: meta ? imgUrl.thumb(meta.image) : null };
+    });
 
   const visibleProducts = activeCollection === COLLECTION_KEY_ALL
     ? products

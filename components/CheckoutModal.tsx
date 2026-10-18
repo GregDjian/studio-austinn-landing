@@ -224,8 +224,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
   // additional unit; chains ship free with them. Chains-only carts pay one flat fee.
   // Needs an emirate.
   const uaeRates      = emirate === "dubai" ? UAE_DELIVERY.dubai : UAE_DELIVERY.otherEmirates;
-  const itemUnits     = items.reduce((n, item) => (isLooseLinkItem(item) ? n : n + item.quantity), 0);
-  const hasChains     = items.some(isLooseLinkItem);
+  // Custom chains and Aura Link bundles both count as chains.
+  const isChain       = (item: (typeof items)[number]) => isLooseLinkItem(item) || item.collection === "art-links";
+  const itemUnits     = items.reduce((n, item) => (isLooseLinkItem(item) || isChain(item) ? n : n + item.quantity), 0);
+  const hasChains     = items.some(isChain);
   const uaeRate       =
     itemUnits > 0 ? uaeRates.firstItem + UAE_DELIVERY.additionalItem * (itemUnits - 1)
     : hasChains   ? uaeRates.chains

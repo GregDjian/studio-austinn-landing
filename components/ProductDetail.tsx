@@ -157,6 +157,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
       availability: availability!,
       weightKg:     product.weightKg,
       size:         product.size,
+      collection:   product.collection,
     };
   };
 

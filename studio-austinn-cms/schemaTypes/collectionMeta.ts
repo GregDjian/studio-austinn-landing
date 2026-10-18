@@ -16,6 +16,8 @@ export default defineType({
           { title: 'Aura Link',           value: 'art-links'           },
           { title: 'Artistic Partitions', value: 'artistic-partitions' },
           { title: 'Paintings',           value: 'paintings'           },
+          { title: 'Wall Art',            value: 'wall-art'            },
+          { title: 'Sculptures',          value: 'sculptures'          },
         ],
         layout: 'radio',
       },
