@@ -22,18 +22,17 @@ export async function getArtists() {
 
 /* =========================
    ARTWORKS (catalogue)
-   Products with "Show in Catalogue" on, plus legacy artwork documents until
-   they're migrated. Products are projected into the artwork shape
-   ({ title, type, description, coverImage }) so the catalogue components are unchanged.
+   Products with "Show in Catalogue" on, projected into the artwork shape
+   ({ title, type, description, coverImage }) the catalogue components use.
 ========================= */
 export async function getArtworks() {
   return sanityClient.fetch(`
-    *[_type == "artwork" || (_type == "product" && showInCatalogue == true)] | order(coalesce(catalogueSortDate, _createdAt) desc) {
+    *[_type == "product" && showInCatalogue == true] | order(coalesce(catalogueSortDate, _createdAt) desc) {
       _id,
-      "title":       select(_type == "product" => title.en, title),
-      "type":        select(_type == "product" => catalogueType, type),
-      "description": select(_type == "product" => catalogueCaption, description),
-      "coverImage":  select(_type == "product" => images[0], coverImage)
+      "title":       title.en,
+      "type":        catalogueType,
+      "description": catalogueCaption,
+      "coverImage":  images[0]
     }
   `);
 }
