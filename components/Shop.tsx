@@ -485,10 +485,12 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
           {/* CENTER: collection tiles — expand / fade when Filter is open */}
           <div
             className={`order-first md:order-none w-full md:w-auto md:flex-1 min-w-0 flex justify-center overflow-hidden transition-all duration-300 ease-out ${
-              filterOpen ? "max-h-28 opacity-100 mb-5 md:mb-0" : "max-h-0 opacity-0"
+              filterOpen ? "max-h-64 md:max-h-28 opacity-100 mb-5 md:mb-0" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="flex gap-0 overflow-x-auto">
+            {/* Phones: "All" on its own row, the collections centered below it (wrapping
+                instead of scrolling). md+: one row. */}
+            <div className="flex flex-col items-center gap-3 md:flex-row md:gap-0">
 
               {/* "All" tile */}
               <button
@@ -508,13 +510,14 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
               </button>
 
               {/* Collection tiles — image from Sanity; stone-200 placeholder until uploaded */}
+              <div className="flex flex-wrap justify-center gap-y-3 md:flex-nowrap">
               {collectionTiles.map(({ key, label, imageUrl }) => (
                 <button
                   key={key}
                   onClick={() => setActiveCollection(key)}
                   className="flex-none flex flex-col items-center gap-2"
                 >
-                  <div className={`w-20 h-10 bg-stone-100 overflow-hidden border-2 transition-colors duration-200 ${
+                  <div className={`w-[4.5rem] sm:w-20 h-10 bg-stone-100 overflow-hidden border-2 transition-colors duration-200 ${
                     activeCollection === key ? "border-stone-900" : "border-transparent"
                   }`}>
                     {imageUrl ? (
@@ -529,13 +532,14 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
                       <div className="w-full h-full bg-stone-200" />
                     )}
                   </div>
-                  <span className={`text-[9px] font-bold uppercase tracking-[0.2em] text-center leading-tight max-w-[5rem] transition-colors duration-200 ${
+                  <span className={`text-[9px] font-bold uppercase tracking-[0.2em] text-center leading-tight max-w-[4.5rem] sm:max-w-[5rem] transition-colors duration-200 ${
                     activeCollection === key ? "text-stone-900" : "text-stone-500"
                   }`}>
                     {label}
                   </span>
                 </button>
               ))}
+              </div>
 
             </div>
           </div>
