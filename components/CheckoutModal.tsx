@@ -6,7 +6,7 @@ import { getDeliveryZones, DeliveryZone, WeightTier, SizeTier } from "../lib/san
 
 // ── Static geo data ───────────────────────────────────────────────────────────
 
-import { UAE_ONLY } from "../lib/shippingConfig";
+import { UAE_ONLY, UAE_DELIVERY } from "../lib/shippingConfig";
 import { vatPortion, excludingVat, formatFixed } from "../lib/vat";
 
 const COUNTRIES = [
@@ -74,6 +74,7 @@ const getContent = (lang: Language) => {
       proceed:         "المتابعة إلى الدفع",
       processing:      "جاري المعالجة…",
       deliveryPending: "اختر الوجهة لعرض رسوم التوصيل",
+      deliveryPendingEmirate: "اختر الإمارة لعرض رسوم التوصيل",
       customChain:     "سلسلة مخصصة",
       links:           "حلقات",
       columns:         "أعمدة",
@@ -110,6 +111,7 @@ const getContent = (lang: Language) => {
     proceed:         "Proceed to Payment",
     processing:      "Processing…",
     deliveryPending: "Select a destination to see delivery rate",
+    deliveryPendingEmirate: "Select an emirate to see delivery rate",
     customChain:     "Custom Chain",
     links:           "links",
     columns:         "columns",
@@ -218,26 +220,38 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
   const currency  = items[0]?.currency ?? "AED";
   const subtotal  = totalPrice;
 
-  // Per-item delivery cost: each line item is rated independently then summed.
+  // UAE: flat per-emirate rates (lib/shippingConfig.ts) — first item, +50 per
+  // additional unit; chains ship free with them. Chains-only carts pay one flat fee.
+  // Needs an emirate.
+  const uaeRates      = emirate === "dubai" ? UAE_DELIVERY.dubai : UAE_DELIVERY.otherEmirates;
+  const itemUnits     = items.reduce((n, item) => (isLooseLinkItem(item) ? n : n + item.quantity), 0);
+  const hasChains     = items.some(isLooseLinkItem);
+  const uaeRate       =
+    itemUnits > 0 ? uaeRates.firstItem + UAE_DELIVERY.additionalItem * (itemUnits - 1)
+    : hasChains   ? uaeRates.chains
+    : 0;
+  const deliveryReady = selectedZone !== null && (!isUAE || emirate !== "");
+
+  // GCC: each line item is rated independently then summed.
   // Bundle: rate is looked up per unit then multiplied by quantity.
   // Loose-link: one shipment — tier lookup uses full chain weight, units = 1.
   // Untagged items default weightKg → 0, size → "large" (safe overcharge).
-  const deliveryRate = selectedZone
-    ? items.reduce((sum, item) => {
+  const deliveryRate = !deliveryReady ? 0
+    : isUAE ? uaeRate
+    : items.reduce((sum, item) => {
         const wKg        = item.weightKg ?? 0;
         const itemSize   = (item.size ?? "large") as "small" | "medium" | "large";
         const itemWeight = isLooseLinkItem(item) ? wKg * item.totalLinks : wKg;
         const units      = isLooseLinkItem(item) ? 1 : item.quantity;
-        const wRate      = lookupWeightTier(selectedZone.weightTiers ?? [], itemWeight);
-        const sRate      = lookupSizeTier(selectedZone.sizeTiers ?? [], itemSize);
+        const wRate      = lookupWeightTier(selectedZone!.weightTiers ?? [], itemWeight);
+        const sRate      = lookupSizeTier(selectedZone!.sizeTiers ?? [], itemSize);
         return sum + Math.max(wRate, sRate) * units;
-      }, 0)
-    : 0;
+      }, 0);
 
   const installFee       = selectedZone?.installationFee ?? 0;
   const showInstallation = emirate === "dubai" && installFee > 0;
   const orderTotal       = subtotal
-    + (selectedZone ? deliveryRate : 0)
+    + deliveryRate
     + (showInstallation && addInstallation ? installFee : 0);
   const dialPrefix       = COUNTRY_DIAL[country] ?? "+";
   const phoneFull        = buildPhone(dialPrefix, phone);
@@ -279,7 +293,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
     });
 
     const deliveryPayload = {
-      label:    `Delivery — ${selectedZone.zoneName.en}`,
+      label:    `Delivery — ${isUAE ? UAE_EMIRATES.find((em) => em.value === emirate)?.en ?? selectedZone.zoneName.en : selectedZone.zoneName.en}`,
       amount:   deliveryRate,
       currency,
     };
@@ -556,16 +570,26 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
           {/* Cost breakdown — total + VAT always visible; the order summary (items,
               subtotal, delivery, installation) collapses behind a toggle under them. */}
           <div className="flex flex-col gap-2.5">
+            {/* Delivery shown up front so the shipping cost is visible without opening the summary */}
+            <div className="flex justify-between items-center text-[11px] text-stone-500">
+              <span>{t.delivery}</span>
+              {deliveryReady ? (
+                <span>{currency} {deliveryRate.toLocaleString()}</span>
+              ) : (
+                <span className="italic text-stone-400">{isUAE ? t.deliveryPendingEmirate : t.deliveryPending}</span>
+              )}
+            </div>
+
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900">
                 {t.total}
               </span>
               <span className="font-sans font-black text-lg text-stone-900">
-                {selectedZone ? `${currency} ${orderTotal.toLocaleString()}` : "—"}
+                {deliveryReady ? `${currency} ${orderTotal.toLocaleString()}` : "—"}
               </span>
             </div>
 
-            {selectedZone && (
+            {deliveryReady && (
               <>
                 <div className="flex justify-between items-center -mt-1 text-[11px] text-stone-500">
                   <span>{t.excludingVat}</span>
@@ -663,13 +687,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
                     {t.delivery}
                   </span>
-                  {selectedZone ? (
+                  {deliveryReady ? (
                     <span className="text-sm text-stone-700">
                       {currency} {deliveryRate.toLocaleString()}
                     </span>
                   ) : (
                     <span className="text-[10px] italic text-stone-400">
-                      {t.deliveryPending}
+                      {isUAE ? t.deliveryPendingEmirate : t.deliveryPending}
                     </span>
                   )}
                 </div>
