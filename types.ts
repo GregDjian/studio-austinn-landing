@@ -51,8 +51,6 @@ export interface ChainConfig {
   previewImage?: string;
 }
 
-export type ProductSize = 'small' | 'medium' | 'large';
-
 /** Bundle products only — a colour variant with its own photo and stock status. */
 export interface ProductVariant {
   _key: string;
@@ -86,7 +84,6 @@ export interface Product {
   pricePerLink?: number;
   currency: string;
   description: LocalizedString;
-  subtitle?: LocalizedString;
   dimensions?: LocalizedString;
   /** Paintings only — fallback AR wall-preview size (cm) when no size option sets one. */
   arWidthCm?: number;
@@ -97,6 +94,4 @@ export interface Product {
   featured: boolean;
   collection?: string;
   colorOptions?: ColorOption[];
-  weightKg?: number;
-  size?: ProductSize;
 }

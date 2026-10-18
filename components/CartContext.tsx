@@ -15,8 +15,6 @@ export interface CartItem {
   image: string;
   availability: Availability;
   quantity: number;
-  weightKg?: number;
-  size?: 'small' | 'medium' | 'large';
   /** Shop collection key (e.g. "art-links"). Checkout ships Aura Link bundles
    *  like custom chains. */
   collection?: string;
@@ -47,8 +45,6 @@ export interface LooseLinkCartItem {
   colorSummary: ColorSummaryEntry[];
   /** JPEG data URL of the finished design, shown in the cart. Absent if capture failed. */
   previewImage?: string;
-  weightKg?: number;
-  size?: 'small' | 'medium' | 'large';
 }
 
 export type AnyCartItem = CartItem | LooseLinkCartItem;

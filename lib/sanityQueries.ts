@@ -82,14 +82,13 @@ export async function getProducts() {
       // Grid shows the base price; falls back to the first size's price when none is set.
       "price": coalesce(price, sizes[0].price),
       pricePerLink,
-      currency,
+      // All prices are AED; the field was removed from the schema.
+      "currency": "AED",
       description,
       availability,
       sku,
       featured,
-      collection,
-      weightKg,
-      size
+      collection
     }
   `);
 }
@@ -106,9 +105,8 @@ export async function getProductBySlug(slug: string) {
       sizes[]{ _key, label, price, arWidthCm, arHeightCm },
       price,
       pricePerLink,
-      currency,
+      "currency": "AED",
       description,
-      subtitle,
       dimensions,
       arWidthCm,
       arHeightCm,
@@ -117,8 +115,6 @@ export async function getProductBySlug(slug: string) {
       sku,
       featured,
       collection,
-      weightKg,
-      size,
       "colorOptions": colorOptions[]->{
         _id,
         name,

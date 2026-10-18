@@ -306,42 +306,6 @@ export default defineType({
         }),
     }),
 
-    defineField({
-      name: 'currency',
-      title: 'Currency',
-      type: 'string',
-      initialValue: 'AED',
-      hidden: hiddenOutsideShop,
-      validation: requiredInShop,
-    }),
-
-    // ── Shipping ──────────────────────────────────────────────────────────────
-
-    defineField({
-      name: 'weightKg',
-      title: 'Weight (kg)',
-      type: 'number',
-      description: 'Estimated shipping weight per unit (kg). For loose-link products: weight per individual link — checkout multiplies by totalLinks.',
-      hidden: hiddenOutsideShop,
-      validation: (Rule) => Rule.min(0),
-    }),
-
-    defineField({
-      name: 'size',
-      title: 'Shipping Size',
-      type: 'string',
-      description: "Based on the product's longest dimension (or packaged dimension if larger): Small = up to 40cm, Medium = 40–100cm, Large = 100cm and above (e.g. partitions, anything requiring oversized/freight handling). For loose-link products, use Small regardless of quantity — quantity-based cost is already handled via weight (weightKg × totalLinks), not size.",
-      options: {
-        list: [
-          { title: 'Small',  value: 'small'  },
-          { title: 'Medium', value: 'medium' },
-          { title: 'Large',  value: 'large'  },
-        ],
-        layout: 'radio',
-      },
-      hidden: hiddenOutsideShop,
-    }),
-
     // ── Loose-link specific ────────────────────────────────────────────────────
 
     defineField({
@@ -363,17 +327,6 @@ export default defineType({
       fields: [
         defineField({ name: 'en', title: 'English', type: 'text', rows: 4, validation: requiredInShop }),
       ],
-    }),
-
-    defineField({
-      name: 'subtitle',
-      title: 'Subtitle',
-      type: 'object',
-      description: 'Short descriptor shown beneath the product title (e.g. material or style summary). Bundle products only.',
-      fields: [
-        defineField({ name: 'en', title: 'English', type: 'string' }),
-      ],
-      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
     }),
 
     defineField({

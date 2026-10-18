@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, ChevronDown, Loader2, ArrowLeft } from "lucide-react";
 import { Language } from "../types";
 import { useCart, isLooseLinkItem } from "./CartContext";
-import { getDeliveryZones, DeliveryZone, WeightTier, SizeTier } from "../lib/sanityQueries";
+import { getDeliveryZones, DeliveryZone, SizeTier } from "../lib/sanityQueries";
 
 // ── Static geo data ───────────────────────────────────────────────────────────
 
@@ -132,13 +132,6 @@ const getContent = (lang: Language) => {
 
 // ── Delivery rate helpers ─────────────────────────────────────────────────────
 
-function lookupWeightTier(tiers: WeightTier[], totalKg: number): number {
-  const sorted = [...tiers].sort((a, b) => b.minKg - a.minKg);
-  return sorted.find(
-    (t) => totalKg >= t.minKg && (t.maxKg == null || totalKg < t.maxKg)
-  )?.rate ?? 0;
-}
-
 function lookupSizeTier(tiers: SizeTier[], size: "small" | "medium" | "large"): number {
   return tiers.find((t) => t.size === size)?.rate ?? 0;
 }
@@ -234,20 +227,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
     : 0;
   const deliveryReady = selectedZone !== null && (!isUAE || emirate !== "");
 
-  // GCC: each line item is rated independently then summed.
-  // Bundle: rate is looked up per unit then multiplied by quantity.
-  // Loose-link: one shipment — tier lookup uses full chain weight, units = 1.
-  // Untagged items default weightKg → 0, size → "large" (safe overcharge).
+  // GCC (off while UAE_ONLY): products carry no weight or parcel size, so every
+  // bundle unit is rated at the zone's "large" parcel rate; a custom chain ships
+  // as one parcel.
   const deliveryRate = !deliveryReady ? 0
     : isUAE ? uaeRate
     : items.reduce((sum, item) => {
-        const wKg        = item.weightKg ?? 0;
-        const itemSize   = (item.size ?? "large") as "small" | "medium" | "large";
-        const itemWeight = isLooseLinkItem(item) ? wKg * item.totalLinks : wKg;
-        const units      = isLooseLinkItem(item) ? 1 : item.quantity;
-        const wRate      = lookupWeightTier(selectedZone!.weightTiers ?? [], itemWeight);
-        const sRate      = lookupSizeTier(selectedZone!.sizeTiers ?? [], itemSize);
-        return sum + Math.max(wRate, sRate) * units;
+        const units = isLooseLinkItem(item) ? 1 : item.quantity;
+        return sum + lookupSizeTier(selectedZone!.sizeTiers ?? [], "large") * units;
       }, 0);
 
   const installFee       = selectedZone?.installationFee ?? 0;

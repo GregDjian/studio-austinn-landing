@@ -155,8 +155,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
       currency:     product.currency,
       image:        photo ? imgUrl.thumb(photo) : "",
       availability: availability!,
-      weightKg:     product.weightKg,
-      size:         product.size,
       collection:   product.collection,
     };
   };
@@ -301,8 +299,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
                   lineTotal:     config.lineTotal,
                   colorSummary:  config.colorSummary,
                   previewImage:  config.previewImage,
-                  weightKg:      product.weightKg,
-                  size:          product.size,
                 });
                 setJustAdded(true);
                 setTimeout(() => setJustAdded(false), 2000);
@@ -328,7 +324,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
   //
   const isRtl = lang === "ar";
 
-  const subtitle   = product.subtitle?.en   ?? "";
   const dimensions = product.dimensions?.en ?? "";
   // Selected variant's materials, falling back to the product's own when empty.
   const materials  = selectedVariant?.materials?.en?.trim() || product.materials?.en || "";
@@ -457,18 +452,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
             <div className="flex flex-col lg:my-auto lg:py-8">
 
-              {/* ── Title row: title/subtitle left · availability badge right.
+              {/* ── Title row: title left · availability badge right.
                   Mobile: badge stacks above the title so long names can't collide. ── */}
               <div className="flex flex-col-reverse items-start gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                 <div className="flex flex-col gap-2 w-full md:w-auto md:flex-1 min-w-0">
                   <h1 className="font-sans font-black text-4xl md:text-5xl uppercase tracking-tighter text-stone-900 leading-none">
                     {displayTitle}
                   </h1>
-                  {subtitle && (
-                    <p className="font-serif italic text-stone-500 text-sm leading-snug">
-                      {subtitle}
-                    </p>
-                  )}
                 </div>
                 <span className={`shrink-0 text-[9px] font-bold uppercase tracking-[0.2em] border px-3 py-1 ${availBadgeClass}`}>
                   {availLabel}
