@@ -28,7 +28,7 @@ export async function getArtists() {
 ========================= */
 export async function getArtworks() {
   return sanityClient.fetch(`
-    *[_type == "artwork" || (_type == "product" && showInCatalogue == true)] | order(_createdAt desc) {
+    *[_type == "artwork" || (_type == "product" && showInCatalogue == true)] | order(coalesce(catalogueSortDate, _createdAt) desc) {
       _id,
       "title":       select(_type == "product" => title.en, title),
       "type":        select(_type == "product" => catalogueType, type),

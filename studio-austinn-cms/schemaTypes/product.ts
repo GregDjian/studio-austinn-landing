@@ -1,5 +1,17 @@
 import { defineField, defineType } from 'sanity'
 
+// A document is in the shop unless "Show in Shop" is explicitly off, so products
+// created before the toggle existed stay in the shop. Shop-only fields are hidden
+// and their required rules skipped for catalogue-only pieces.
+const inShop = (document: any) => document?.showInShop !== false
+const hiddenOutsideShop = ({ document }: { document?: any }) => !inShop(document)
+const requiredInShop = (Rule: any) =>
+  Rule.custom((value: any, context: any) =>
+    inShop(context.document) && (value === undefined || value === null || value === '')
+      ? 'Required for shop items'
+      : true
+  )
+
 // Real-world size of the painting in the "View on your wall" AR preview (cm).
 // Paintings only; the AR button appears when both width and height are set.
 const arDimensionField = (name: 'arWidthCm' | 'arHeightCm') =>
@@ -8,16 +20,79 @@ const arDimensionField = (name: 'arWidthCm' | 'arHeightCm') =>
     title: name === 'arWidthCm' ? 'AR Width (cm)' : 'AR Height (cm)',
     type: 'number',
     description: 'Used for the "View on your wall" AR preview. Set both width and height to enable it.',
-    hidden: ({ document }) => (document?.collection as string) !== 'paintings',
+    hidden: ({ document }) => !inShop(document) || (document?.collection as string) !== 'paintings',
     validation: (Rule) => Rule.min(5).max(500),
   })
 
 export default defineType({
   name: 'product',
-  title: 'Shop Product',
+  title: 'Artwork / Product',
   type: 'document',
 
   fields: [
+    // ── Visibility ────────────────────────────────────────────────────────────
+
+    defineField({
+      name: 'showInShop',
+      title: 'Show in Shop',
+      type: 'boolean',
+      initialValue: true,
+      description: 'Sell this piece in the online shop. Turn off for catalogue-only pieces; the shop fields below are then hidden.',
+    }),
+
+    defineField({
+      name: 'showInCatalogue',
+      title: 'Show in Catalogue',
+      type: 'boolean',
+      initialValue: false,
+      description: 'Show this piece in the artwork catalogue (Latest Pieces, Services galleries, Space Visualizer). Uses the first image as the cover.',
+    }),
+
+    defineField({
+      name: 'catalogueType',
+      title: 'Catalogue Type',
+      type: 'string',
+      hidden: ({ document }) => !document?.showInCatalogue,
+      options: {
+        list: [
+          { title: 'Painting',     value: 'painting'     },
+          { title: 'Sculpture',    value: 'sculpture'    },
+          { title: 'Chandelier',   value: 'chandelier'   },
+          { title: 'Installation', value: 'installation' },
+          { title: 'Bespoke',      value: 'bespoke'      },
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) =>
+        Rule.custom((value, context) =>
+          context.document?.showInCatalogue && !value ? 'Required for catalogue pieces' : true
+        ),
+    }),
+
+    defineField({
+      name: 'catalogueCaption',
+      title: 'Catalogue Caption',
+      type: 'text',
+      rows: 2,
+      description: 'Short caption shown in the catalogue (40 characters max).',
+      hidden: ({ document }) => !document?.showInCatalogue,
+      validation: (Rule) => [
+        Rule.custom((value, context) =>
+          context.document?.showInCatalogue && !value ? 'Required for catalogue pieces' : true
+        ),
+        Rule.max(40).error('Caption must be 40 characters or less'),
+      ],
+    }),
+
+    // Set by the artwork migration to the original artwork's _createdAt so the
+    // catalogue keeps its order; new pieces fall back to their own _createdAt.
+    defineField({
+      name: 'catalogueSortDate',
+      title: 'Catalogue Sort Date',
+      type: 'datetime',
+      hidden: true,
+    }),
+
     // ── Identity ──────────────────────────────────────────────────────────────
 
     defineField({
@@ -32,7 +107,8 @@ export default defineType({
         layout: 'radio',
       },
       initialValue: 'bundle',
-      validation: (Rule) => Rule.required(),
+      hidden: hiddenOutsideShop,
+      validation: requiredInShop,
     }),
 
     defineField({
@@ -50,7 +126,11 @@ export default defineType({
       title: 'Slug',
       type: 'slug',
       options: { source: 'title.en', maxLength: 96 },
-      validation: (Rule) => Rule.required(),
+      hidden: hiddenOutsideShop,
+      validation: (Rule) =>
+        Rule.custom((value: any, context) =>
+          inShop(context.document) && !value?.current ? 'Required for shop items' : true
+        ),
     }),
 
     defineField({
@@ -58,7 +138,7 @@ export default defineType({
       title: 'Images',
       type: 'array',
       of: [{ type: 'image', options: { hotspot: true } }],
-      description: 'Cover image(s) shown in the shop grid. For loose-link products, also used as the product hero.',
+      description: 'Cover image(s) shown in the shop grid; the first one is also the catalogue cover. For loose-link products, also used as the product hero.',
       validation: (Rule) => Rule.required().min(1),
     }),
 
@@ -68,7 +148,7 @@ export default defineType({
       type: 'array',
       description:
         'Optional. Each variant has its own photo and stock status; price is the same as the product. The first variant is selected by default. Leave empty for a product without variants. Bundle products only.',
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
       of: [
         defineField({
           name: 'variant',
@@ -137,9 +217,10 @@ export default defineType({
       title: 'Price',
       type: 'number',
       description: 'VAT-INCLUSIVE price (5% UAE VAT included) - the customer sees exactly this amount. Use a round number (multiple of 10). Flat price for bundle products; not used for loose-link products. Optional when Size Options are set.',
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
       validation: (Rule) =>
         Rule.custom((value, context) => {
+          if (!inShop(context.document)) return true
           const type = (context.document?.productType as string) ?? 'bundle'
           const hasSizes = Array.isArray(context.document?.sizes) && (context.document?.sizes as unknown[]).length > 0
           if (type !== 'loose-link' && !hasSizes && (value === undefined || value === null)) {
@@ -161,7 +242,7 @@ export default defineType({
       type: 'array',
       description:
         'Optional. Each size has its own price, e.g. "120cm x 140cm". The first size is selected by default. Shipping weight, shipping class and availability stay at product level. Bundle products only.',
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
       of: [
         defineField({
           name: 'sizeOption',
@@ -207,9 +288,10 @@ export default defineType({
       title: 'Price Per Link',
       type: 'number',
       description: 'VAT-INCLUSIVE price per individual chain link (5% UAE VAT included) - use a multiple of 10. Used for loose-link products only.',
-      hidden: ({ document }) => (document?.productType as string) !== 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) !== 'loose-link',
       validation: (Rule) =>
         Rule.custom((value, context) => {
+          if (!inShop(context.document)) return true
           const type = (context.document?.productType as string) ?? 'bundle'
           if (type === 'loose-link' && (value === undefined || value === null)) {
             return 'Price per link is required for loose-link products'
@@ -229,7 +311,8 @@ export default defineType({
       title: 'Currency',
       type: 'string',
       initialValue: 'AED',
-      validation: (Rule) => Rule.required(),
+      hidden: hiddenOutsideShop,
+      validation: requiredInShop,
     }),
 
     // ── Shipping ──────────────────────────────────────────────────────────────
@@ -239,6 +322,7 @@ export default defineType({
       title: 'Weight (kg)',
       type: 'number',
       description: 'Estimated shipping weight per unit (kg). For loose-link products: weight per individual link — checkout multiplies by totalLinks.',
+      hidden: hiddenOutsideShop,
       validation: (Rule) => Rule.min(0),
     }),
 
@@ -255,6 +339,7 @@ export default defineType({
         ],
         layout: 'radio',
       },
+      hidden: hiddenOutsideShop,
     }),
 
     // ── Loose-link specific ────────────────────────────────────────────────────
@@ -265,7 +350,7 @@ export default defineType({
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'colorOption' }] }],
       description: 'Color options available in the chain builder. Ordered by displayOrder on each colorOption document.',
-      hidden: ({ document }) => (document?.productType as string) !== 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) !== 'loose-link',
     }),
 
     // ── Content ───────────────────────────────────────────────────────────────
@@ -274,8 +359,9 @@ export default defineType({
       name: 'description',
       title: 'Description',
       type: 'object',
+      hidden: hiddenOutsideShop,
       fields: [
-        defineField({ name: 'en', title: 'English', type: 'text', rows: 4, validation: (Rule) => Rule.required() }),
+        defineField({ name: 'en', title: 'English', type: 'text', rows: 4, validation: requiredInShop }),
       ],
     }),
 
@@ -287,7 +373,7 @@ export default defineType({
       fields: [
         defineField({ name: 'en', title: 'English', type: 'string' }),
       ],
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
     }),
 
     defineField({
@@ -298,7 +384,7 @@ export default defineType({
       fields: [
         defineField({ name: 'en', title: 'English', type: 'string' }),
       ],
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
     }),
 
     // Fallback AR size when the painting has no size options (or a size has none set).
@@ -313,7 +399,7 @@ export default defineType({
       fields: [
         defineField({ name: 'en', title: 'English', type: 'string' }),
       ],
-      hidden: ({ document }) => (document?.productType as string) === 'loose-link',
+      hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
     }),
 
     defineField({
@@ -329,13 +415,15 @@ export default defineType({
         layout: 'radio',
       },
       initialValue: 'in_stock',
-      validation: (Rule) => Rule.required(),
+      hidden: hiddenOutsideShop,
+      validation: requiredInShop,
     }),
 
     defineField({
       name: 'sku',
       title: 'SKU',
       type: 'string',
+      hidden: hiddenOutsideShop,
     }),
 
     defineField({
@@ -344,6 +432,7 @@ export default defineType({
       type: 'boolean',
       initialValue: false,
       description: 'Pin this product to the top of the shop grid',
+      hidden: hiddenOutsideShop,
     }),
 
     defineField({
@@ -360,7 +449,8 @@ export default defineType({
         layout: 'radio',
       },
       initialValue: 'art-links',
-      validation: (Rule) => Rule.required(),
+      hidden: hiddenOutsideShop,
+      validation: requiredInShop,
     }),
   ],
 
@@ -371,8 +461,17 @@ export default defineType({
       availability: 'availability',
       collection:   'collection',
       media:        'images.0',
+      showInShop:      'showInShop',
+      showInCatalogue: 'showInCatalogue',
+      catalogueType:   'catalogueType',
     },
-    prepare({ title, productType, availability, collection, media }) {
+    prepare({ title, productType, availability, collection, media, showInShop, showInCatalogue, catalogueType }) {
+      const catLabel = showInCatalogue
+        ? `Catalogue${catalogueType ? ` (${catalogueType.charAt(0).toUpperCase() + catalogueType.slice(1)})` : ''}`
+        : ''
+      if (showInShop === false) {
+        return { title, subtitle: catLabel || 'Hidden', media }
+      }
       const typeLabel = productType === 'loose-link' ? 'Loose Link' : 'Bundle'
       const availLabels: Record<string, string> = {
         in_stock: 'In Stock', sold: 'Sold', made_to_order: 'Made to Order',
@@ -383,7 +482,9 @@ export default defineType({
       const collLabel = collLabels[collection] ?? 'Aura Link'
       return {
         title,
-        subtitle: `${typeLabel} · ${availLabels[availability] ?? availability} · ${collLabel}`,
+        subtitle: [`Shop: ${typeLabel}`, availLabels[availability] ?? availability, collLabel, catLabel]
+          .filter(Boolean)
+          .join(' · '),
         media,
       }
     },
