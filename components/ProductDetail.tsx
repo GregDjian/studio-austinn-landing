@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { ArrowLeft, CreditCard, Loader2, Minus, Plus } from "lucide-react";
+import { ArrowLeft, CreditCard, Globe, Loader2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { SiApplepay } from "react-icons/si";
 import { Language, Product, ChainConfig } from "../types";
 import { getProductBySlug } from "../lib/sanityQueries";
@@ -19,7 +19,11 @@ const NAV_H_DESKTOP = "md:pt-28"; // 7rem — logo h-20 + py-4 × 2
 
 interface ProductDetailProps {
   lang: Language;
+  setLang?: (lang: Language) => void;
   onOpenCheckout?: () => void;
+  onCartOpen?: () => void;
+  /** Loose-link products render full screen: the app hides its header and chat bubble. */
+  onImmersiveChange?: (immersive: boolean) => void;
 }
 
 const getContent = (lang: Language) => {
@@ -89,7 +93,26 @@ const getContent = (lang: Language) => {
   };
 };
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) => {
+// Description clamped to a few lines, with a toggle to read the rest.
+const ClampedText: React.FC<{ text: string; lang: Language }> = ({ text, lang }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div>
+      <p className={`font-serif italic text-stone-500 text-xs leading-relaxed ${expanded ? "" : "line-clamp-3"}`}>{text}</p>
+      {text.length > 140 && (
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 hover:text-stone-700 transition-colors"
+      >
+        {expanded ? (lang === "ar" ? "أقل" : "Less") : (lang === "ar" ? "المزيد" : "More")}
+      </button>
+      )}
+    </div>
+  );
+};
+
+const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenCheckout, onCartOpen, onImmersiveChange }) => {
   const { slug }                      = useParams<{ slug: string }>();
   // ?variant=<key> (set by the shop grid's hover thumbnails) pre-selects a variant.
   const [searchParams]                = useSearchParams();
@@ -105,7 +128,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
   const [variantKey, setVariantKey]   = useState<string | null>(null);
   // Selected size option (by _key). null / unknown key → first size. Bundle products only.
   const [sizeKey, setSizeKey]         = useState<string | null>(null);
-  const { addItem, addLooseLinkItem } = useCart();
+  const { addItem, addLooseLinkItem, itemCount } = useCart();
   const openDeliveryPolicy            = useDeliveryPolicy();
   const t = getContent(lang);
 
@@ -118,6 +141,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
       .then(setProduct)
       .finally(() => setFetching(false));
   }, [slug, variantParam, sizeParam]);
+
+  const isLooseLink = product?.productType === "loose-link";
+  useEffect(() => {
+    onImmersiveChange?.(isLooseLink);
+    return () => onImmersiveChange?.(false);
+  }, [isLooseLink, onImmersiveChange]);
 
   // Variants only exist on bundle products; without them everything below falls
   // back to the product-level values.
@@ -246,80 +275,140 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, onOpenCheckout }) =
 
   const canBuy = availability !== "sold";
 
-  // ── Loose-link: compact header + builder ─────────────────────────────────────
+  // ── Loose-link: full-screen builder ──────────────────────────────────────────
+  // No site header / footer / chat (see onImmersiveChange): the builder takes the
+  // whole screen, with its own small header — back, logo, title — plus cart and language.
   if (product.productType === "loose-link") {
-    return (
-      <>
-      <section
-        dir={lang === "ar" ? "rtl" : "ltr"}
-        className="min-h-screen bg-stone-50"
+    // Page title (replaces the product name on this page).
+    const builderTitle = lang === "ar" ? "صمّم سلسلتك الخاصة" : "Build your own chain link";
+    const pricePerLinkLabel = `${product.currency} ${product.pricePerLink?.toLocaleString()} ${t.perLink}`;
+    const toggleLang = () => setLang?.(lang === "en" ? "ar" : "en");
+
+    const backLink = (compact: boolean) => (
+      <Link
+        to="/shop"
+        aria-label={t.back}
+        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 transition-colors"
       >
-        <div className={`${NAV_H_MOBILE} ${NAV_H_DESKTOP} px-6 md:px-12`}>
+        <ArrowLeft size={compact ? 18 : 14} className="rtl:rotate-180" />
+        {!compact && t.back}
+      </Link>
+    );
 
-          <Link
-            to="/shop"
-            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900 transition-colors mt-8"
-          >
-            <ArrowLeft size={14} />
-            {t.back}
-          </Link>
+    const logo = (className: string) => (
+      <a href="/" aria-label="Studio Austinn — Home" className="flex-shrink-0">
+        <img src="/logo/SA_logo.png" alt="Studio Austinn" className={`${className} w-auto`} draggable={false} />
+      </a>
+    );
 
-          <div className="mt-4 pb-5 border-b border-stone-200">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                {product.sku && (
-                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-1">
-                    {t.sku}: {product.sku}
-                  </p>
-                )}
-                <h1 className="font-sans font-black text-2xl md:text-3xl uppercase tracking-tighter text-stone-900 leading-none">
-                  {title}
-                </h1>
-                <p className="font-sans font-bold text-sm text-stone-500 mt-1.5">
-                  {product.currency} {product.pricePerLink?.toLocaleString()} {t.perLink}
-                </p>
-              </div>
-              <span className={`self-start text-[9px] font-bold uppercase tracking-[0.2em] border px-3 py-1 ${availBadgeClass}`}>
-                {availLabel}
-              </span>
+    const cartButton = (
+      <button
+        type="button"
+        onClick={onCartOpen}
+        aria-label={lang === "ar" ? "السلة" : "Shopping cart"}
+        className="relative text-stone-900 hover:text-stone-600 transition-colors"
+      >
+        <ShoppingBag size={20} />
+        {itemCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-stone-900 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+            {itemCount > 9 ? "9+" : itemCount}
+          </span>
+        )}
+      </button>
+    );
+
+    const langButton = setLang && (
+      <button
+        type="button"
+        onClick={toggleLang}
+        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-900 hover:text-stone-600 transition-colors"
+      >
+        <Globe size={14} />
+        {lang === "en" ? "AR" : "EN"}
+      </button>
+    );
+
+    const descriptionText = description && (
+      <p className="font-serif italic text-stone-500 text-sm leading-relaxed">{description}</p>
+    );
+
+    const availBadge = (
+      <span className={`self-start text-[9px] font-bold uppercase tracking-[0.2em] border px-2.5 py-0.5 ${availBadgeClass}`}>
+        {availLabel}
+      </span>
+    );
+
+    return (
+      <ChainBuilder
+        colorOptions={product.colorOptions ?? []}
+        pricePerLink={product.pricePerLink ?? 0}
+        currency={product.currency}
+        lang={lang}
+        justAdded={justAdded}
+        sidebarHeader={
+          <div className="flex flex-col gap-5 pb-5 border-b border-stone-200">
+            <div className="flex items-center justify-between gap-3">
+              {backLink(false)}
+              {logo("h-10")}
             </div>
-
-            {description && (
-              <p className="font-serif italic text-stone-500 text-sm mt-3 leading-relaxed max-w-2xl">
-                {description}
-              </p>
-            )}
+            <div className="flex flex-col gap-2">
+              {product.sku && (
+                <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400">
+                  {t.sku}: {product.sku}
+                </p>
+              )}
+              <h1 className="font-sans font-black text-2xl uppercase tracking-tighter text-stone-900 leading-none">
+                {builderTitle}
+              </h1>
+              <p className="font-sans font-bold text-sm text-stone-500">{pricePerLinkLabel}</p>
+              {availBadge}
+              {description && <ClampedText text={description} lang={lang} />}
+            </div>
           </div>
-
-          <div className="mt-6 pb-16">
-            <ChainBuilder
-              colorOptions={product.colorOptions ?? []}
-              pricePerLink={product.pricePerLink ?? 0}
-              currency={product.currency}
-              lang={lang}
-              justAdded={justAdded}
-              onAddToCart={(config: ChainConfig) => {
-                addLooseLinkItem({
-                  productId:     product._id,
-                  productType:   "loose-link",
-                  title:         product.title.en,
-                  currency:      product.currency,
-                  configuration: { columns: config.columns },
-                  totalLinks:    config.totalLinks,
-                  pricePerLink:  product.pricePerLink ?? 0,
-                  lineTotal:     config.lineTotal,
-                  colorSummary:  config.colorSummary,
-                  previewImage:  config.previewImage,
-                });
-                setJustAdded(true);
-                setTimeout(() => setJustAdded(false), 2000);
-              }}
-            />
+        }
+        sidebarFooter={
+          <div className="flex items-center justify-between">
+            {langButton}
+            {cartButton}
           </div>
-        </div>
-      </section>
-      <Footer lang={lang} />
-      </>
+        }
+        mobileTopBar={
+          <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
+            {backLink(true)}
+            {logo("h-8")}
+            <div className="flex-1 min-w-0">
+              <h1 className="font-sans font-black text-sm uppercase tracking-tighter text-stone-900 leading-none truncate">
+                {builderTitle}
+              </h1>
+              <p className="text-[10px] font-bold text-stone-400 mt-0.5 truncate">{pricePerLinkLabel}</p>
+            </div>
+            {langButton}
+            {cartButton}
+          </div>
+        }
+        mobileDetails={
+          <div className="flex flex-col gap-2 pb-4 border-b border-stone-200">
+            {availBadge}
+            {descriptionText}
+          </div>
+        }
+        onAddToCart={(config: ChainConfig) => {
+          addLooseLinkItem({
+            productId:     product._id,
+            productType:   "loose-link",
+            title:         product.title.en,
+            currency:      product.currency,
+            configuration: { columns: config.columns },
+            totalLinks:    config.totalLinks,
+            pricePerLink:  product.pricePerLink ?? 0,
+            lineTotal:     config.lineTotal,
+            colorSummary:  config.colorSummary,
+            previewImage:  config.previewImage,
+          });
+          setJustAdded(true);
+          setTimeout(() => setJustAdded(false), 2000);
+        }}
+      />
     );
   }
 

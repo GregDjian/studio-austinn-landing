@@ -29,6 +29,8 @@ function AppInner() {
   const [lang, setLang] = useState<Language>('en');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // Full-screen pages (the chain builder) hide the site header and chat bubble.
+  const [immersive, setImmersive] = useState(false);
 
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -49,17 +51,25 @@ function AppInner() {
       <ScrollToTop />
       <Preloader onComplete={() => setLoading(false)} lang={lang} />
 
-      <Header lang={lang} setLang={setLang} onCartOpen={() => setCartOpen(true)} />
+      {!immersive && <Header lang={lang} setLang={setLang} onCartOpen={() => setCartOpen(true)} />}
 
       <Routes>
         <Route path="/"               element={<HomePage      lang={lang} />} />
         <Route path="/shop"           element={<Shop          lang={lang} />} /> 
-        <Route path="/shop/:slug"     element={<ProductDetail lang={lang} onOpenCheckout={handleOpenCheckout} />} />
+        <Route path="/shop/:slug"     element={
+          <ProductDetail
+            lang={lang}
+            setLang={setLang}
+            onOpenCheckout={handleOpenCheckout}
+            onCartOpen={() => setCartOpen(true)}
+            onImmersiveChange={setImmersive}
+          />
+        } />
         <Route path="/shop/success"   element={<ShopSuccess   lang={lang} />} /> 
         <Route path="/shop/cancel"    element={<ShopCancel    lang={lang} />} />
       </Routes>
 
-      <ChatWidget lang={lang} />
+      {!immersive && <ChatWidget lang={lang} />}
 
       <CartDrawer
         open={cartOpen}

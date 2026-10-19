@@ -3,6 +3,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { Language } from "../types";
 import { getArtworks } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
+import ArtworkLightbox, { CATALOGUE_TYPE_TITLES } from "./ArtworkLightbox";
 
 interface Artwork {
   id: string;
@@ -10,6 +11,8 @@ interface Artwork {
   type: string;
   description: string;
   coverImage: string;
+  /** Larger version for the enlarged (lightbox) view. */
+  fullImage: string;
   createdAt: string;
 }
 
@@ -53,6 +56,7 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
   const [loading, setLoading] = useState(true);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [lightboxArt, setLightboxArt] = useState<Artwork | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -72,6 +76,9 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
             coverImage: a.coverImage?.asset
               ? imgUrl.card(a.coverImage)
               : "",
+            fullImage: a.coverImage?.asset
+              ? imgUrl.full(a.coverImage)
+              : "",
           }));
 
         if (alive) setArtworks(mapped);
@@ -85,9 +92,19 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
     return () => { alive = false; };
   }, []);
 
+  // Desktop: click opens the enlarged view. Mobile: first tap expands the card,
+  // a tap on the expanded card opens the enlarged view.
   const handleCardClick = (i: number) => {
-    if (!isMobileDevice()) return;
-    setExpandedIndex((prev) => (prev === i ? null : i));
+    if (isMobileDevice() && expandedIndex !== i) {
+      setExpandedIndex(i);
+      return;
+    }
+    if (artworks[i].coverImage) setLightboxArt(artworks[i]);
+  };
+
+  const categoryTitle = (type: string) => {
+    const titles = CATALOGUE_TYPE_TITLES[type];
+    return titles ? (lang === "ar" ? titles.ar : titles.en) : type || t.noType;
   };
 
   const isExpanded = (i: number) =>
@@ -128,7 +145,7 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
           return (
             <div
               key={artwork.id}
-              className="relative overflow-hidden bg-stone-900 cursor-pointer group h-full transition-all duration-500 ease-in-out"
+              className="relative overflow-hidden bg-stone-900 cursor-pointer md:cursor-zoom-in group h-full transition-all duration-500 ease-in-out"
               style={{
                 // On mobile: expanded card takes most space, others collapse
                 // On desktop: first card is wider, hover expands via CSS hover states
@@ -218,6 +235,18 @@ const LatestPieces: React.FC<{ lang: Language; onViewAll?: () => void }> = ({
           );
         })}
       </div>
+
+      {/* Enlarged artwork view — same as the catalogue */}
+      {lightboxArt && (
+        <ArtworkLightbox
+          key={lightboxArt.id}
+          lang={lang}
+          title={lightboxArt.title}
+          category={categoryTitle(lightboxArt.type)}
+          image={lightboxArt.fullImage || lightboxArt.coverImage}
+          onClose={() => setLightboxArt(null)}
+        />
+      )}
     </section>
   );
 };

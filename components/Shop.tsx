@@ -89,8 +89,9 @@ const COLLECTION_KEY_PAINTINGS  = "paintings";
 const COLLECTION_KEY_WALL_ART   = "wall-art";
 const COLLECTION_KEY_SCULPTURES = "sculptures";
 
-// Infinite-scroll batch size. The grid renders sortedProducts.slice(0, visibleCount).
+// Infinite-scroll batch size. The grid renders arrangedProducts.slice(0, visibleCount).
 const PAGE_SIZE = 15;
+const AURA_BLOCK_START = 8; // "All" view: Aura Link products start after this many others (9th spot = 3rd row on desktop)
 
 const Shop: React.FC<ShopProps> = ({ lang }) => {
   const [products, setProducts]               = useState<Product[]>([]);
@@ -185,12 +186,24 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
     return withoutBuilder;
   }, [visibleProducts, sortMode]);
 
+  // "All" view, default sort: the Aura Link products (builder card first) come as one
+  // block starting at position AURA_BLOCK_START + 1 (the 3rd row on desktop); the
+  // other products keep their order around it.
+  const arrangedProducts = useMemo(() => {
+    if (activeCollection !== COLLECTION_KEY_ALL || sortMode !== "") return sortedProducts;
+    const isAura = (p: Product) =>
+      p.productType === "loose-link" || resolveCollection(p) === COLLECTION_KEY_ART_LINKS;
+    const aura = sortedProducts.filter(isAura);
+    const others = sortedProducts.filter((p) => !isAura(p));
+    return [...others.slice(0, AURA_BLOCK_START), ...aura, ...others.slice(AURA_BLOCK_START)];
+  }, [sortedProducts, activeCollection, sortMode]);
+
   // Only the first `visibleCount` products render; scrolling near the end raises the count.
   const displayedProducts = useMemo(
-    () => sortedProducts.slice(0, visibleCount),
-    [sortedProducts, visibleCount],
+    () => arrangedProducts.slice(0, visibleCount),
+    [arrangedProducts, visibleCount],
   );
-  const hasMore = visibleCount < sortedProducts.length;
+  const hasMore = visibleCount < arrangedProducts.length;
 
   // Infinite scroll: when the sentinel below the grid comes within 600px of the
   // viewport, render the next batch. Re-subscribes after each batch so a still-

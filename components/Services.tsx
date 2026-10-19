@@ -14,6 +14,7 @@ import { Language } from "../types";
 import { processLeadInquiry } from "../services/geminiService";
 import { getArtworks } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
+import ArtworkLightbox, { catalogueWhatsAppUrl } from "./ArtworkLightbox";
 import bespokeCover from "../public/cover/bespoke2-cover.jpeg";
 import paintingCover from "../public/cover/painting2-cover.jpeg";
 import sculptureCover from "../public/cover/sculpture-cover.jpeg";
@@ -68,7 +69,6 @@ const getUI = (lang: Language) => {
       curatedNote: "كل قطعة في مجموعتنا مُختارة بعناية لتلبي أعلى معايير التعبير الفني.",
       inquire: "استفسر عن التوفّر",
       inquireWa: "استفسر",
-      inquireWhatsApp: "استفسر عبر واتساب",
       viewImage: "عرض الصورة",
       close: "إغلاق",
       view3d: "عرض ثلاثي الأبعاد",
@@ -95,7 +95,6 @@ const getUI = (lang: Language) => {
     curatedNote: "Every piece in our collection is meticulously curated to meet the highest standards of artistic expression.",
     inquire: "Inquire for availability",
     inquireWa: "Inquire",
-    inquireWhatsApp: "Inquire on WhatsApp",
     viewImage: "View image",
     close: "Close",
     view3d: "3D View",
@@ -157,32 +156,15 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
   const [totalLoaded, setTotalLoaded] = useState(0);
   // Catalogue artwork opened in the enlarged (lightbox) view.
   const [lightboxArt, setLightboxArt] = useState<ServiceCategory["gallery"][number] | null>(null);
-  // Large image still downloading → spinner in its place.
-  const [lightboxLoaded, setLightboxLoaded] = useState(false);
-  // Reset in the same update as opening, so a cached image's load can't be overwritten.
-  const openLightbox = (art: ServiceCategory["gallery"][number]) => {
-    setLightboxLoaded(false);
-    setLightboxArt(art);
-  };
+  const openLightbox = (art: ServiceCategory["gallery"][number]) => setLightboxArt(art);
 
-  // Close the enlarged view with Esc; drop it when the catalogue category closes.
-  useEffect(() => {
-    if (!lightboxArt) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightboxArt(null);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [lightboxArt]);
+  // Drop the enlarged view when the catalogue category closes.
   useEffect(() => {
     if (!activeCategory) setLightboxArt(null);
   }, [activeCategory]);
 
-  // WhatsApp inquiry link with the pre-filled artwork message.
   const waInquiryUrl = (artTitle: string, categoryTitle: string) =>
-    `https://wa.me/971581558866?text=${encodeURIComponent(
-      lang === "ar"
-        ? `مرحباً، اطّلعت على كتالوج ستوديو أوستن وأنا مهتم بالعمل الفني التالي:\n\n🖼 ${artTitle}\n📂 ${categoryTitle}\n\nهل يمكنك مشاركة مزيد من التفاصيل حول التوفر والسعر؟\n🌐 www.studioaustinn.com`
-        : `https://studioaustinn.com/ \nHello, I came across Studio Austinn's catalogue and I'm interested in the following artwork:\n\n- ${artTitle}\n- ${categoryTitle}\n\nCould you share more details on availability and pricing?`
-    )}`;
+    catalogueWhatsAppUrl(lang, artTitle, categoryTitle);
 
   useEffect(() => {
     let alive = true;
@@ -529,53 +511,14 @@ const Services: React.FC<ServicesProps> = ({ lang }) => {
 
       {/* Enlarged artwork view (catalogue) */}
       {lightboxArt && activeCategory && (
-        <div
-          dir={lang === "ar" ? "rtl" : "ltr"}
-          role="dialog"
-          aria-modal="true"
-          aria-label={lightboxArt.title}
-          onClick={() => setLightboxArt(null)}
-          className="fixed inset-0 z-[120] flex flex-col items-center justify-center gap-6 bg-stone-950/90 backdrop-blur-sm p-4 md:p-10 animate-fade-in-up"
-        >
-          <button
-            type="button"
-            onClick={() => setLightboxArt(null)}
-            aria-label={t.close}
-            className="absolute top-4 right-4 rtl:right-auto rtl:left-4 p-3 rounded-full bg-white/10 text-white hover:bg-white hover:text-stone-900 transition-all"
-          >
-            <X size={20} />
-          </button>
-
-          <div className="relative flex items-center justify-center min-w-[12rem] min-h-[12rem]">
-            {!lightboxLoaded && (
-              <Loader2 size={28} className="absolute animate-spin text-white/70" aria-hidden="true" />
-            )}
-            <img
-              key={lightboxArt.id}
-              src={lightboxArt.fullImage || lightboxArt.image}
-              alt={`${lightboxArt.title} — ${activeCategory.title} | Studio Austinn`}
-              onLoad={() => setLightboxLoaded(true)}
-              onError={() => setLightboxLoaded(true)}
-              onClick={(e) => e.stopPropagation()}
-              className={`max-w-full max-h-[70vh] object-contain shadow-2xl transition-opacity duration-300 ${lightboxLoaded ? "opacity-100" : "opacity-0"}`}
-            />
-          </div>
-
-          <div onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-4 text-center">
-            <div>
-              <h4 className="font-serif text-xl md:text-2xl text-white leading-tight">{lightboxArt.title}</h4>
-              <p className="font-sans text-[10px] uppercase tracking-widest text-white/50 mt-1">{activeCategory.title}</p>
-            </div>
-            <a
-              href={waInquiryUrl(lightboxArt.title, activeCategory.title)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-white text-stone-900 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-200 transition-all"
-            >
-              {t.inquireWhatsApp}
-            </a>
-          </div>
-        </div>
+        <ArtworkLightbox
+          key={lightboxArt.id}
+          lang={lang}
+          title={lightboxArt.title}
+          category={activeCategory.title}
+          image={lightboxArt.fullImage || lightboxArt.image}
+          onClose={() => setLightboxArt(null)}
+        />
       )}
 
       {/* 3D Model Viewer Modal */}
