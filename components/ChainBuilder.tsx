@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDeliveryPolicy } from "./DeliveryReturnsModal";
-import { Plus, X, RotateCcw, ChevronUp, Palette, Ruler, Sun, Moon } from "lucide-react";
+import { Plus, X, RotateCcw, ChevronUp, Palette, Ruler, Sun, Moon, Loader2 } from "lucide-react";
 import { toJpeg } from "html-to-image";
 import {
   DndContext,
@@ -43,7 +43,8 @@ const ROOM_BACKGROUND_IMG = "/room-background.png"; // preview canvas backdrop (
 const ROOM_BACKGROUND_ASPECT = "1536 / 1024";        // natural size of the photo — the base canvas keeps this ratio so it's never cropped
 const ROOM_BACKGROUND_DARK_IMG = "/room-background-dark.png"; // dark mode backdrop (public folder)
 const ROOM_WALL_COLOR_DARK = "#8a6a46";              // wall tone along the dark photo's top edge
-const ROOM_WALL_COLOR = "#d4cac2";                 // wall tone along the photo's top edge — fills the canvas above the photo when the chain outgrows it
+const MOBILE_ROOM_POSITION_X = "20%";               // phones: horizontal crop of the room photo (50% = centred, lower = photo moves right)
+const ROOM_WALL_COLOR = "#d4cac2";                // wall tone along the photo's top edge — fills the canvas above the photo when the chain outgrows it
 const SIDE_VIEW_LAYER_BASE = 10000; // side view links stack above every face view link (which use 1, 2, 3…)
 const SIDE_VIEW_SCALE = 0.82;       // side view links render slightly smaller than face view (1 = same width as face)
 const REMOVE_BUTTON_LAYER = 100000; // remove (✕) buttons rise above all links so none is ever covered
@@ -191,6 +192,7 @@ const getContent = (lang: Language) => {
       addingTo: "إلى العمود",
       closePanel: "إغلاق الألوان",
       cm: "سم",
+      adding: "جارٍ الإضافة…",
       showScale: "إظهار المقياس",
       hideScale: "إخفاء المقياس",
       lightMode: "الوضع الفاتح",
@@ -228,6 +230,7 @@ const getContent = (lang: Language) => {
     addingTo: "To column",
     closePanel: "Close colours",
     cm: "cm",
+    adding: "Adding…",
     showScale: "Show scale",
     hideScale: "Hide scale",
     lightMode: "Light mode",
@@ -938,11 +941,22 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
     );
   };
 
-  const addToCartClasses = `rounded-md font-sans font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 flex items-center justify-center gap-4 ${
+  // While the cart image is being captured: a spinner over the (hidden) label, so the
+  // button keeps its width.
+  const addToCartLabel = (
+    <>
+      <span className={capturing ? "invisible" : undefined}>{justAdded ? t.added : t.addToCart}</span>
+      {capturing && <Loader2 size={18} className="absolute animate-spin" aria-label={t.adding} />}
+    </>
+  );
+
+  const addToCartClasses = `relative rounded-md font-sans font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 flex items-center justify-center gap-4 ${
     totalLinks === 0
       ? "bg-stone-200 text-stone-400 cursor-not-allowed"
       : justAdded
       ? "bg-stone-600 text-white"
+      : capturing
+      ? "bg-stone-900 text-white cursor-wait"
       : "bg-stone-900 text-white hover:bg-stone-700"
   }`;
 
@@ -1010,7 +1024,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
             disabled={totalLinks === 0 || capturing}
             className={`w-full h-[52px] px-6 ${addToCartClasses}`}
           >
-            {justAdded ? t.added : t.addToCart}
+            {addToCartLabel}
           </button>
           {trustNote}
         </div>
@@ -1093,7 +1107,8 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               height: viewportH || "100%",
               backgroundImage: `url(${roomImg})`,
               backgroundSize: "cover",
-              backgroundPosition: "center",
+              // Phones: photo shifted right (shows more of its left side).
+              backgroundPosition: isDesktop ? "center" : `${MOBILE_ROOM_POSITION_X} center`,
             }}
           >
             {canvasExtended && (
@@ -1114,7 +1129,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               column (row offsets scaled by the phone zoom). */}
           {showScale && ruler && (
             <div
-              className={`absolute right-24 w-14 pointer-events-none ${darkRoom ? "text-stone-900" : "text-stone-600"}`}
+              className={`absolute right-1 md:right-24 w-14 pointer-events-none ${darkRoom ? "text-stone-900" : "text-stone-600"}`}
               style={{ top: ruler.top, height: ruler.height, zIndex: 1 }}
               aria-hidden="true"
             >
@@ -1367,7 +1382,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               disabled={totalLinks === 0 || capturing}
               className={`flex-shrink-0 h-12 px-5 ${addToCartClasses}`}
             >
-              {justAdded ? t.added : t.addToCart}
+              {addToCartLabel}
             </button>
           </div>
         </div>
