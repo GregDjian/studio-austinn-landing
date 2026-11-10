@@ -2,7 +2,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDeliveryPolicy } from "./DeliveryReturnsModal";
 import { FREE_DELIVERY_TEXT } from "../lib/shippingConfig";
-import { Plus, X, RotateCcw, ChevronUp, Palette, Ruler, Sun, Moon, Loader2 } from "lucide-react";
+import { Plus, X, RotateCcw, ChevronUp, Palette, Ruler, Sun, Moon, Loader2, CreditCard } from "lucide-react";
+import { SiApplepay } from "react-icons/si";
 import { toJpeg } from "html-to-image";
 import {
   DndContext,
@@ -148,6 +149,8 @@ interface ChainBuilderProps {
   lang: Language;
   justAdded?: boolean;
   onAddToCart: (config: ChainConfig) => void;
+  /** Express Payment: adds the design to the cart and goes straight to checkout. */
+  onExpressPay: (config: ChainConfig) => void;
   /** Top of the sidebar on large screens: back link, logo, title, description. */
   sidebarHeader?: React.ReactNode;
   /** Bottom of the sidebar on large screens: cart + language. */
@@ -173,6 +176,7 @@ const getContent = (lang: Language) => {
       total: "الإجمالي",
       perLink: "/ حلقة",
       addToCart: "أضف إلى السلة",
+      expressPay: "دفع سريع",
       inclVat: "شامل الضريبة",
       trustPrefix: "بإتمام طلبك، أنت توافق على",
       termsLink: "سياسة التوصيل والإرجاع",
@@ -211,6 +215,7 @@ const getContent = (lang: Language) => {
     total: "Total",
     perLink: "/ link",
     addToCart: "Add to Cart",
+    expressPay: "Express Payment",
     inclVat: "incl. VAT",
     trustPrefix: "By placing your order you agree to the",
     termsLink: "delivery & returns policy",
@@ -248,6 +253,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   lang,
   justAdded,
   onAddToCart,
+  onExpressPay,
   sidebarHeader,
   sidebarFooter,
   mobileTopBar,
@@ -282,7 +288,8 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   const [detailsOpen, setDetailsOpen] = useState(false);
   // Cart preview image: an off-screen, UI-free render of the design captured on Add to Cart.
   const captureRef = useRef<HTMLDivElement>(null);
-  const [capturing, setCapturing] = useState(false);
+  // Which button is waiting for the cart image to be captured.
+  const [capturing, setCapturing] = useState<"cart" | "express" | null>(null);
   const isDesktop = useIsDesktop();
   const previewZoom = isDesktop ? 1 : MOBILE_PREVIEW_ZOOM;
   // Drag & drop: links move within/between columns, columns reorder by their mount.
@@ -631,9 +638,9 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
     return Object.values(counts);
   };
 
-  const handleAddToCart = async () => {
+  const submitDesign = async (action: "cart" | "express") => {
     if (totalLinks === 0 || capturing) return;
-    setCapturing(true);
+    setCapturing(action);
     let previewImage: string | undefined;
     try {
       if (captureRef.current) {
@@ -648,8 +655,9 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
       // The cart falls back to its chain icon if the image cannot be captured.
       console.warn("[chainbuilder] preview capture failed", err);
     }
-    setCapturing(false);
-    onAddToCart({
+    setCapturing(null);
+    const submit = action === "cart" ? onAddToCart : onExpressPay;
+    submit({
       columns: columns.map((col) => ({
         links: col.links.map((link) => ({
           colorOptionId: link.colorOptionId,
@@ -946,8 +954,8 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   // button keeps its width.
   const addToCartLabel = (
     <>
-      <span className={capturing ? "invisible" : undefined}>{justAdded ? t.added : t.addToCart}</span>
-      {capturing && <Loader2 size={18} className="absolute animate-spin" aria-label={t.adding} />}
+      <span className={capturing === "cart" ? "invisible" : undefined}>{justAdded ? t.added : t.addToCart}</span>
+      {capturing === "cart" && <Loader2 size={18} className="absolute animate-spin" aria-label={t.adding} />}
     </>
   );
 
@@ -956,10 +964,36 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
       ? "bg-stone-200 text-stone-400 cursor-not-allowed"
       : justAdded
       ? "bg-stone-600 text-white"
-      : capturing
+      : capturing === "cart"
       ? "bg-stone-900 text-white cursor-wait"
       : "bg-stone-900 text-white hover:bg-stone-700"
   }`;
+
+  // Same look as the Express Payment button on bundle product pages.
+  const expressButton = (height: string) => (
+    <button
+      type="button"
+      onClick={() => submitDesign("express")}
+      disabled={totalLinks === 0 || capturing !== null}
+      className={`w-full ${height} px-6 rounded-md font-sans font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 flex items-center justify-between gap-4 border ${
+        totalLinks === 0
+          ? "border-stone-200 text-stone-300 cursor-not-allowed"
+          : capturing === "express"
+          ? "border-stone-300 text-stone-900 cursor-wait"
+          : "border-stone-300 text-stone-900 hover:bg-stone-100 hover:border-stone-400"
+      }`}
+    >
+      <span>{t.expressPay}</span>
+      {capturing === "express" ? (
+        <Loader2 size={18} className="animate-spin" aria-label={t.adding} />
+      ) : (
+        <span className="flex items-center gap-2 opacity-60">
+          <SiApplepay size={26} />
+          <CreditCard size={16} strokeWidth={1.75} />
+        </span>
+      )}
+    </button>
+  );
 
   const trustNote = (
     <div className="flex flex-col gap-1">
@@ -1024,12 +1058,13 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
         {/* Add to Cart (centred label) + trust microcopy — same look as the bundle product buttons */}
         <div className="flex flex-col gap-2.5">
           <button
-            onClick={handleAddToCart}
-            disabled={totalLinks === 0 || capturing}
+            onClick={() => submitDesign("cart")}
+            disabled={totalLinks === 0 || capturing !== null}
             className={`w-full h-[52px] px-6 ${addToCartClasses}`}
           >
             {addToCartLabel}
           </button>
+          {expressButton("h-[52px]")}
           {trustNote}
         </div>
 
@@ -1366,7 +1401,7 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               {trustNote}
             </div>
           )}
-          <div className="flex items-center gap-3 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-3 px-4 pt-3 pb-2">
             <button
               type="button"
               onClick={() => setDetailsOpen((v) => !v)}
@@ -1382,13 +1417,14 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
               </span>
             </button>
             <button
-              onClick={handleAddToCart}
-              disabled={totalLinks === 0 || capturing}
+              onClick={() => submitDesign("cart")}
+              disabled={totalLinks === 0 || capturing !== null}
               className={`flex-shrink-0 h-12 px-5 ${addToCartClasses}`}
             >
               {addToCartLabel}
             </button>
           </div>
+          <div className="px-4 pb-[max(12px,env(safe-area-inset-bottom))]">{expressButton("h-11")}</div>
         </div>
 
       </div>

@@ -340,6 +340,20 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenChec
       </span>
     );
 
+    const addChainToCart = (config: ChainConfig) =>
+      addLooseLinkItem({
+        productId:     product._id,
+        productType:   "loose-link",
+        title:         product.title.en,
+        currency:      product.currency,
+        configuration: { columns: config.columns },
+        totalLinks:    config.totalLinks,
+        pricePerLink:  product.pricePerLink ?? 0,
+        lineTotal:     config.lineTotal,
+        colorSummary:  config.colorSummary,
+        previewImage:  config.previewImage,
+      });
+
     return (
       <ChainBuilder
         colorOptions={product.colorOptions ?? []}
@@ -395,20 +409,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenChec
           </div>
         }
         onAddToCart={(config: ChainConfig) => {
-          addLooseLinkItem({
-            productId:     product._id,
-            productType:   "loose-link",
-            title:         product.title.en,
-            currency:      product.currency,
-            configuration: { columns: config.columns },
-            totalLinks:    config.totalLinks,
-            pricePerLink:  product.pricePerLink ?? 0,
-            lineTotal:     config.lineTotal,
-            colorSummary:  config.colorSummary,
-            previewImage:  config.previewImage,
-          });
+          addChainToCart(config);
           setJustAdded(true);
           setTimeout(() => setJustAdded(false), 2000);
+        }}
+        onExpressPay={(config: ChainConfig) => {
+          addChainToCart(config);
+          onOpenCheckout?.();
         }}
       />
     );
