@@ -216,7 +216,7 @@ export default defineType({
       name: 'price',
       title: 'Price',
       type: 'number',
-      description: 'VAT-INCLUSIVE price (5% UAE VAT included) - the customer sees exactly this amount. Use a round number (multiple of 10). Flat price for bundle products; not used for loose-link products. Optional when Size Options are set.',
+      description: 'VAT-INCLUSIVE price (5% UAE VAT included). Art items (Paintings, Wall Art, Sculptures, Partitions): the site automatically adds AED 200 to cover free delivery, so do not include it here. Aura Link: the customer sees exactly this amount. Use a round number (multiple of 10). Flat price for bundle products; not used for loose-link products. Optional when Size Options are set.',
       hidden: ({ document }) => !inShop(document) || (document?.productType as string) === 'loose-link',
       validation: (Rule) =>
         Rule.custom((value, context) => {
@@ -260,7 +260,7 @@ export default defineType({
               name: 'price',
               title: 'Price (incl. VAT)',
               type: 'number',
-              description: 'VAT-inclusive; use a multiple of 10.',
+              description: 'VAT-inclusive; use a multiple of 10. Art items: the site automatically adds AED 200 to cover free delivery, so do not include it here.',
               validation: (Rule) =>
                 Rule.required()
                   .positive()

@@ -6,7 +6,7 @@ import { getDeliveryZones, DeliveryZone, SizeTier } from "../lib/sanityQueries";
 
 // ── Static geo data ───────────────────────────────────────────────────────────
 
-import { UAE_ONLY, UAE_DELIVERY } from "../lib/shippingConfig";
+import { UAE_ONLY } from "../lib/shippingConfig";
 import { vatPortion, excludingVat, formatFixed } from "../lib/vat";
 
 const COUNTRIES = [
@@ -66,7 +66,8 @@ const getContent = (lang: Language) => {
       emirate:         "الإمارة",
       selectCountry:   "اختر الدولة",
       selectEmirate:   "اختر الإمارة",
-      delivery:        "رسوم التوصيل",
+      delivery:        "التوصيل",
+      free:            "مجاني",
       subtotal:        "المجموع الفرعي",
       total:           "الإجمالي (شامل الضريبة)",
       excludingVat:    "الإجمالي بدون الضريبة",
@@ -74,7 +75,6 @@ const getContent = (lang: Language) => {
       proceed:         "المتابعة إلى الدفع",
       processing:      "جاري المعالجة…",
       deliveryPending: "اختر الوجهة لعرض رسوم التوصيل",
-      deliveryPendingEmirate: "اختر الإمارة لعرض رسوم التوصيل",
       customChain:     "سلسلة مخصصة",
       links:           "حلقات",
       columns:         "أعمدة",
@@ -104,6 +104,7 @@ const getContent = (lang: Language) => {
     selectCountry:   "Select a country",
     selectEmirate:   "Select an emirate",
     delivery:        "Delivery",
+    free:            "Free",
     subtotal:        "Subtotal",
     total:           "Total (incl. VAT)",
     excludingVat:    "Total excl. VAT",
@@ -111,7 +112,6 @@ const getContent = (lang: Language) => {
     proceed:         "Proceed to Payment",
     processing:      "Processing…",
     deliveryPending: "Select a destination to see delivery rate",
-    deliveryPendingEmirate: "Select an emirate to see delivery rate",
     customChain:     "Custom Chain",
     links:           "links",
     columns:         "columns",
@@ -213,25 +213,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
   const currency  = items[0]?.currency ?? "AED";
   const subtotal  = totalPrice;
 
-  // UAE: flat per-emirate rates (lib/shippingConfig.ts) — first item, +50 per
-  // additional unit; chains ship free with them. Chains-only carts pay one flat fee.
-  // Needs an emirate.
-  const uaeRates      = emirate === "dubai" ? UAE_DELIVERY.dubai : UAE_DELIVERY.otherEmirates;
-  // Custom chains and Aura Link bundles both count as chains.
-  const isChain       = (item: (typeof items)[number]) => isLooseLinkItem(item) || item.collection === "art-links";
-  const itemUnits     = items.reduce((n, item) => (isLooseLinkItem(item) || isChain(item) ? n : n + item.quantity), 0);
-  const hasChains     = items.some(isChain);
-  const uaeRate       =
-    itemUnits > 0 ? uaeRates.firstItem + UAE_DELIVERY.additionalItem * (itemUnits - 1)
-    : hasChains   ? uaeRates.chains
-    : 0;
-  const deliveryReady = selectedZone !== null && (!isUAE || emirate !== "");
+  // Delivery within the UAE is free (lib/shippingConfig.ts).
+  const deliveryReady = isUAE || selectedZone !== null;
 
+  // Display only: api/create-checkout-session.ts works out what is actually charged.
   // GCC (off while UAE_ONLY): products carry no weight or parcel size, so every
   // bundle unit is rated at the zone's "large" parcel rate; a custom chain ships
   // as one parcel.
-  const deliveryRate = !deliveryReady ? 0
-    : isUAE ? uaeRate
+  const deliveryRate = isUAE || !selectedZone ? 0
     : items.reduce((sum, item) => {
         const units = isLooseLinkItem(item) ? 1 : item.quantity;
         return sum + lookupSizeTier(selectedZone!.sizeTiers ?? [], "large") * units;
@@ -258,39 +247,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
     setSubmitting(true);
     setError(null);
 
-    const cartItems = items.map((i) => {
-      if (isLooseLinkItem(i)) {
-        const summaryText = i.colorSummary.map((s) => `${s.count}× ${s.colorName}`).join(", ");
-        const colCount = i.configuration.columns.length;
-        return {
-          title:    `Custom chain — ${colCount} col${colCount !== 1 ? "s" : ""}: ${summaryText}`,
-          price:    i.pricePerLink,
-          currency: i.currency,
-          quantity: i.totalLinks,
-          image:    undefined as string | undefined,
-        };
-      }
-      return {
-        title:       i.title,
-        // Stripe line item description: colour and size, when present.
-        description: [i.variantName, i.sizeLabel].filter(Boolean).join(" · ") || undefined,
-        price:       i.price,
-        currency:    i.currency,
-        quantity:    i.quantity,
-        image:       i.image || undefined,
-      };
-    });
-
-    const deliveryPayload = {
-      label:    `Delivery — ${isUAE ? UAE_EMIRATES.find((em) => em.value === emirate)?.en ?? selectedZone.zoneName.en : selectedZone.zoneName.en}`,
-      amount:   deliveryRate,
-      currency,
-    };
-
-    const installationPayload =
-      showInstallation && addInstallation
-        ? { label: "Professional Installation (Dubai)", amount: installFee, currency }
-        : null;
+    // Only what was chosen is sent. The server looks up every price, fee and name itself.
+    const cartItems = items.map((i) =>
+      isLooseLinkItem(i)
+        ? { productId: i.productId, configuration: i.configuration }
+        : { productId: i.productId, variantKey: i.variantKey, sizeKey: i.sizeKey, quantity: i.quantity }
+    );
 
     try {
       const res = await fetch("/api/create-checkout-session", {
@@ -299,8 +261,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
         body: JSON.stringify({
           items:            cartItems,
           origin:           window.location.origin,
-          delivery:         deliveryPayload,
-          installation:     installationPayload,
+          addInstallation:  showInstallation && addInstallation,
           selectedCountry:  country,
           selectedEmirate:  emirate,
           customer: {
@@ -562,10 +523,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
             {/* Delivery shown up front so the shipping cost is visible without opening the summary */}
             <div className="flex justify-between items-center text-[11px] text-stone-500">
               <span>{t.delivery}</span>
-              {deliveryReady ? (
+              {isUAE ? (
+                <span className="font-bold text-stone-700">{t.free}</span>
+              ) : deliveryReady ? (
                 <span>{currency} {deliveryRate.toLocaleString()}</span>
               ) : (
-                <span className="italic text-stone-400">{isUAE ? t.deliveryPendingEmirate : t.deliveryPending}</span>
+                <span className="italic text-stone-400">{t.deliveryPending}</span>
               )}
             </div>
 
@@ -676,13 +639,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ open, onClose, onBack, la
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
                     {t.delivery}
                   </span>
-                  {deliveryReady ? (
+                  {isUAE ? (
+                    <span className="text-sm font-bold text-stone-700">{t.free}</span>
+                  ) : deliveryReady ? (
                     <span className="text-sm text-stone-700">
                       {currency} {deliveryRate.toLocaleString()}
                     </span>
                   ) : (
                     <span className="text-[10px] italic text-stone-400">
-                      {isUAE ? t.deliveryPendingEmirate : t.deliveryPending}
+                      {t.deliveryPending}
                     </span>
                   )}
                 </div>

@@ -15,9 +15,10 @@ export interface CartItem {
   image: string;
   availability: Availability;
   quantity: number;
-  /** Shop collection key (e.g. "art-links"). Checkout ships Aura Link bundles
-   *  like custom chains. */
-  collection?: string;
+  /** Sanity keys of the selected variant and size. The checkout server looks the
+   *  price up from these; it never accepts a price from the browser. */
+  variantKey?: string;
+  sizeKey?: string;
   /** Selected colour variant's display name (current language) — absent when the
    *  product has no variants. `title` already includes it ("Paravent Rome — Gold");
    *  this is kept separately so checkout can send it as the Stripe description. */

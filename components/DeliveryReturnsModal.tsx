@@ -33,6 +33,8 @@ const getContent = (lang: Language) => {
       photos:
         "يُرجى إرفاق صور للقطعة والتغليف عند التواصل معنا — فهذا يساعدنا على حل حالتك بأسرع وقت ممكن.",
       deliveryHeading: "التوصيل",
+      freeDeliveryHeading: "توصيل مجاني داخل الإمارات",
+      freeDelivery: "التوصيل مجاني لجميع الطلبات داخل دولة الإمارات العربية المتحدة.",
       deliveryIntro:
         "تُراجَع كل الطلبات وتُتحقَّق من قِبل فريقنا قبل إرسالها — فنحن نحرص على أن يكون كل شيء مثالياً قبل وصوله إليك. يُرجى السماح بمدة تصل إلى يوم إلى يومي عمل لمعالجة الطلب. تُعالَج الطلبات المقدَّمة في عطلات نهاية الأسبوع أو العطلات الرسمية في يوم العمل التالي.",
       inStockHeading: "متوفر في المخزون",
@@ -73,6 +75,8 @@ const getContent = (lang: Language) => {
     photos:
       "Please include photos of the item and packaging when contacting us — this helps us resolve your case as quickly as possible.",
     deliveryHeading: "Delivery",
+    freeDeliveryHeading: "Free UAE Delivery",
+    freeDelivery: "Delivery is free on all orders within the United Arab Emirates.",
     deliveryIntro:
       "Every order is reviewed and verified by our team before it is dispatched — we want to make sure everything is perfect before it reaches you. Please allow up to 1–2 business days for order processing. Orders placed on weekends or public holidays will be processed on the following business day.",
     inStockHeading: "In Stock",
@@ -173,6 +177,10 @@ const DeliveryReturnsContent: React.FC<{ lang: Language }> = ({ lang }) => {
 
               <p>{t.deliveryIntro}</p>
 
+              <div>
+                <h3 className={h3}>{t.freeDeliveryHeading}</h3>
+                <p>{t.freeDelivery}</p>
+              </div>
               <div>
                 <h3 className={h3}>{t.inStockHeading}</h3>
                 <p>{t.inStock}</p>

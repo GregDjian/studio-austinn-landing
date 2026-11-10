@@ -10,6 +10,7 @@ import ChainBuilder from "./ChainBuilder";
 import ProductImageCarousel from "./ProductImageCarousel";
 import ArWallButton from "./ArWallButton";
 import { useDeliveryPolicy } from "./DeliveryReturnsModal";
+import { FREE_DELIVERY_TEXT } from "../lib/shippingConfig";
 import Footer from "./Footer";
 
 // Matches actual desktop navbar height: py-4 (1rem) + logo h-20 (5rem) + py-4 (1rem) = 7rem.
@@ -180,11 +181,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenChec
       title:        [baseTitle, variantName, sizeLabel].filter(Boolean).join(" — "),
       variantName,
       sizeLabel,
+      variantKey:   selectedVariant?._key,
+      sizeKey:      selectedSize?._key,
       price:        displayPrice ?? 0,
       currency:     product.currency,
       image:        photo ? imgUrl.thumb(photo) : "",
       availability: availability!,
-      collection:   product.collection,
     };
   };
 
@@ -475,6 +477,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenChec
 
                   {tab === "delivery" && (
                     <div className="flex flex-col gap-3">
+                      <p className="text-sm font-bold text-stone-700">{FREE_DELIVERY_TEXT[lang]}</p>
                       <p className="font-serif text-stone-600 text-sm leading-relaxed">
                         {availability === "in_stock"
                           ? t.deliveryInStock
@@ -696,8 +699,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ lang, setLang, onOpenChec
                   </button>
                 )}
 
+                <p className="text-[11px] font-bold text-stone-700 mt-3">{FREE_DELIVERY_TEXT[lang]}</p>
+
                 {/* Trust microcopy */}
-                <p className="text-[10px] text-stone-400 mt-2.5 leading-relaxed">
+                <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">
                   {t.trustPrefix}{" "}
                   <button
                     type="button"

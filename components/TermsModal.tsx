@@ -42,13 +42,13 @@ const SECTIONS: Section[] = [
     paragraphs: [
       "A binding sales agreement between the User and Atelier Austinn Trading LLC is formed when the User receives an order confirmation email confirming availability and estimated delivery time.",
       "For made-to-order and custom pieces, payment must be received in full before production begins. Atelier Austinn Trading LLC reserves the right to refuse to process an order at its sole discretion.",
-      "All prices are displayed in AED and are inclusive of UAE VAT. Delivery charges are calculated at checkout based on destination and order size. We accept payment by Visa and MasterCard credit/debit cards. The cardholder must retain a copy of transaction records and merchant policies.",
+      "All prices are displayed in AED and are inclusive of UAE VAT. Delivery within the UAE is free of charge. We accept payment by Visa and MasterCard credit/debit cards. The cardholder must retain a copy of transaction records and merchant policies.",
     ],
   },
   {
     heading: "Delivery & Storage",
     paragraphs: [
-      "Delivery charges vary by destination and are stated at checkout. Delivery times vary by product and availability — please refer to each product's page for estimated timelines.",
+      "Delivery within the UAE is free of charge. Delivery times vary by product and availability — please refer to each product's page for estimated timelines.",
       "In-stock items are dispatched within 24–72 hours of order approval. Made-to-order pieces carry a standard lead time of 1–4 weeks, subject to current production load. We will keep you informed of any delays.",
       "Atelier Austinn Trading LLC reserves the right to deliver items from the same order separately.",
       "Any closure, blockage, or disruption affecting maritime routes, ports, or shipping corridors due to geopolitical events, conflict, security incidents, or circumstances beyond our reasonable control may result in unforeseeable delays. In such circumstances, Atelier Austinn Trading LLC shall not be liable for resulting delays and delivery timelines shall be extended accordingly.",

@@ -1,5 +1,6 @@
 import { sanityClient } from "./sanityClient";
 import { SHOW_ARTISTIC_PARTITIONS } from "./shopConfig";
+import { ART_PRICE_UPLIFT, hasArtPriceUplift } from "./shippingConfig";
 
 /* =========================
    ARTISTS
@@ -68,8 +69,19 @@ export async function getProjects() {
 const PARTITIONS_FILTER = SHOW_ARTISTIC_PARTITIONS ? "" : ' && collection != "artistic-partitions"';
 const SHOP_FILTER = ` && showInShop != false${PARTITIONS_FILTER}`;
 
+// Art prices include the free-delivery uplift everywhere on the site (see shippingConfig).
+function withArtPriceUplift(product: any) {
+  if (!hasArtPriceUplift(product)) return product;
+  const uplift = (price: unknown) => (typeof price === "number" ? price + ART_PRICE_UPLIFT : price);
+  return {
+    ...product,
+    price: uplift(product.price),
+    sizes: product.sizes?.map((size: any) => size && { ...size, price: uplift(size.price) }),
+  };
+}
+
 export async function getProducts() {
-  return sanityClient.fetch(`
+  const products = await sanityClient.fetch(`
     *[_type == "product"${SHOP_FILTER}] | order(featured desc, _createdAt desc) {
       _id,
       _createdAt,
@@ -90,10 +102,11 @@ export async function getProducts() {
       collection
     }
   `);
+  return products.map(withArtPriceUplift);
 }
 
 export async function getProductBySlug(slug: string) {
-  return sanityClient.fetch(
+  const product = await sanityClient.fetch(
     `*[_type == "product" && slug.current == $slug${SHOP_FILTER}][0] {
       _id,
       "productType": coalesce(productType, "bundle"),
@@ -125,6 +138,7 @@ export async function getProductBySlug(slug: string) {
     }`,
     { slug }
   );
+  return product && withArtPriceUplift(product);
 }
 
 /* =========================

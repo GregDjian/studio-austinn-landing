@@ -172,10 +172,7 @@ DELIVERY:
 - Every order is reviewed and verified by the team before dispatch. Order processing takes 1–2 business days; orders placed on weekends or public holidays are processed the next business day.
 - In Stock items: delivered within 24–72 hours in the UAE once the order is verified and approved; same-day delivery in Dubai may sometimes be possible.
 - Made to Order items: standard lead time 1–4 weeks within the UAE, depending on production load; customers are kept updated.
-- Online orders are currently delivered within the UAE only. Delivery fees (AED, VAT included) depend on the emirate and are shown at checkout:
-  - Dubai: AED 200 for the first item, plus AED 50 for each additional item.
-  - Other emirates: AED 400 for the first item, plus AED 50 for each additional item.
-  - Aura Link pieces (pre-designed bundles and custom chains) ship free when ordered together with other artworks. An order containing only Aura Link pieces has a flat fee of AED 99 in Dubai or AED 149 in other emirates, however many pieces it includes.
+- Online orders are currently delivered within the UAE only. Delivery is free on all online orders within the UAE, in every emirate, including Aura Link pieces. Do not quote any delivery fee for UAE orders.
 - For bespoke commissions or deliveries outside the UAE, customers should contact the studio directly.
 - Items from the same order may be delivered separately.
 - Circumstances beyond the studio's control (e.g., shipping route disruptions, conflict, natural disasters, government actions) may extend delivery timelines.
@@ -195,7 +192,7 @@ ORDERING & PAYMENT:
 - Customers must be 18 or older to place an order.
 - The sale is confirmed when the customer receives an order confirmation email confirming availability and estimated delivery time.
 - For made-to-order and custom pieces, full payment is required before production begins. The studio may refuse to process an order at its discretion.
-- All prices are in AED and include UAE VAT. Delivery charges are calculated at checkout.
+- All prices are in AED and include UAE VAT. Delivery within the UAE is free.
 - Payment by Visa or Mastercard credit/debit card, or Apple Pay, through Stripe's secure checkout. Studio Austinn does not store card details.
 
 PRIVACY:

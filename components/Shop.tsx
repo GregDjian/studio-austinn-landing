@@ -5,6 +5,7 @@ import { Availability, Language, Product } from "../types";
 import { getProducts, getCollections, CollectionMeta } from "../lib/sanityQueries";
 import { imgUrl } from "../lib/sanityImage";
 import { SHOW_ARTISTIC_PARTITIONS } from "../lib/shopConfig";
+import { FREE_DELIVERY_TEXT } from "../lib/shippingConfig";
 import Footer from "./Footer";
 
 interface ShopProps {
@@ -401,6 +402,9 @@ const Shop: React.FC<ShopProps> = ({ lang }) => {
       className="min-h-screen bg-stone-50 pt-36 pb-24 px-6 md:px-12"
     >
       {/* ── Editorial statement — stands in for the page title ─────────────── */}
+      <p className="mb-5 text-center text-[10px] font-bold uppercase tracking-[0.25em] text-stone-700">
+        {FREE_DELIVERY_TEXT[lang]}
+      </p>
       <p className="max-w-2xl mx-auto mb-12 md:mb-16 text-center font-serif italic text-stone-500 text-sm md:text-base leading-relaxed">
         {t.statementLead}{" "}
         <Link

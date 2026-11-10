@@ -3,6 +3,7 @@ import { vatPortion, formatFixed } from "../lib/vat";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Language } from "../types";
 import { useCart, isLooseLinkItem } from "./CartContext";
+import { FREE_DELIVERY_TEXT } from "../lib/shippingConfig";
 
 interface CartDrawerProps {
   open: boolean;
@@ -215,6 +216,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, lang, onCheckout
               <span>{t.includesVat}</span>
               <span>{currency} {formatFixed(vatPortion(totalPrice))}</span>
             </div>
+            <p className="-mt-2 text-[11px] font-bold text-stone-700">{FREE_DELIVERY_TEXT[lang]}</p>
             <button
               onClick={onCheckout}
               className="w-full py-4 bg-stone-900 text-white font-sans font-bold text-[11px] uppercase tracking-[0.25em] hover:bg-stone-700 transition-colors"

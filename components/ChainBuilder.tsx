@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDeliveryPolicy } from "./DeliveryReturnsModal";
+import { FREE_DELIVERY_TEXT } from "../lib/shippingConfig";
 import { Plus, X, RotateCcw, ChevronUp, Palette, Ruler, Sun, Moon, Loader2 } from "lucide-react";
 import { toJpeg } from "html-to-image";
 import {
@@ -961,16 +962,19 @@ const ChainBuilder: React.FC<ChainBuilderProps> = ({
   }`;
 
   const trustNote = (
-    <p className="text-[10px] text-stone-400 leading-relaxed">
-      {t.trustPrefix}{" "}
-      <button
-        type="button"
-        onClick={openDeliveryPolicy}
-        className="underline underline-offset-2 hover:text-stone-600 transition-colors"
-      >
-        {t.termsLink}
-      </button>
-    </p>
+    <div className="flex flex-col gap-1">
+      <p className="text-[11px] font-bold text-stone-700">{FREE_DELIVERY_TEXT[lang]}</p>
+      <p className="text-[10px] text-stone-400 leading-relaxed">
+        {t.trustPrefix}{" "}
+        <button
+          type="button"
+          onClick={openDeliveryPolicy}
+          className="underline underline-offset-2 hover:text-stone-600 transition-colors"
+        >
+          {t.termsLink}
+        </button>
+      </p>
+    </div>
   );
 
   // Selected links — count per colour, e.g. "3× Dark Khaki"

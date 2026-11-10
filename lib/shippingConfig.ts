@@ -7,12 +7,19 @@
 // functions don't import from the app) — change both together.
 export const UAE_ONLY = true;
 
-// UAE delivery rates (AED, VAT-inclusive). "Chains" are custom chains and Aura Link
-// (art-links) bundles. Every non-chain unit in the cart is an item: the first costs
-// `firstItem`, each additional one `additionalItem`. Chains ship free alongside other
-// items; a chains-only cart pays one flat `chains` fee, however many chains there are.
-export const UAE_DELIVERY = {
-  dubai:          { firstItem: 200, chains: 99  },
-  otherEmirates:  { firstItem: 400, chains: 149 },
-  additionalItem: 50,
+// Delivery within the UAE is free. To cover it, every art unit costs this much (AED,
+// VAT-inclusive) more than the price entered in Sanity. Aura Link bundles and custom
+// chains are excluded: their Sanity prices are what the customer pays.
+//
+// NOTE: the amount customers are charged is worked out in
+// api/create-checkout-session.ts, which keeps its own copy of this rule — change both
+// together.
+export const ART_PRICE_UPLIFT = 200;
+
+export const hasArtPriceUplift = (product: { productType?: string; collection?: string | null }): boolean =>
+  product.productType !== "loose-link" && (product.collection ?? "art-links") !== "art-links";
+
+export const FREE_DELIVERY_TEXT = {
+  en: "Free delivery across the UAE",
+  ar: "توصيل مجاني داخل الإمارات",
 };
